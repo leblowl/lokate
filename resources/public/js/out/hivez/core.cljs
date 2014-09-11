@@ -11,14 +11,26 @@
 (def app-state
   (atom {}))
 
+(defn goog-map [data owner]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/div #js {:className "map"} "map"))))
+
+(defn hive-info [data owner]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/div #js {:className "info"} "info"))))
+
 (defn app [data owner]
   (om/component
-   (dom/div #js {:className "content"}
-     (dom/div #js {:className "row"}
-       (dom/div #js {:className "map-container small-1 small-centered column"}
-                "map"))
-     (dom/div #js {:className "row"}
-       (dom/div #js {:className "info-container small-1 small-centered column"}
-                "info")))))
+   (dom/div #js {:className "content-liner"}
+     (dom/div #js {:className "row map-row"}
+       (dom/div #js {:className "map-column small-1 small-centered column"}
+         (om/build goog-map data)))
+     (dom/div #js {:className "row info-row"}
+       (dom/div #js {:className "info-column small-1 small-centered column"}
+         (om/build hive-info data))))))
 
 (om/root app app-state {:target (.getElementById js/document "content")})

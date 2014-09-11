@@ -1,7 +1,50 @@
-.map-container {
+body, html {
+    height: 100%;
+    width: 100%;
+}
+
+#content {
+    height: 100%;
+}
+
+.content-liner {
+    height: 100%;
+}
+
+.row {
     height: 50%;
 }
 
-.info-container {
-    height: 50%;
+.column {
+    height: 100%;
+}
+
+.map-row {
+    background-color: #313a75;
+}
+
+.info-row {
+    background-color: #7c83af;
+}
+
+p {
+    vertical-align: middle;
+}
+
+.map-column {
+    display: table;
+}
+
+.map {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.info-column {
+    display: table;
+}
+
+.info {
+    display: table-cell;
+    vertical-align: middle;
 }
