@@ -13,9 +13,23 @@
 
 (defn goog-map [data owner]
   (reify
+    om/IDidMount
+    (did-mount [this]
+      (let [map-options #js {:center #js {:lat 0 :lng 0}
+                             :zoom 8}
+            map (google.maps.Map. (.getElementById js/document "map-canvas")
+                                  map-options)]
+        (if navigator.geolocation
+          (.getCurrentPosition navigator.geolocation
+           (fn [pos]
+             (let [initialLoc (google.maps.LatLng. (.-coords.latitude pos)
+                                                   (.-coords.longitude pos))]
+               (.setCenter map initialLoc))))
+          (println "no location!"))))
     om/IRender
     (render [this]
-      (dom/div #js {:className "map"} "map"))))
+      (dom/div #js {:className "map"}
+        (dom/div #js {:id "map-canvas"})))))
 
 (defn hive-info [data owner]
   (reify

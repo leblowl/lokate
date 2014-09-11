@@ -33,11 +33,18 @@ p {
 
 .map-column {
     display: table;
+    width: 100%;
 }
 
 .map {
     display: table-cell;
     vertical-align: middle;
+}
+
+#map-canvas {
+    height: 100%;
+    margin: 0;
+    padding: 1em;
 }
 
 .info-column {
