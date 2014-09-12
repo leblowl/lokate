@@ -9,7 +9,16 @@
 (enable-console-print!)
 
 (def app-state
-  (atom {}))
+  (atom {:hives {}
+         :active "DUDE!"}))
+
+(defn mark-pos [map pos]
+  (google.maps.Marker. #js {:position pos
+                            :map map
+                            :title "hive"}))
+
+(defn display-info [hive]
+  (:title (:info hive)))
 
 (defn goog-map [data owner]
   (reify
@@ -19,13 +28,29 @@
                              :zoom 8}
             map (google.maps.Map. (.getElementById js/document "map-canvas")
                                   map-options)]
+
+        (google.maps.event.addListener map
+                                       "rightclick"
+                                       (fn [evt] (let [marker (mark-pos map (.-latLng evt))]
+                                                  (om/transact! data
+                                                                :hives
+                                                                (fn [_] (assoc _ (keyword (.-title marker)) {:obj marker
+                                                                                                            :info {:title (.-title marker)}})))
+
+                                                  (google.maps.event.addListener marker
+                                                                                 "click"
+                                                                                 #(om/update! data [:active] ((keyword (.-title marker)) (:hives @data))))
+                                                  (google.maps.event.addListener marker
+                                                                                 "rightclick"
+                                                                                 #(.setMap marker nil)))))
         (if navigator.geolocation
           (.getCurrentPosition navigator.geolocation
            (fn [pos]
              (let [initialLoc (google.maps.LatLng. (.-coords.latitude pos)
                                                    (.-coords.longitude pos))]
                (.setCenter map initialLoc))))
-          (println "no location!"))))
+          (println "Hey, where'd you go!? Geolocation Disabled"))))
+
     om/IRender
     (render [this]
       (dom/div #js {:className "map"}
@@ -35,7 +60,7 @@
   (reify
     om/IRender
     (render [this]
-      (dom/div #js {:className "info"} "info"))))
+      (dom/div #js {:className "info"} (display-info (:active data))))))
 
 (defn app [data owner]
   (om/component
