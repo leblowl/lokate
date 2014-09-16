@@ -3,6 +3,10 @@ body, html {
     width: 100%;
 }
 
+div {
+    box-sizing: border-box;
+}
+
 #content {
     height: 100%;
 }
@@ -32,19 +36,19 @@ p {
 }
 
 .map-column {
-    display: table;
     width: 100%;
 }
 
 .map {
-    display: table-cell;
-    vertical-align: middle;
+    display: flex;
+    height: 100%;
+    padding: 1em;
 }
 
 #map-canvas {
     height: 100%;
-    margin: 0;
-    padding: 1em;
+    width: 100%;
+    margin: auto;
 }
 
 .info-column {
