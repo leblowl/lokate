@@ -86,3 +86,7 @@
 
 (.addEventListener js/window "orientationchange" handleOrientation)
 (om/root app app-state {:target (.getElementById js/document "content")})
+  (swap! app-state #(assoc % :orientation
+                              (if (= (.-orientation js/window) 0)
+                                :portrait
+                                :landscape)))

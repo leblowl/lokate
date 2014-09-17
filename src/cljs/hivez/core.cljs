@@ -65,9 +65,9 @@
     (render [this]
       (dom/div #js {:className "info"} (display-info (:active data))))))
 
-(defn handleOrientation []
+(defn handleOrientation [evt]
   (swap! app-state #(assoc % :orientation
-                              (if (= (.-orientation js/window) 0)
+                              (if (= (.-gamma evt) 0)
                                 :portrait
                                 :landscape))))
 
@@ -84,5 +84,5 @@
               (om/build hive-info data))))
         (dom/div nil "landscape!!!")))))
 
-(.addEventListener js/window "orientationchange" handleOrientation)
+(.addEventListener js/window "deviceorientation" handleOrientation true)
 (om/root app app-state {:target (.getElementById js/document "content")})
