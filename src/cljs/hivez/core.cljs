@@ -66,10 +66,10 @@
       (dom/div #js {:className "info"} (display-info (:active data))))))
 
 (defn handleOrientation []
-  (om/update! app-state [:orientation] (if (= (.-orientation js/screen) 0)
-                                         :portrait
-                                         :landscape))
-  (js/alert "hey"))
+  (swap! app-state #(assoc % :orientation
+                              (if (= (.-orientation js/window) 0)
+                                :portrait
+                                :landscape))))
 
 (defn app [data owner]
   (om/component
@@ -84,5 +84,5 @@
               (om/build hive-info data))))
         (dom/div nil "landscape!!!")))))
 
-(.addEventListener js/screen "orientationchange" handleOrientation)
+(.addEventListener js/window "orientationchange" handleOrientation)
 (om/root app app-state {:target (.getElementById js/document "content")})
