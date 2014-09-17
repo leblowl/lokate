@@ -32,19 +32,20 @@
         (google.maps.event.addListener
           map
           "rightclick"
-          (fn [evt] (let [marker (mark-pos map (.-latLng evt))]
-                     (om/transact! data
-                       :hives
-                       (fn [_]
-                         (assoc _ (keyword (.-title marker)) {:obj marker
-                                                              :info {:title (.-title marker)}})))
+          (fn [evt]
+            (let [marker (mark-pos map (.-latLng evt))]
+              (om/transact! data
+                :hives
+                (fn [_]
+                  (assoc _ (keyword (.-title marker)) {:obj marker
+                                                       :info {:title (.-title marker)}})))
 
-                     (google.maps.event.addListener marker
-                       "click"
-                       #(om/update! data [:active] ((keyword (.-title marker)) (:hives @data))))
-                     (google.maps.event.addListener marker
-                       "rightclick"
-                       #(.setMap marker nil)))))
+              (google.maps.event.addListener marker
+                "click"
+                #(om/update! data [:active] ((keyword (.-title marker)) (:hives @data))))
+              (google.maps.event.addListener marker
+                "rightclick"
+                #(.setMap marker nil)))))
         (if navigator.geolocation
           (.getCurrentPosition navigator.geolocation
            (fn [pos]
@@ -55,8 +56,7 @@
 
     om/IRender
     (render [this]
-      (dom/div #js {:className "map"}
-        (dom/div #js {:id "map-canvas"})))))
+      (dom/div #js {:id "map-canvas"}))))
 
 (defn hive-info [data owner]
   (reify
@@ -66,7 +66,7 @@
 
 (defn app [data owner]
   (om/component
-    (dom/div #js {:className "small-12 small-centered column" :role "content"}
+    (dom/div #js {:className "content-liner small-12 small-centered column" :role "content"}
      (dom/div #js {:className "row map-row"}
        (dom/div #js {:className "map-column small-12 small-centered column"}
          (om/build goog-map data)))
