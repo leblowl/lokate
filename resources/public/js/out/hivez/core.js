@@ -17,30 +17,30 @@ hivez.core.mark_pos = (function mark_pos(map,pos){return (new google.maps.Marker
 });
 hivez.core.display_info = (function display_info(hive){return new cljs.core.Keyword(null,"title","title",636505583).cljs$core$IFn$_invoke$arity$1(new cljs.core.Keyword(null,"info","info",-317069002).cljs$core$IFn$_invoke$arity$1(hive));
 });
-hivez.core.goog_map = (function goog_map(data,owner){if(typeof hivez.core.t10144 !== 'undefined')
+hivez.core.goog_map = (function goog_map(data,owner){if(typeof hivez.core.t10162 !== 'undefined')
 {} else
 {
 /**
 * @constructor
 */
-hivez.core.t10144 = (function (owner,data,goog_map,meta10145){
+hivez.core.t10162 = (function (owner,data,goog_map,meta10163){
 this.owner = owner;
 this.data = data;
 this.goog_map = goog_map;
-this.meta10145 = meta10145;
+this.meta10163 = meta10163;
 this.cljs$lang$protocol_mask$partition1$ = 0;
 this.cljs$lang$protocol_mask$partition0$ = 393216;
 })
-hivez.core.t10144.cljs$lang$type = true;
-hivez.core.t10144.cljs$lang$ctorStr = "hivez.core/t10144";
-hivez.core.t10144.cljs$lang$ctorPrWriter = (function (this__4137__auto__,writer__4138__auto__,opt__4139__auto__){return cljs.core._write.call(null,writer__4138__auto__,"hivez.core/t10144");
+hivez.core.t10162.cljs$lang$type = true;
+hivez.core.t10162.cljs$lang$ctorStr = "hivez.core/t10162";
+hivez.core.t10162.cljs$lang$ctorPrWriter = (function (this__4137__auto__,writer__4138__auto__,opt__4139__auto__){return cljs.core._write.call(null,writer__4138__auto__,"hivez.core/t10162");
 });
-hivez.core.t10144.prototype.om$core$IRender$ = true;
-hivez.core.t10144.prototype.om$core$IRender$render$arity$1 = (function (this$){var self__ = this;
+hivez.core.t10162.prototype.om$core$IRender$ = true;
+hivez.core.t10162.prototype.om$core$IRender$render$arity$1 = (function (this$){var self__ = this;
 var this$__$1 = this;return React.DOM.div({"id": "map-canvas"});
 });
-hivez.core.t10144.prototype.om$core$IDidMount$ = true;
-hivez.core.t10144.prototype.om$core$IDidMount$did_mount$arity$1 = (function (this$){var self__ = this;
+hivez.core.t10162.prototype.om$core$IDidMount$ = true;
+hivez.core.t10162.prototype.om$core$IDidMount$did_mount$arity$1 = (function (this$){var self__ = this;
 var this$__$1 = this;var map_options = {"zoom": (8), "center": {"lng": (0), "lat": (0)}};var map = (new google.maps.Map(document.getElementById("map-canvas"),map_options));google.maps.event.addListener.call(null,map,"rightclick",((function (map_options,map,this$__$1){
 return (function (evt){var marker = hivez.core.mark_pos.call(null,map,evt.latLng);om.core.transact_BANG_.call(null,self__.data,new cljs.core.Keyword(null,"hives","hives",-1303225483),((function (marker,map_options,map,this$__$1){
 return (function (_){return cljs.core.assoc.call(null,_,cljs.core.keyword.call(null,marker.title),new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null,"obj","obj",981763962),marker,new cljs.core.Keyword(null,"info","info",-317069002),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"title","title",636505583),marker.title], null)], null));
@@ -65,84 +65,85 @@ return (function (pos){var initialLoc = (new google.maps.LatLng(pos.coords.latit
 {return cljs.core.println.call(null,"Hey, where'd you go!? Geolocation Disabled");
 }
 });
-hivez.core.t10144.prototype.cljs$core$IMeta$_meta$arity$1 = (function (_10146){var self__ = this;
-var _10146__$1 = this;return self__.meta10145;
+hivez.core.t10162.prototype.cljs$core$IMeta$_meta$arity$1 = (function (_10164){var self__ = this;
+var _10164__$1 = this;return self__.meta10163;
 });
-hivez.core.t10144.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (_10146,meta10145__$1){var self__ = this;
-var _10146__$1 = this;return (new hivez.core.t10144(self__.owner,self__.data,self__.goog_map,meta10145__$1));
+hivez.core.t10162.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (_10164,meta10163__$1){var self__ = this;
+var _10164__$1 = this;return (new hivez.core.t10162(self__.owner,self__.data,self__.goog_map,meta10163__$1));
 });
-hivez.core.__GT_t10144 = (function __GT_t10144(owner__$1,data__$1,goog_map__$1,meta10145){return (new hivez.core.t10144(owner__$1,data__$1,goog_map__$1,meta10145));
+hivez.core.__GT_t10162 = (function __GT_t10162(owner__$1,data__$1,goog_map__$1,meta10163){return (new hivez.core.t10162(owner__$1,data__$1,goog_map__$1,meta10163));
 });
 }
-return (new hivez.core.t10144(owner,data,goog_map,null));
+return (new hivez.core.t10162(owner,data,goog_map,null));
 });
-hivez.core.hive_info = (function hive_info(data,owner){if(typeof hivez.core.t10150 !== 'undefined')
+hivez.core.hive_info = (function hive_info(data,owner){if(typeof hivez.core.t10168 !== 'undefined')
 {} else
 {
 /**
 * @constructor
 */
-hivez.core.t10150 = (function (owner,data,hive_info,meta10151){
+hivez.core.t10168 = (function (owner,data,hive_info,meta10169){
 this.owner = owner;
 this.data = data;
 this.hive_info = hive_info;
-this.meta10151 = meta10151;
+this.meta10169 = meta10169;
 this.cljs$lang$protocol_mask$partition1$ = 0;
 this.cljs$lang$protocol_mask$partition0$ = 393216;
 })
-hivez.core.t10150.cljs$lang$type = true;
-hivez.core.t10150.cljs$lang$ctorStr = "hivez.core/t10150";
-hivez.core.t10150.cljs$lang$ctorPrWriter = (function (this__4137__auto__,writer__4138__auto__,opt__4139__auto__){return cljs.core._write.call(null,writer__4138__auto__,"hivez.core/t10150");
+hivez.core.t10168.cljs$lang$type = true;
+hivez.core.t10168.cljs$lang$ctorStr = "hivez.core/t10168";
+hivez.core.t10168.cljs$lang$ctorPrWriter = (function (this__4137__auto__,writer__4138__auto__,opt__4139__auto__){return cljs.core._write.call(null,writer__4138__auto__,"hivez.core/t10168");
 });
-hivez.core.t10150.prototype.om$core$IRender$ = true;
-hivez.core.t10150.prototype.om$core$IRender$render$arity$1 = (function (this$){var self__ = this;
+hivez.core.t10168.prototype.om$core$IRender$ = true;
+hivez.core.t10168.prototype.om$core$IRender$render$arity$1 = (function (this$){var self__ = this;
 var this$__$1 = this;return React.DOM.div({"className": "info"},hivez.core.display_info.call(null,new cljs.core.Keyword(null,"active","active",1895962068).cljs$core$IFn$_invoke$arity$1(self__.data)));
 });
-hivez.core.t10150.prototype.cljs$core$IMeta$_meta$arity$1 = (function (_10152){var self__ = this;
-var _10152__$1 = this;return self__.meta10151;
+hivez.core.t10168.prototype.cljs$core$IMeta$_meta$arity$1 = (function (_10170){var self__ = this;
+var _10170__$1 = this;return self__.meta10169;
 });
-hivez.core.t10150.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (_10152,meta10151__$1){var self__ = this;
-var _10152__$1 = this;return (new hivez.core.t10150(self__.owner,self__.data,self__.hive_info,meta10151__$1));
+hivez.core.t10168.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (_10170,meta10169__$1){var self__ = this;
+var _10170__$1 = this;return (new hivez.core.t10168(self__.owner,self__.data,self__.hive_info,meta10169__$1));
 });
-hivez.core.__GT_t10150 = (function __GT_t10150(owner__$1,data__$1,hive_info__$1,meta10151){return (new hivez.core.t10150(owner__$1,data__$1,hive_info__$1,meta10151));
+hivez.core.__GT_t10168 = (function __GT_t10168(owner__$1,data__$1,hive_info__$1,meta10169){return (new hivez.core.t10168(owner__$1,data__$1,hive_info__$1,meta10169));
 });
 }
-return (new hivez.core.t10150(owner,data,hive_info,null));
+return (new hivez.core.t10168(owner,data,hive_info,null));
 });
-hivez.core.handleOrientation = (function handleOrientation(){return om.core.update_BANG_.call(null,hivez.core.app_state,new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"orientation","orientation",623557579)], null),((cljs.core._EQ_.call(null,window.orientation,(0)))?new cljs.core.Keyword(null,"portrait","portrait",-9810007):new cljs.core.Keyword(null,"landscape","landscape",1519839253)));
+hivez.core.handleOrientation = (function handleOrientation(){om.core.update_BANG_.call(null,hivez.core.app_state,new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"orientation","orientation",623557579)], null),((cljs.core._EQ_.call(null,window.orientation,(0)))?new cljs.core.Keyword(null,"portrait","portrait",-9810007):new cljs.core.Keyword(null,"landscape","landscape",1519839253)));
+return alert("hey");
 });
-hivez.core.app = (function app(data,owner){if(typeof hivez.core.t10156 !== 'undefined')
+hivez.core.app = (function app(data,owner){if(typeof hivez.core.t10174 !== 'undefined')
 {} else
 {
 /**
 * @constructor
 */
-hivez.core.t10156 = (function (owner,data,app,meta10157){
+hivez.core.t10174 = (function (owner,data,app,meta10175){
 this.owner = owner;
 this.data = data;
 this.app = app;
-this.meta10157 = meta10157;
+this.meta10175 = meta10175;
 this.cljs$lang$protocol_mask$partition1$ = 0;
 this.cljs$lang$protocol_mask$partition0$ = 393216;
 })
-hivez.core.t10156.cljs$lang$type = true;
-hivez.core.t10156.cljs$lang$ctorStr = "hivez.core/t10156";
-hivez.core.t10156.cljs$lang$ctorPrWriter = (function (this__4137__auto__,writer__4138__auto__,opt__4139__auto__){return cljs.core._write.call(null,writer__4138__auto__,"hivez.core/t10156");
+hivez.core.t10174.cljs$lang$type = true;
+hivez.core.t10174.cljs$lang$ctorStr = "hivez.core/t10174";
+hivez.core.t10174.cljs$lang$ctorPrWriter = (function (this__4137__auto__,writer__4138__auto__,opt__4139__auto__){return cljs.core._write.call(null,writer__4138__auto__,"hivez.core/t10174");
 });
-hivez.core.t10156.prototype.om$core$IRender$ = true;
-hivez.core.t10156.prototype.om$core$IRender$render$arity$1 = (function (this__5153__auto__){var self__ = this;
+hivez.core.t10174.prototype.om$core$IRender$ = true;
+hivez.core.t10174.prototype.om$core$IRender$render$arity$1 = (function (this__5153__auto__){var self__ = this;
 var this__5153__auto____$1 = this;return React.DOM.div({"className": "content-liner"},((cljs.core._EQ_.call(null,new cljs.core.Keyword(null,"orientation","orientation",623557579).cljs$core$IFn$_invoke$arity$1(self__.data),new cljs.core.Keyword(null,"portrait","portrait",-9810007)))?React.DOM.div({"role": "content", "className": "small-12 small-centered column"},React.DOM.div({"className": "row map-row"},React.DOM.div({"className": "map-column small-12 small-centered column"},om.core.build.call(null,hivez.core.goog_map,self__.data))),React.DOM.div({"className": "row info-row"},React.DOM.div({"className": "info-column small-12 small-centered column"},om.core.build.call(null,hivez.core.hive_info,self__.data)))):React.DOM.div(null,"landscape!!!")));
 });
-hivez.core.t10156.prototype.cljs$core$IMeta$_meta$arity$1 = (function (_10158){var self__ = this;
-var _10158__$1 = this;return self__.meta10157;
+hivez.core.t10174.prototype.cljs$core$IMeta$_meta$arity$1 = (function (_10176){var self__ = this;
+var _10176__$1 = this;return self__.meta10175;
 });
-hivez.core.t10156.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (_10158,meta10157__$1){var self__ = this;
-var _10158__$1 = this;return (new hivez.core.t10156(self__.owner,self__.data,self__.app,meta10157__$1));
+hivez.core.t10174.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (_10176,meta10175__$1){var self__ = this;
+var _10176__$1 = this;return (new hivez.core.t10174(self__.owner,self__.data,self__.app,meta10175__$1));
 });
-hivez.core.__GT_t10156 = (function __GT_t10156(owner__$1,data__$1,app__$1,meta10157){return (new hivez.core.t10156(owner__$1,data__$1,app__$1,meta10157));
+hivez.core.__GT_t10174 = (function __GT_t10174(owner__$1,data__$1,app__$1,meta10175){return (new hivez.core.t10174(owner__$1,data__$1,app__$1,meta10175));
 });
 }
-return (new hivez.core.t10156(owner,data,app,null));
+return (new hivez.core.t10174(owner,data,app,null));
 });
 window.addEventListener("orientationchange",hivez.core.handleOrientation);
 om.core.root.call(null,hivez.core.app,hivez.core.app_state,new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"target","target",253001721),document.getElementById("content")], null));

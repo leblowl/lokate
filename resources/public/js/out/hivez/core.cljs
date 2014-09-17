@@ -68,7 +68,8 @@
 (defn handleOrientation []
   (om/update! app-state [:orientation] (if (= (.-orientation js/window) 0)
                                          :portrait
-                                         :landscape)))
+                                         :landscape))
+  (js/alert "hey"))
 
 (defn app [data owner]
   (om/component
