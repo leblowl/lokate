@@ -109,7 +109,7 @@ hivez.core.__GT_t10168 = (function __GT_t10168(owner__$1,data__$1,hive_info__$1,
 }
 return (new hivez.core.t10168(owner,data,hive_info,null));
 });
-hivez.core.handleOrientation = (function handleOrientation(){om.core.update_BANG_.call(null,hivez.core.app_state,new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"orientation","orientation",623557579)], null),((cljs.core._EQ_.call(null,window.orientation,(0)))?new cljs.core.Keyword(null,"portrait","portrait",-9810007):new cljs.core.Keyword(null,"landscape","landscape",1519839253)));
+hivez.core.handleOrientation = (function handleOrientation(){om.core.update_BANG_.call(null,hivez.core.app_state,new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [new cljs.core.Keyword(null,"orientation","orientation",623557579)], null),((cljs.core._EQ_.call(null,screen.orientation,(0)))?new cljs.core.Keyword(null,"portrait","portrait",-9810007):new cljs.core.Keyword(null,"landscape","landscape",1519839253)));
 return alert("hey");
 });
 hivez.core.app = (function app(data,owner){if(typeof hivez.core.t10174 !== 'undefined')
@@ -145,7 +145,7 @@ hivez.core.__GT_t10174 = (function __GT_t10174(owner__$1,data__$1,app__$1,meta10
 }
 return (new hivez.core.t10174(owner,data,app,null));
 });
-window.addEventListener("orientationchange",hivez.core.handleOrientation,false);
+screen.addEventListener("orientationchange",hivez.core.handleOrientation);
 om.core.root.call(null,hivez.core.app,hivez.core.app_state,new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"target","target",253001721),document.getElementById("content")], null));
 
 //# sourceMappingURL=core.js.map
