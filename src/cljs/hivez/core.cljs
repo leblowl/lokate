@@ -66,7 +66,7 @@
 
 (defn app [data owner]
   (om/component
-    (dom/div #js {:className "content-liner small-12 small-centered column" :role "content"}
+    (dom/div #js {:className "content-liner small-12 small-centered column show-for-landscape" :role "content"}
      (dom/div #js {:className "row map-row"}
        (dom/div #js {:className "map-column small-12 small-centered column"}
          (om/build goog-map data)))
