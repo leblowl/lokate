@@ -9,7 +9,8 @@
 (enable-console-print!)
 
 (def app-state
-  (atom {:hives {}
+  (atom {:orientation :portrait
+         :hives {}
          :active "DUDE!"}))
 
 (defn mark-pos [map pos]
@@ -64,15 +65,22 @@
     (render [this]
       (dom/div #js {:className "info"} (display-info (:active data))))))
 
+(defn handleOrientation []
+  (om/update! app-state [:orientation] (if (= (.-orientation js/window) 0)
+                                         :portrait
+                                         :landscape)))
+
 (defn app [data owner]
   (om/component
-    (dom/div #js {:className "content-liner small-12 small-centered column show-for-landscape" :role "content"}
-     (dom/div #js {:className "row map-row"}
-       (dom/div #js {:className "map-column small-12 small-centered column"}
-         (om/build goog-map data)))
-     (dom/div #js {:className "row info-row"}
-       (dom/div #js {:className "info-column small-12 small-centered column"}
-         (om/build hive-info data)
-         (dom/p nil "hey ther!"))))))
+    (dom/div #js {:className "content-liner"}
+      (if (= (:orientation data) :portrait)
+        (dom/div #js {:className "small-12 small-centered column" :role "content"}
+          (dom/div #js {:className "row map-row"}
+            (dom/div #js {:className "map-column small-12 small-centered column"}
+              (om/build goog-map data)))
+          (dom/div #js {:className "row info-row"}
+            (dom/div #js {:className "info-column small-12 small-centered column"}
+              (om/build hive-info data))))
+        (dom/div nil "landscape!!!")))))
 
 (om/root app app-state {:target (.getElementById js/document "content")})
