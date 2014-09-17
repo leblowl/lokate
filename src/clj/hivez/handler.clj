@@ -3,7 +3,6 @@
             [compojure.handler :refer [api]]
             [compojure.route :as route]
             [ring.util.response :refer [file-response]]
-            [ring.middleware.json :as middleware]
             [org.httpkit.server :as srv]))
 
 (defonce server (atom nil))
@@ -13,13 +12,8 @@
   (route/resources "/")
   (route/not-found "Not Found"))
 
-(def app
-  (-> (api app-routes)
-      (middleware/wrap-json-body)
-      (middleware/wrap-json-response)))
-
 (defn start [port]
-  (reset! server (srv/run-server #'app {:port port})))
+  (reset! server (srv/run-server #'app-routes {:port port})))
 
 (defn -main [& args]
   (start (Integer. (first args))))
