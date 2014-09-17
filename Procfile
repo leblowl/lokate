@@ -1,1 +1,1 @@
-web: lein ring server-headless
+web: lein run -m hivez.handler $PORT
