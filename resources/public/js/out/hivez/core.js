@@ -145,7 +145,7 @@ hivez.core.__GT_t10174 = (function __GT_t10174(owner__$1,data__$1,app__$1,meta10
 }
 return (new hivez.core.t10174(owner,data,app,null));
 });
-window.addEventListener("orientationchange",hivez.core.handleOrientation);
+window.addEventListener("orientationchange",hivez.core.handleOrientation,false);
 om.core.root.call(null,hivez.core.app,hivez.core.app_state,new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"target","target",253001721),document.getElementById("content")], null));
 
 //# sourceMappingURL=core.js.map

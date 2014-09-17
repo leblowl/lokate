@@ -84,5 +84,5 @@
               (om/build hive-info data))))
         (dom/div nil "landscape!!!")))))
 
-(.addEventListener js/window "orientationchange" handleOrientation)
+(.addEventListener js/window "orientationchange" handleOrientation false)
 (om/root app app-state {:target (.getElementById js/document "content")})
