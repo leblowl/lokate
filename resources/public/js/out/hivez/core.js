@@ -12,35 +12,35 @@ goog.require('cljs.core.async');
 goog.require('goog.events');
 goog.require('goog.events');
 cljs.core.enable_console_print_BANG_.call(null);
-hivez.core.app_state = cljs.core.atom.call(null,new cljs.core.PersistentArrayMap(null, 3, [new cljs.core.Keyword(null,"orientation","orientation",623557579),new cljs.core.Keyword(null,"portrait","portrait",-9810007),new cljs.core.Keyword(null,"hives","hives",-1303225483),cljs.core.PersistentArrayMap.EMPTY,new cljs.core.Keyword(null,"active","active",1895962068),"DUDE!"], null));
+hivez.core.app_state = cljs.core.atom.call(null,new cljs.core.PersistentArrayMap(null, 3, [new cljs.core.Keyword(null,"orientation","orientation",623557579),(((window.innerHeight > window.innerWidth))?new cljs.core.Keyword(null,"portrait","portrait",-9810007):new cljs.core.Keyword(null,"landscape","landscape",1519839253)),new cljs.core.Keyword(null,"hives","hives",-1303225483),cljs.core.PersistentArrayMap.EMPTY,new cljs.core.Keyword(null,"active","active",1895962068),"DUDE!"], null));
 hivez.core.mark_pos = (function mark_pos(map,pos){return (new google.maps.Marker({"title": "hive", "map": map, "position": pos}));
 });
 hivez.core.display_info = (function display_info(hive){return new cljs.core.Keyword(null,"title","title",636505583).cljs$core$IFn$_invoke$arity$1(new cljs.core.Keyword(null,"info","info",-317069002).cljs$core$IFn$_invoke$arity$1(hive));
 });
-hivez.core.goog_map = (function goog_map(data,owner){if(typeof hivez.core.t10144 !== 'undefined')
+hivez.core.goog_map = (function goog_map(data,owner){if(typeof hivez.core.t10372 !== 'undefined')
 {} else
 {
 /**
 * @constructor
 */
-hivez.core.t10144 = (function (owner,data,goog_map,meta10145){
+hivez.core.t10372 = (function (owner,data,goog_map,meta10373){
 this.owner = owner;
 this.data = data;
 this.goog_map = goog_map;
-this.meta10145 = meta10145;
+this.meta10373 = meta10373;
 this.cljs$lang$protocol_mask$partition1$ = 0;
 this.cljs$lang$protocol_mask$partition0$ = 393216;
 })
-hivez.core.t10144.cljs$lang$type = true;
-hivez.core.t10144.cljs$lang$ctorStr = "hivez.core/t10144";
-hivez.core.t10144.cljs$lang$ctorPrWriter = (function (this__4137__auto__,writer__4138__auto__,opt__4139__auto__){return cljs.core._write.call(null,writer__4138__auto__,"hivez.core/t10144");
+hivez.core.t10372.cljs$lang$type = true;
+hivez.core.t10372.cljs$lang$ctorStr = "hivez.core/t10372";
+hivez.core.t10372.cljs$lang$ctorPrWriter = (function (this__4137__auto__,writer__4138__auto__,opt__4139__auto__){return cljs.core._write.call(null,writer__4138__auto__,"hivez.core/t10372");
 });
-hivez.core.t10144.prototype.om$core$IRender$ = true;
-hivez.core.t10144.prototype.om$core$IRender$render$arity$1 = (function (this$){var self__ = this;
+hivez.core.t10372.prototype.om$core$IRender$ = true;
+hivez.core.t10372.prototype.om$core$IRender$render$arity$1 = (function (this$){var self__ = this;
 var this$__$1 = this;return React.DOM.div({"id": "map-canvas"});
 });
-hivez.core.t10144.prototype.om$core$IDidMount$ = true;
-hivez.core.t10144.prototype.om$core$IDidMount$did_mount$arity$1 = (function (this$){var self__ = this;
+hivez.core.t10372.prototype.om$core$IDidMount$ = true;
+hivez.core.t10372.prototype.om$core$IDidMount$did_mount$arity$1 = (function (this$){var self__ = this;
 var this$__$1 = this;var map_options = {"zoom": (8), "center": {"lng": (0), "lat": (0)}};var map = (new google.maps.Map(document.getElementById("map-canvas"),map_options));google.maps.event.addListener.call(null,map,"rightclick",((function (map_options,map,this$__$1){
 return (function (evt){var marker = hivez.core.mark_pos.call(null,map,evt.latLng);om.core.transact_BANG_.call(null,self__.data,new cljs.core.Keyword(null,"hives","hives",-1303225483),((function (marker,map_options,map,this$__$1){
 return (function (_){return cljs.core.assoc.call(null,_,cljs.core.keyword.call(null,marker.title),new cljs.core.PersistentArrayMap(null, 2, [new cljs.core.Keyword(null,"obj","obj",981763962),marker,new cljs.core.Keyword(null,"info","info",-317069002),new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"title","title",636505583),marker.title], null)], null));
@@ -65,89 +65,88 @@ return (function (pos){var initialLoc = (new google.maps.LatLng(pos.coords.latit
 {return cljs.core.println.call(null,"Hey, where'd you go!? Geolocation Disabled");
 }
 });
-hivez.core.t10144.prototype.cljs$core$IMeta$_meta$arity$1 = (function (_10146){var self__ = this;
-var _10146__$1 = this;return self__.meta10145;
+hivez.core.t10372.prototype.cljs$core$IMeta$_meta$arity$1 = (function (_10374){var self__ = this;
+var _10374__$1 = this;return self__.meta10373;
 });
-hivez.core.t10144.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (_10146,meta10145__$1){var self__ = this;
-var _10146__$1 = this;return (new hivez.core.t10144(self__.owner,self__.data,self__.goog_map,meta10145__$1));
+hivez.core.t10372.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (_10374,meta10373__$1){var self__ = this;
+var _10374__$1 = this;return (new hivez.core.t10372(self__.owner,self__.data,self__.goog_map,meta10373__$1));
 });
-hivez.core.__GT_t10144 = (function __GT_t10144(owner__$1,data__$1,goog_map__$1,meta10145){return (new hivez.core.t10144(owner__$1,data__$1,goog_map__$1,meta10145));
+hivez.core.__GT_t10372 = (function __GT_t10372(owner__$1,data__$1,goog_map__$1,meta10373){return (new hivez.core.t10372(owner__$1,data__$1,goog_map__$1,meta10373));
 });
 }
-return (new hivez.core.t10144(owner,data,goog_map,null));
+return (new hivez.core.t10372(owner,data,goog_map,null));
 });
-hivez.core.hive_info = (function hive_info(data,owner){if(typeof hivez.core.t10150 !== 'undefined')
+hivez.core.hive_info = (function hive_info(data,owner){if(typeof hivez.core.t10378 !== 'undefined')
 {} else
 {
 /**
 * @constructor
 */
-hivez.core.t10150 = (function (owner,data,hive_info,meta10151){
+hivez.core.t10378 = (function (owner,data,hive_info,meta10379){
 this.owner = owner;
 this.data = data;
 this.hive_info = hive_info;
-this.meta10151 = meta10151;
+this.meta10379 = meta10379;
 this.cljs$lang$protocol_mask$partition1$ = 0;
 this.cljs$lang$protocol_mask$partition0$ = 393216;
 })
-hivez.core.t10150.cljs$lang$type = true;
-hivez.core.t10150.cljs$lang$ctorStr = "hivez.core/t10150";
-hivez.core.t10150.cljs$lang$ctorPrWriter = (function (this__4137__auto__,writer__4138__auto__,opt__4139__auto__){return cljs.core._write.call(null,writer__4138__auto__,"hivez.core/t10150");
+hivez.core.t10378.cljs$lang$type = true;
+hivez.core.t10378.cljs$lang$ctorStr = "hivez.core/t10378";
+hivez.core.t10378.cljs$lang$ctorPrWriter = (function (this__4137__auto__,writer__4138__auto__,opt__4139__auto__){return cljs.core._write.call(null,writer__4138__auto__,"hivez.core/t10378");
 });
-hivez.core.t10150.prototype.om$core$IRender$ = true;
-hivez.core.t10150.prototype.om$core$IRender$render$arity$1 = (function (this$){var self__ = this;
+hivez.core.t10378.prototype.om$core$IRender$ = true;
+hivez.core.t10378.prototype.om$core$IRender$render$arity$1 = (function (this$){var self__ = this;
 var this$__$1 = this;return React.DOM.div({"className": "info"},hivez.core.display_info.call(null,new cljs.core.Keyword(null,"active","active",1895962068).cljs$core$IFn$_invoke$arity$1(self__.data)));
 });
-hivez.core.t10150.prototype.cljs$core$IMeta$_meta$arity$1 = (function (_10152){var self__ = this;
-var _10152__$1 = this;return self__.meta10151;
+hivez.core.t10378.prototype.cljs$core$IMeta$_meta$arity$1 = (function (_10380){var self__ = this;
+var _10380__$1 = this;return self__.meta10379;
 });
-hivez.core.t10150.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (_10152,meta10151__$1){var self__ = this;
-var _10152__$1 = this;return (new hivez.core.t10150(self__.owner,self__.data,self__.hive_info,meta10151__$1));
+hivez.core.t10378.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (_10380,meta10379__$1){var self__ = this;
+var _10380__$1 = this;return (new hivez.core.t10378(self__.owner,self__.data,self__.hive_info,meta10379__$1));
 });
-hivez.core.__GT_t10150 = (function __GT_t10150(owner__$1,data__$1,hive_info__$1,meta10151){return (new hivez.core.t10150(owner__$1,data__$1,hive_info__$1,meta10151));
+hivez.core.__GT_t10378 = (function __GT_t10378(owner__$1,data__$1,hive_info__$1,meta10379){return (new hivez.core.t10378(owner__$1,data__$1,hive_info__$1,meta10379));
 });
 }
-return (new hivez.core.t10150(owner,data,hive_info,null));
+return (new hivez.core.t10378(owner,data,hive_info,null));
 });
-hivez.core.handleOrientation = (function handleOrientation(){return cljs.core.swap_BANG_.call(null,hivez.core.app_state,(function (p1__10153_SHARP_){return cljs.core.assoc.call(null,p1__10153_SHARP_,new cljs.core.Keyword(null,"orientation","orientation",623557579),((cljs.core._EQ_.call(null,window.orientation,(0)))?new cljs.core.Keyword(null,"portrait","portrait",-9810007):new cljs.core.Keyword(null,"landscape","landscape",1519839253)));
+hivez.core.handleOrientation = (function handleOrientation(evt){cljs.core.swap_BANG_.call(null,hivez.core.app_state,(function (p1__10381_SHARP_){return cljs.core.assoc.call(null,p1__10381_SHARP_,new cljs.core.Keyword(null,"orientation","orientation",623557579),(((window.innerHeight > window.innerWidth))?new cljs.core.Keyword(null,"portrait","portrait",-9810007):new cljs.core.Keyword(null,"landscape","landscape",1519839253)));
 }));
+return console.log(screen.height);
 });
-hivez.core.app = (function app(data,owner){if(typeof hivez.core.t10157 !== 'undefined')
+hivez.core.app = (function app(data,owner){if(typeof hivez.core.t10385 !== 'undefined')
 {} else
 {
 /**
 * @constructor
 */
-hivez.core.t10157 = (function (owner,data,app,meta10158){
+hivez.core.t10385 = (function (owner,data,app,meta10386){
 this.owner = owner;
 this.data = data;
 this.app = app;
-this.meta10158 = meta10158;
+this.meta10386 = meta10386;
 this.cljs$lang$protocol_mask$partition1$ = 0;
 this.cljs$lang$protocol_mask$partition0$ = 393216;
 })
-hivez.core.t10157.cljs$lang$type = true;
-hivez.core.t10157.cljs$lang$ctorStr = "hivez.core/t10157";
-hivez.core.t10157.cljs$lang$ctorPrWriter = (function (this__4137__auto__,writer__4138__auto__,opt__4139__auto__){return cljs.core._write.call(null,writer__4138__auto__,"hivez.core/t10157");
+hivez.core.t10385.cljs$lang$type = true;
+hivez.core.t10385.cljs$lang$ctorStr = "hivez.core/t10385";
+hivez.core.t10385.cljs$lang$ctorPrWriter = (function (this__4137__auto__,writer__4138__auto__,opt__4139__auto__){return cljs.core._write.call(null,writer__4138__auto__,"hivez.core/t10385");
 });
-hivez.core.t10157.prototype.om$core$IRender$ = true;
-hivez.core.t10157.prototype.om$core$IRender$render$arity$1 = (function (this__5153__auto__){var self__ = this;
-var this__5153__auto____$1 = this;return React.DOM.div({"className": "content-liner"},((cljs.core._EQ_.call(null,new cljs.core.Keyword(null,"orientation","orientation",623557579).cljs$core$IFn$_invoke$arity$1(self__.data),new cljs.core.Keyword(null,"portrait","portrait",-9810007)))?React.DOM.div({"role": "content", "className": "small-12 small-centered column"},React.DOM.div({"className": "row map-row"},React.DOM.div({"className": "map-column small-12 small-centered column"},om.core.build.call(null,hivez.core.goog_map,self__.data))),React.DOM.div({"className": "row info-row"},React.DOM.div({"className": "info-column small-12 small-centered column"},om.core.build.call(null,hivez.core.hive_info,self__.data)))):React.DOM.div(null,"landscape!!!")));
+hivez.core.t10385.prototype.om$core$IRender$ = true;
+hivez.core.t10385.prototype.om$core$IRender$render$arity$1 = (function (this__5153__auto__){var self__ = this;
+var this__5153__auto____$1 = this;return React.DOM.div({"className": "content-liner"},((cljs.core._EQ_.call(null,new cljs.core.Keyword(null,"orientation","orientation",623557579).cljs$core$IFn$_invoke$arity$1(self__.data),new cljs.core.Keyword(null,"portrait","portrait",-9810007)))?React.DOM.div({"role": "content", "className": "small-12 small-centered column"},React.DOM.div({"className": "row map-row"},React.DOM.div({"className": "map-column small-12 small-centered column"},om.core.build.call(null,hivez.core.goog_map,self__.data))),React.DOM.div({"className": "row info-row"},React.DOM.div({"className": "info-column small-12 small-centered column"},om.core.build.call(null,hivez.core.hive_info,self__.data)))):React.DOM.div({"className": "landscape row"},React.DOM.div({"className": "small-6 column"},om.core.build.call(null,hivez.core.goog_map,self__.data)),React.DOM.div({"className": "small-6 column"},om.core.build.call(null,hivez.core.hive_info,self__.data)))));
 });
-hivez.core.t10157.prototype.cljs$core$IMeta$_meta$arity$1 = (function (_10159){var self__ = this;
-var _10159__$1 = this;return self__.meta10158;
+hivez.core.t10385.prototype.cljs$core$IMeta$_meta$arity$1 = (function (_10387){var self__ = this;
+var _10387__$1 = this;return self__.meta10386;
 });
-hivez.core.t10157.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (_10159,meta10158__$1){var self__ = this;
-var _10159__$1 = this;return (new hivez.core.t10157(self__.owner,self__.data,self__.app,meta10158__$1));
+hivez.core.t10385.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (_10387,meta10386__$1){var self__ = this;
+var _10387__$1 = this;return (new hivez.core.t10385(self__.owner,self__.data,self__.app,meta10386__$1));
 });
-hivez.core.__GT_t10157 = (function __GT_t10157(owner__$1,data__$1,app__$1,meta10158){return (new hivez.core.t10157(owner__$1,data__$1,app__$1,meta10158));
+hivez.core.__GT_t10385 = (function __GT_t10385(owner__$1,data__$1,app__$1,meta10386){return (new hivez.core.t10385(owner__$1,data__$1,app__$1,meta10386));
 });
 }
-return (new hivez.core.t10157(owner,data,app,null));
+return (new hivez.core.t10385(owner,data,app,null));
 });
-window.addEventListener("orientationchange",hivez.core.handleOrientation);
+window.addEventListener("resize",hivez.core.handleOrientation);
 om.core.root.call(null,hivez.core.app,hivez.core.app_state,new cljs.core.PersistentArrayMap(null, 1, [new cljs.core.Keyword(null,"target","target",253001721),document.getElementById("content")], null));
-cljs.core.swap_BANG_.call(null,hivez.core.app_state,(function (p1__10160_SHARP_){return cljs.core.assoc.call(null,p1__10160_SHARP_,new cljs.core.Keyword(null,"orientation","orientation",623557579),((cljs.core._EQ_.call(null,window.orientation,(0)))?new cljs.core.Keyword(null,"portrait","portrait",-9810007):new cljs.core.Keyword(null,"landscape","landscape",1519839253)));
-}));
 
 //# sourceMappingURL=core.js.map

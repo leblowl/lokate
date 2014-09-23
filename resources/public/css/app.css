@@ -53,3 +53,17 @@ h1, h2, h3, h4, h5, h6 {
     background-color: #7c83af;
     height: 50%;
 }
+
+.landscape.row {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}
+
+.landscape.column {
+    height: 100%;
+}
+
+.row {
+    max-width: 100%;
+}
