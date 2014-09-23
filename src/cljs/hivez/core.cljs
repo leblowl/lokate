@@ -68,8 +68,7 @@
 
     om/IRender
     (render [this]
-      (dom/div #js {:className "map-canvas-wrapper"}
-       (dom/div #js {:id "map-canvas"})))))
+       (dom/div #js {:id "map-canvas"}))))
 
 (defn hive-info [data owner]
   (reify
