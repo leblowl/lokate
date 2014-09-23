@@ -49,6 +49,7 @@
               (google.maps.event.addListener marker
                 "rightclick"
                 #(.setMap marker nil)))))
+
         (if navigator.geolocation
           (.getCurrentPosition navigator.geolocation
            (fn [pos]
@@ -69,14 +70,14 @@
 
 (defn handleOrientation [evt]
   (swap! app-state #(assoc % :orientation
-                              (if (> (.-innerHeight js/window) (.-innerWidth js/window))
-                                :portrait
-                                :landscape))))
+                           (if (> (.-innerHeight js/window)
+                                 (.-innerWidth js/window))
+                             :portrait
+                             :landscape))))
 
 (defn app [data owner]
   (om/component
     (dom/div #js {:className "content-liner"}
-
       (dom/div #js {:className (str "flex-container"
                                  (if (= (:orientation data) :portrait)
                                    " column"
