@@ -71,26 +71,20 @@
   (swap! app-state #(assoc % :orientation
                               (if (> (.-innerHeight js/window) (.-innerWidth js/window))
                                 :portrait
-                                :landscape)))
-  (.log js/console (.-height js/screen)))
+                                :landscape))))
 
 (defn app [data owner]
   (om/component
     (dom/div #js {:className "content-liner"}
-      (if (= (:orientation data) :portrait)
-       (dom/div #js {:className "small-12 small-centered column" :role "content"}
-         (dom/div #js {:className "row map-row"}
-           (dom/div #js {:className "map-column small-12 small-centered column"}
-             (om/build goog-map data)))
-         (dom/div #js {:className "row info-row"}
-           (dom/div #js {:className "info-column small-12 small-centered column"}
-             (om/build hive-info data))))
 
-       (dom/div #js {:className "landscape row"}
-         (dom/div #js {:className "small-6 column"}
-           (om/build goog-map data))
-         (dom/div #js {:className "small-6 column"}
-           (om/build hive-info data)))))))
+      (dom/div #js {:className (str "flex-container"
+                                 (if (= (:orientation data) :portrait)
+                                   " column"
+                                   " row"))}
+        (dom/div #js {:className "one"}
+          (om/build goog-map data))
+        (dom/div #js {:className "two"}
+          (om/build hive-info data))))))
 
 (.addEventListener js/window "resize" handleOrientation)
 (om/root app app-state {:target (.getElementById js/document "content")})
