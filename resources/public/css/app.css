@@ -41,9 +41,23 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .one {
-    width: 100%;
-    flex-grow: 1;
+    flex: 1 1 50%;
     background-color: #313a75;
+}
+
+.vert {
+    width: 100%;
+    height: 50%;
+}
+
+.flat {
+    width: 50%;
+    height: 100%;
+}
+
+.map-canvas-wrapper {
+    width: 100%;
+    height: 100%;
 }
 
 #map-canvas {
@@ -52,10 +66,28 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .two {
-    width: 100%;
-    flex-grow: 1;
+    flex: 1 1 50%;
     background-color: #7c83af;
 }
+
+.info {
+    width: 100%;
+    height: 100%;
+}
+
+.info .name {
+    width: 50%;
+}
+
+.info .location {
+    width: 50%;
+}
+
+.info .notes {
+    height: 200px;
+    width: 100%;
+}
+
 
 .column {
     flex-direction: column;

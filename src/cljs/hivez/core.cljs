@@ -9,7 +9,8 @@
 (enable-console-print!)
 
 (def app-state
-  (atom {:orientation (if (> (.-innerHeight js/window) (.-innerWidth js/window))
+  (atom {:orientation (if (> (.-innerHeight js/window)
+                            (.-innerWidth js/window))
                         :portrait
                         :landscape)
          :hives {}
@@ -22,6 +23,13 @@
 
 (defn display-info [hive]
   (:title (:info hive)))
+
+(defn handleOrientation [evt]
+  (swap! app-state #(assoc % :orientation
+                           (if (> (.-innerHeight js/window)
+                                 (.-innerWidth js/window))
+                             :portrait
+                             :landscape))))
 
 (defn goog-map [data owner]
   (reify
@@ -60,20 +68,23 @@
 
     om/IRender
     (render [this]
-      (dom/div #js {:id "map-canvas"}))))
+      (dom/div #js {:className "map-canvas-wrapper"}
+       (dom/div #js {:id "map-canvas"})))))
 
 (defn hive-info [data owner]
   (reify
     om/IRender
     (render [this]
-      (dom/div #js {:className "info"} (display-info (:active data))))))
-
-(defn handleOrientation [evt]
-  (swap! app-state #(assoc % :orientation
-                           (if (> (.-innerHeight js/window)
-                                 (.-innerWidth js/window))
-                             :portrait
-                             :landscape))))
+      (dom/div #js {:className "info"}
+        (dom/input #js {:className "name"
+                        :type "text"
+                        :ref "hive-name"
+                        :placeholder (display-info (:active data))})
+        (dom/div #js {:className "location"} "Lat 32.5, Lng 666")
+        (dom/input #js {:className "notes"
+                        :type "text"
+                        :ref "hive-notes"
+                        :placeholder "Wazzzup?"})))))
 
 (defn app [data owner]
   (om/component
@@ -82,7 +93,10 @@
                                  (if (= (:orientation data) :portrait)
                                    " column"
                                    " row"))}
-        (dom/div #js {:className "one"}
+        (dom/div #js {:className (str "one"
+                                   (if (= (:orientation data) :portrait)
+                                     " vert"
+                                     " flat"))}
           (om/build goog-map data))
         (dom/div #js {:className "two"}
           (om/build hive-info data))))))
