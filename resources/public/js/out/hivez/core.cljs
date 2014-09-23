@@ -28,7 +28,7 @@
     om/IDidMount
     (did-mount [this]
       (let [map-options #js {:center #js {:lat 0 :lng 0}
-                             :zoom 8}
+                             :zoom 6}
             map (google.maps.Map. (.getElementById js/document "map-canvas")
                                   map-options)]
 
