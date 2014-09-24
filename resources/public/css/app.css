@@ -69,6 +69,8 @@ h1, h2, h3, h4, h5, h6 {
     width: 100%;
     height: 100%;
     padding: .5em;
+    display: flex;
+    flex-direction: column;
 }
 
 input {
@@ -81,19 +83,26 @@ input[type=text]:disabled {
 }
 
 .info .name {
+    height: 40px;
+    line-height: 40px;
+    vertical-align: middle;
     width: 100%;
     box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    margin: 2px;
+
+    font-size: 120%;
+
 }
 
 .info .name:hover {
     cursor: pointer;
-    border: 2px solid #5599ff;
+    outline: 2px solid #5599ff;
 }
 
 .info .name:focus {
     cursor: text;
-    border: 2px solid #ffdd55
+    outline: 2px solid #ffdd55
 }
 
 [contenteditable="true"].single-line {
@@ -112,11 +121,13 @@ input[type=text]:disabled {
 
 .info .location {
     width: 50%;
+    margin: 2px;
 }
 
 .info .notes {
-    height: 200px;
     width: 100%;
+    margin: 2px;
+    flex: 2 2 auto;
 }
 
 
