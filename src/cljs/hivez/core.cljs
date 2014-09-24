@@ -4,7 +4,9 @@
             [cljs.core.async :refer [put! <! >! chan timeout]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [cljs-http.client :as http]))
+            [cljs-http.client :as http]
+            [goog.string :as gstring]
+            [goog.string.format]))
 
 (enable-console-print!)
 
@@ -13,8 +15,11 @@
                             (.-innerWidth js/window))
                         :portrait
                         :landscape)
-         :hives {}
-         :active "DUDE!"}))
+         :hives {:test {:name "hey"
+                        :pos {:lat 333
+                              :lng 999}
+                        :notes ""}}
+         :active :test}))
 
 (defn mark-pos [map pos]
   (google.maps.Marker. #js {:position pos
@@ -80,6 +85,18 @@
     (render [this]
        (dom/div #js {:id "map-canvas"}))))
 
+(defn floormat [& args]
+  (apply gstring/format args))
+
+(defn display-name [data]
+  (:name (get (:hives data) (:active data))))
+
+(defn display-pos [data]
+  (let [pos (:pos (get (:hives data) (:active data)))]
+    (str
+      "lat: " (floormat "%.2f" (:lat pos))
+      " lng: " (floormat "%.2f" (:lng pos)))))
+
 (defn hive-info [data owner]
   (reify
     om/IRender
@@ -88,12 +105,13 @@
         (dom/div #js {:className "name single-line"
                       :ref "hive-name"
                       :contentEditable "true"
-                      :onKeyDown #(.log js/console "dude")
-                      :onBlur #(.log js/console "hey") }
-          (let [key (:active data)]
-            (.log js/console key)
-            (get (:hives data) key)))
-        (dom/div #js {:className "location"} "Lat 32.5, Lng 666")
+                      :onBlur (fn [_]
+                                (om/update! data [:hives (:active @data) :name] (.-innerHTML (om/get-node owner "hive-name")))
+                                (.log js/console (.-innerHTML (om/get-node owner "hive-name"))))
+                      :data-ph "Name"}
+          (display-name data))
+        (dom/div #js {:className "location"}
+          (display-pos data))
         (dom/input #js {:className "notes"
                         :type "text"
                         :ref "hive-notes"

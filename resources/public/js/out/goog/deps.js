@@ -50,4 +50,5 @@ goog.addDependency("crypt/crypt.js", ['goog.crypt'], ['goog.array', 'goog.assert
 goog.addDependency("crypt/base64.js", ['goog.crypt.base64'], ['goog.crypt', 'goog.userAgent']);
 goog.addDependency("uri/uri.js", ['goog.Uri', 'goog.Uri.QueryData'], ['goog.array', 'goog.string', 'goog.structs', 'goog.structs.Map', 'goog.uri.utils', 'goog.uri.utils.ComponentIndex', 'goog.uri.utils.StandardQueryParam']);
 goog.addDependency("math/long.js", ['goog.math.Long'], []);
+goog.addDependency("string/stringformat.js", ['goog.string.format'], ['goog.string']);
 goog.addDependency("ui/idgenerator.js", ['goog.ui.IdGenerator'], []);

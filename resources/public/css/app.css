@@ -78,10 +78,6 @@ input {
     border: 0px solid;
 }
 
-input[type=text]:disabled {
-    background: yellow;
-}
-
 .info .name {
     height: 40px;
     line-height: 40px;
@@ -119,8 +115,13 @@ input[type=text]:disabled {
     white-space: nowrap;
 }
 
+[contentEditable=true]:empty:not(:focus):before {
+    content:attr(data-ph);
+    color: darkgrey;
+}
+
 .info .location {
-    width: 50%;
+    width: 100%;
     margin: 2px;
 }
 
