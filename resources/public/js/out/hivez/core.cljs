@@ -75,10 +75,12 @@
     om/IRender
     (render [this]
       (dom/div #js {:className "info"}
-        (dom/input #js {:className "name"
-                        :type "text"
-                        :ref "hive-name"
-                        :placeholder (display-info (:active data))})
+        (dom/div #js {:className "name single-line"
+                      :ref "hive-name"
+                      :contentEditable "true"
+                      :onKeyDown #(.log js/console "dude")
+                      :onBlur #(.log js/console "hey") }
+          (display-info (:active data)))
         (dom/div #js {:className "location"} "Lat 32.5, Lng 666")
         (dom/input #js {:className "notes"
                         :type "text"
