@@ -15,16 +15,23 @@
                             (.-innerWidth js/window))
                         :portrait
                         :landscape)
-         :hives {:test {:name "hey"
-                        :pos {:lat 333
-                              :lng 999}
+         :hives {:none {:name ""
+                        :origin "12/21/2012"
+                        :pos {:lat -0
+                              :lng -0}
                         :notes ""}}
-         :active :test}))
+         :active :none}))
 
 (defn mark-pos [map pos]
   (google.maps.Marker. #js {:position pos
                             :map map
                             :title "hive"}))
+
+(defn activate-marker [data marker]
+  (dorun (map #(when (not (nil? (:marker %)))
+                 (.setIcon (:marker %) "http://maps.google.com/mapfiles/ms/icons/red-dot.png"))
+           (vals (:hives @data))))
+  (.setIcon marker "http://maps.google.com/mapfiles/ms/icons/green-dot.png"))
 
 (defn handleOrientation [evt]
   (swap! app-state #(assoc % :orientation
@@ -38,6 +45,13 @@
              "lat=" (.lat lat-lng)
              "lng=" (.lng lat-lng))))
 
+(defn fdate-now []
+  (let [d (js/Date.)
+        date (.getDate d)
+        month (+ (.getMonth d) 1)
+        year (.getFullYear d)]
+    (str month "/" date "/" year)))
+
 (defn add-hive [data marker]
   (om/transact! data
     :hives
@@ -45,11 +59,14 @@
             (assoc _ (lat-lng-key pos)
                    {:marker marker
                     :name ""
+                    :origin (fdate-now)
                     :pos {:lat (.lat pos)
                           :lng (.lng pos)}
                     :notes ""}))))
   (om/update! data
-    :active (lat-lng-key (.getPosition marker))))
+    :active (lat-lng-key (.getPosition marker)))
+
+  (activate-marker data marker))
 
 (defn goog-map [data owner]
   (reify
@@ -68,10 +85,14 @@
               (add-hive data marker)
               (google.maps.event.addListener marker
                 "click"
-                #(om/update! data :active (lat-lng-key (.getPosition marker))))
+                (fn [_]
+                  (om/update! data :active (lat-lng-key (.getPosition marker)))
+                  (activate-marker data marker)))
               (google.maps.event.addListener marker
                 "rightclick"
-                #(.setMap marker nil)))))
+                (fn [_]
+                  (.setMap marker nil)
+                  (om/update! data :active :none))))))
 
         (if navigator.geolocation
           (.getCurrentPosition navigator.geolocation
@@ -88,16 +109,19 @@
 (defn floormat [& args]
   (apply gstring/format args))
 
-(defn display-name [data]
-  (:name (get (:hives data) (:active data))))
+(defn display-name [hive]
+  (:name hive))
 
-(defn display-pos [data]
-  (let [pos (:pos (get (:hives data) (:active data)))]
+(defn display-pos [hive]
+  (let [pos (:pos hive)]
     (str
-      "lat: " (floormat "%.2f" (:lat pos))
-      " lng: " (floormat "%.2f" (:lng pos)))))
+      "Lat: " (floormat "%.2f" (:lat pos))
+      " Lng: " (floormat "%.2f" (:lng pos)))))
 
-(defn hive-info [data owner]
+(defn display-origin [hive]
+  (str "Originated: " (:origin hive)))
+
+(defn hive-info [hive owner]
   (reify
     om/IRender
     (render [this]
@@ -106,16 +130,17 @@
                       :ref "hive-name"
                       :contentEditable "true"
                       :onBlur (fn [_]
-                                (om/update! data [:hives (:active @data) :name] (.-innerHTML (om/get-node owner "hive-name")))
-                                (.log js/console (.-innerHTML (om/get-node owner "hive-name"))))
+                                (om/update! hive :name (.-innerHTML (om/get-node owner "hive-name"))))
                       :data-ph "Name"}
-          (display-name data))
+          (display-name hive))
+        (dom/div #js {:className "origin"}
+          (display-origin hive))
         (dom/div #js {:className "location"}
-          (display-pos data))
-        (dom/input #js {:className "notes"
-                        :type "text"
-                        :ref "hive-notes"
-                        :placeholder "Wazzzup?"})))))
+          (display-pos hive))
+        (dom/div #js {:className "notes"
+                      :ref "hive-notes"
+                      :contentEditable "true"
+                      :data-ph "Notes..."})))))
 
 (defn app [data owner]
   (om/component
@@ -129,8 +154,11 @@
                                      " vert"
                                      " flat"))}
           (om/build goog-map data))
-        (dom/div #js {:className "two"}
-          (om/build hive-info data))))))
+        (dom/div #js {:className (str "two"
+                                   (if (= (:orientation data) :portrait)
+                                     " vert"
+                                     " flat"))}
+          (om/build hive-info (get (:hives data) (:active data))))))))
 
 (.addEventListener js/window "resize" handleOrientation)
 (om/root app app-state {:target (.getElementById js/document "content")})
