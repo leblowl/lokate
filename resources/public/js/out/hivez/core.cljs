@@ -21,15 +21,30 @@
                             :map map
                             :title "hive"}))
 
-(defn display-info [hive]
-  (:title (:info hive)))
-
 (defn handleOrientation [evt]
   (swap! app-state #(assoc % :orientation
                            (if (> (.-innerHeight js/window)
                                  (.-innerWidth js/window))
                              :portrait
                              :landscape))))
+
+(defn lat-lng-key [lat-lng]
+  (keyword (str
+             "lat=" (.lat lat-lng)
+             "lng=" (.lng lat-lng))))
+
+(defn add-hive [data marker]
+  (om/transact! data
+    :hives
+    (fn [_] (let [pos (.getPosition marker)]
+            (assoc _ (lat-lng-key pos)
+                   {:marker marker
+                    :name ""
+                    :pos {:lat (.lat pos)
+                          :lng (.lng pos)}
+                    :notes ""}))))
+  (om/update! data
+    :active (lat-lng-key (.getPosition marker))))
 
 (defn goog-map [data owner]
   (reify
@@ -45,15 +60,10 @@
           "rightclick"
           (fn [evt]
             (let [marker (mark-pos map (.-latLng evt))]
-              (om/transact! data
-                :hives
-                (fn [_]
-                  (assoc _ (keyword (.-title marker)) {:obj marker
-                                                       :info {:title (.-title marker)}})))
-
+              (add-hive data marker)
               (google.maps.event.addListener marker
                 "click"
-                #(om/update! data [:active] ((keyword (.-title marker)) (:hives @data))))
+                #(om/update! data :active (lat-lng-key (.getPosition marker))))
               (google.maps.event.addListener marker
                 "rightclick"
                 #(.setMap marker nil)))))
@@ -80,7 +90,9 @@
                       :contentEditable "true"
                       :onKeyDown #(.log js/console "dude")
                       :onBlur #(.log js/console "hey") }
-          (display-info (:active data)))
+          (let [key (:active data)]
+            (.log js/console key)
+            (get (:hives data) key)))
         (dom/div #js {:className "location"} "Lat 32.5, Lng 666")
         (dom/input #js {:className "notes"
                         :type "text"
