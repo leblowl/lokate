@@ -82,6 +82,8 @@
           "rightclick"
           (fn [evt]
             (let [marker (mark-pos map (.-latLng evt))]
+              (.blur (.getElementById js/document "name"))
+              (.blur (.getElementById js/document "notes"))
               (add-hive data marker)
               (google.maps.event.addListener marker
                 "click"
@@ -104,7 +106,7 @@
 
     om/IRender
     (render [this]
-       (dom/div #js {:id "map-canvas"}))))
+      (dom/div #js {:id "map-canvas"}))))
 
 (defn floormat [& args]
   (apply gstring/format args))
@@ -121,12 +123,17 @@
 (defn display-origin [hive]
   (str "Originated: " (:origin hive)))
 
+(defn display-notes [hive]
+  (:notes hive))
+
 (defn hive-info [hive owner]
   (reify
     om/IRender
     (render [this]
-      (dom/div #js {:className "info"}
-        (dom/div #js {:className "name single-line"
+      (dom/div #js {:id "info"
+                    :className "info"}
+        (dom/div #js {:id "name"
+                      :className "name single-line"
                       :ref "hive-name"
                       :contentEditable "true"
                       :onBlur (fn [_]
@@ -137,10 +144,14 @@
           (display-origin hive))
         (dom/div #js {:className "location"}
           (display-pos hive))
-        (dom/div #js {:className "notes"
+        (dom/div #js {:id "notes"
+                      :className "notes"
                       :ref "hive-notes"
                       :contentEditable "true"
-                      :data-ph "Notes..."})))))
+                      :onBlur (fn [_]
+                                (om/update! hive :notes (.-innerHTML (om/get-node owner "hive-notes"))))
+                      :data-ph "Notes..."}
+          (display-notes hive))))))
 
 (defn app [data owner]
   (om/component
