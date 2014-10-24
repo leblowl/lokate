@@ -16,11 +16,11 @@
                             (.-innerWidth js/window))
                         :portrait
                         :landscape)
-         :hives {:none {:name ""
+         :hives {:none {:name "Name"
                         :origin "12/21/2012"
                         :pos {:lat -0
                               :lng -0}
-                        :notes ""}}
+                        :notes "Notes..."}}
          :active :none}))
 
 (defn mark-pos [map pos]
@@ -133,11 +133,15 @@
 (defn handle-change [e data edit-key owner]
   (om/transact! data edit-key (fn [_] (.. e -target -value))))
 
+(defn begin-edit [owner]
+  (om/set-state! owner :editing true)
+  (.focus (om/get-node owner "input")))
+
 (defn end-edit [text owner cb]
   (om/set-state! owner :editing false)
-  (cb text))
+  (when cb (cb text)))
 
-(defn editable [data owner {:keys [edit-key on-edit] :as opts}]
+(defn editable [data owner {:keys [id className edit-key on-edit] :as opts}]
   (reify
     om/IInitState
     (init-state [_]
@@ -146,11 +150,14 @@
     om/IRenderState
     (render-state [_ {:keys [editing]}]
       (let [text (get data edit-key)]
-        (dom/div nil
+        (dom/div #js {:id id
+                      :className className
+                      :onBlur (fn [e] (end-edit text owner on-edit))}
           (dom/span #js {:style (display (not editing))
-                         :onClick #(om/set-state! owner :editing true)} text)
+                         :onClick #(begin-edit owner)} text)
           (dom/input
-            #js {:style (display editing)
+            #js {:ref "input"
+                 :style (display editing)
                  :value text
                  :onChange #(handle-change % data edit-key owner)
                  :onKeyPress #(when (== (.-keyCode %) 13)
@@ -166,15 +173,19 @@
       (dom/div #js {:id "info"
                     :className "info"}
         (om/build editable hive
-          {:opts {:edit-key :name
-                  :on-edit handle-change}})
+          {:opts {:id "name"
+                  :className "editable-input"
+                  :edit-key :name
+                  :on-edit nil}})
         (dom/div #js {:className "origin"}
           (display-origin hive))
         (dom/div #js {:className "location"}
           (display-pos hive))
         (om/build editable hive
-          {:opts {:edit-key :name
-                  :on-edit handle-change}})))))
+          {:opts {:id "notes"
+                  :className "editable-input"
+                  :edit-key :notes
+                  :on-edit nil}})))))
 
 (defn app [data owner]
   (om/component
