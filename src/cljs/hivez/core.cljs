@@ -75,7 +75,7 @@
     (did-mount [this]
       (let [map-options #js {:center #js {:lat 0 :lng 0}
                              :zoom 6}
-            map (google.maps.Map. (.getElementById js/document "map-canvas")
+            map (google.maps.Map. (om/get-node owner)
                                   map-options)]
 
         (google.maps.event.addListener

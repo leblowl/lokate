@@ -1,4 +1,4 @@
-(defproject hive "0.1.0-SNAPSHOT"
+(defproject hivez "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -34,7 +34,8 @@
                                         :output-dir    "resources/public/js/out"
                                         :source-map    "resources/public/js/out.js.map"
                                         :preamble      ["react/react.min.js"]
-                                        :externs       ["react/externs/react.js"]
+                                        :externs       ["react/externs/react.js"
+                                                        "resources/public/js/extern/google_maps_api_v3_18.js"]
                                         :optimizations :none
                                         :pretty-print  true}}}}
 
