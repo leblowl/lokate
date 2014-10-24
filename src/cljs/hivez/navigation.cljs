@@ -1,6 +1,5 @@
 (ns hivez.navigation
-  (:require [hivez.core :as core]
-            [secretary.core :as secretary :include-macros true :refer [defroute]]
+  (:require [secretary.core :as secretary :include-macros true :refer [defroute]]
             [goog.events :as events]
             [goog.string :as gstring]
             [goog.history.EventType :as EventType]
