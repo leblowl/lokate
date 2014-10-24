@@ -1,6 +1,7 @@
 (ns hivez.core
   (:require-macros [cljs.core.async.macros :refer [go alt!]])
-  (:require [goog.events :as events]
+  (:require [hivez.navigation :as nav]
+            [goog.events :as events]
             [cljs.core.async :refer [put! <! >! chan timeout]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
@@ -196,5 +197,6 @@
           (om/build hive-info (get (:hives data) (:active data))))))))
 
 (defn main []
+  (nav/render)
   (.addEventListener js/window "resize" handleOrientation)
   (om/root app app-state {:target (.getElementById js/document "content")}))

@@ -30,6 +30,9 @@ goog.addDependency("../cljs_http/core.js", ['cljs_http.core'], ['goog.net.XhrIo'
 goog.addDependency("../cljs_http/client.js", ['cljs_http.client'], ['cljs_http.core', 'no.en.core', 'goog.Uri', 'cljs.core', 'cljs_http.util', 'cljs.core.async', 'clojure.string', 'cljs.reader']);
 goog.addDependency("../om/dom.js", ['om.dom'], ['cljs.core']);
 goog.addDependency("../om/core.js", ['om.core'], ['cljs.core', 'om.dom', 'goog.ui.IdGenerator']);
-goog.addDependency("../hivez/core.js", ['hivez.core'], ['goog.string', 'cljs.core', 'cljs_http.client', 'om.dom', 'cljs.core.async', 'goog.string.format', 'om.core', 'goog.events']);
+goog.addDependency("../clojure/walk.js", ['clojure.walk'], ['cljs.core']);
+goog.addDependency("../secretary/core.js", ['secretary.core'], ['cljs.core', 'clojure.string', 'clojure.walk']);
+goog.addDependency("../hivez/navigation.js", ['hivez.navigation'], ['goog.string', 'cljs.core', 'om.dom', 'goog.history.EventType', 'goog.History', 'hivez.core', 'om.core', 'secretary.core', 'goog.events']);
+goog.addDependency("../hivez/core.js", ['hivez.core'], ['goog.string', 'cljs.core', 'cljs_http.client', 'om.dom', 'cljs.core.async', 'goog.string.format', 'om.core', 'hivez.navigation', 'goog.events']);
 goog.addDependency("../figwheel/client.js", ['figwheel.client'], ['goog.net.jsloader', 'cljs.core', 'cljs.core.async', 'clojure.string', 'cljs.reader']);
 goog.addDependency("../hivez/dev.js", ['hivez.dev'], ['weasel.repl', 'cljs.core', 'cljs.core.async', 'hivez.core', 'figwheel.client']);

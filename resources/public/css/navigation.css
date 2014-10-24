@@ -1,0 +1,68 @@
+.navigation-container {
+    width: 100%;
+    height: 45px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #333;
+}
+
+.banner-icon {
+    padding-left: .5em;
+    padding-right: .3em;
+    font-size: 200%;
+    color: #bbee99;
+}
+
+.banner-title {
+    font-size: 150%;
+    color: white;
+}
+
+.nav {
+    list-style-type: none;
+    padding: 0;
+    float: right;
+    vertical-align: middle;
+    margin: 10px;
+    margin-right: 20px;
+}
+
+.nav li {
+    display: table-cell;
+    padding: .5em;
+    border-radius: 4px;
+}
+
+.nav a {
+  text-decoration: none;
+  font-family: 'Poiret One';
+  font-size: 200%;
+  color:  #464368;
+  margin: 10px 25px;
+}
+
+.nav a:hover {
+  color: #333333;
+}
+
+.nav li {
+  color: white;
+}
+
+.nav li.active {
+  color: #333333;
+}
+
+#tab0.active {
+    border-bottom: .2em solid #464368;
+}
+
+#tab1.active {
+    border-bottom: .2em solid #464368;
+}
+
+#tab2.active {
+    border-bottom: .2em solid #464368;
+}

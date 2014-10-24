@@ -1,21 +1,11 @@
-html, body {
-    width: 100%;
-    height: 100%;
-}
-
 @font-face {
     font-family: 'DejaVuSans';
     src: url('/fonts/DejaVuSans.ttf'); format('truetype');
 }
 
-h1, h2, h3, h4, h5, h6 {
-    font-family: 'Lato', 'DejaVuSans', sans-serif;
-}
-
-.frame {
-    margin: 0;
-    height: 100vh;
-    position: relative;
+html, body {
+    width: 100%;
+    height: 100%;
     font-family: 'Lato', 'DejaVuSans', sans-serif;
 }
 
@@ -42,7 +32,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .one {
     flex: 1 1 50%;
-    background-color: #313a75;
 }
 
 .vert {
@@ -62,7 +51,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .two {
     flex: 1 1 50%;
-    background-color: #7c83af;
+    background-color: #ddeeee;
 }
 
 .info {
