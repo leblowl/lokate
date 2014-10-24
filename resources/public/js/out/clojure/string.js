@@ -19,7 +19,7 @@ clojure.string.reverse = (function reverse(s){return s.split("").reverse().join(
 * pattern / (string or function of match).
 */
 clojure.string.replace = (function replace(s,match,replacement){if(typeof match === 'string')
-{return s.replace((new RegExp((function (){var G__23039 = match;return goog.string.regExpEscape(G__23039);
+{return s.replace((new RegExp((function (){var G__23047 = match;return goog.string.regExpEscape(G__23047);
 })(),"g")),replacement);
 } else
 {if(cljs.core.truth_(match.hasOwnProperty("source")))
@@ -86,8 +86,8 @@ clojure.string.capitalize = (function capitalize(s){if((cljs.core.count(s) < (2)
 clojure.string.pop_last_while_empty = (function pop_last_while_empty(v){var v__$1 = v;while(true){
 if(cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2("",cljs.core.peek(v__$1)))
 {{
-var G__23040 = cljs.core.pop(v__$1);
-v__$1 = G__23040;
+var G__23048 = cljs.core.pop(v__$1);
+v__$1 = G__23048;
 continue;
 }
 } else
@@ -105,11 +105,11 @@ clojure.string.discard_trailing_if_needed = (function discard_trailing_if_needed
 clojure.string.split_with_empty_regex = (function split_with_empty_regex(s,limit){if(((limit <= (0))) || ((limit >= ((2) + cljs.core.count(s)))))
 {return cljs.core.conj.cljs$core$IFn$_invoke$arity$2(cljs.core.vec(cljs.core.cons("",cljs.core.map.cljs$core$IFn$_invoke$arity$2(cljs.core.str,cljs.core.seq(s)))),"");
 } else
-{var pred__23048 = cljs.core._EQ_;var expr__23049 = limit;if(cljs.core.truth_((function (){var G__23051 = (1);var G__23052 = expr__23049;return (pred__23048.cljs$core$IFn$_invoke$arity$2 ? pred__23048.cljs$core$IFn$_invoke$arity$2(G__23051,G__23052) : pred__23048.call(null,G__23051,G__23052));
+{var pred__23056 = cljs.core._EQ_;var expr__23057 = limit;if(cljs.core.truth_((function (){var G__23059 = (1);var G__23060 = expr__23057;return (pred__23056.cljs$core$IFn$_invoke$arity$2 ? pred__23056.cljs$core$IFn$_invoke$arity$2(G__23059,G__23060) : pred__23056.call(null,G__23059,G__23060));
 })()))
 {return (new cljs.core.PersistentVector(null,1,(5),cljs.core.PersistentVector.EMPTY_NODE,[s],null));
 } else
-{if(cljs.core.truth_((function (){var G__23053 = (2);var G__23054 = expr__23049;return (pred__23048.cljs$core$IFn$_invoke$arity$2 ? pred__23048.cljs$core$IFn$_invoke$arity$2(G__23053,G__23054) : pred__23048.call(null,G__23053,G__23054));
+{if(cljs.core.truth_((function (){var G__23061 = (2);var G__23062 = expr__23057;return (pred__23056.cljs$core$IFn$_invoke$arity$2 ? pred__23056.cljs$core$IFn$_invoke$arity$2(G__23061,G__23062) : pred__23056.call(null,G__23061,G__23062));
 })()))
 {return (new cljs.core.PersistentVector(null,2,(5),cljs.core.PersistentVector.EMPTY_NODE,["",s],null));
 } else
@@ -132,12 +132,12 @@ if(cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(limit__$1,(1)))
 } else
 {var temp__4124__auto__ = cljs.core.re_find(re,s__$1);if(cljs.core.truth_(temp__4124__auto__))
 {var m = temp__4124__auto__;var index = s__$1.indexOf(m);{
-var G__23058 = s__$1.substring((index + cljs.core.count(m)));
-var G__23059 = (limit__$1 - (1));
-var G__23060 = cljs.core.conj.cljs$core$IFn$_invoke$arity$2(parts,s__$1.substring((0),index));
-s__$1 = G__23058;
-limit__$1 = G__23059;
-parts = G__23060;
+var G__23066 = s__$1.substring((index + cljs.core.count(m)));
+var G__23067 = (limit__$1 - (1));
+var G__23068 = cljs.core.conj.cljs$core$IFn$_invoke$arity$2(parts,s__$1.substring((0),index));
+s__$1 = G__23066;
+limit__$1 = G__23067;
+parts = G__23068;
 continue;
 }
 } else
@@ -172,17 +172,17 @@ clojure.string.split_lines = (function split_lines(s){return clojure.string.spli
 /**
 * Removes whitespace from both ends of string.
 */
-clojure.string.trim = (function trim(s){var G__23062 = s;return goog.string.trim(G__23062);
+clojure.string.trim = (function trim(s){var G__23070 = s;return goog.string.trim(G__23070);
 });
 /**
 * Removes whitespace from the left side of string.
 */
-clojure.string.triml = (function triml(s){var G__23064 = s;return goog.string.trimLeft(G__23064);
+clojure.string.triml = (function triml(s){var G__23072 = s;return goog.string.trimLeft(G__23072);
 });
 /**
 * Removes whitespace from the right side of string.
 */
-clojure.string.trimr = (function trimr(s){var G__23066 = s;return goog.string.trimRight(G__23066);
+clojure.string.trimr = (function trimr(s){var G__23074 = s;return goog.string.trimRight(G__23074);
 });
 /**
 * Removes all trailing newline \n or return \r characters from
@@ -194,8 +194,8 @@ if((index === (0)))
 } else
 {var ch = cljs.core.get.cljs$core$IFn$_invoke$arity$2(s,(index - (1)));if((cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(ch,"\n")) || (cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(ch,"\r")))
 {{
-var G__23067 = (index - (1));
-index = G__23067;
+var G__23075 = (index - (1));
+index = G__23075;
 continue;
 }
 } else
@@ -208,7 +208,7 @@ break;
 /**
 * True is s is nil, empty, or contains only whitespace.
 */
-clojure.string.blank_QMARK_ = (function blank_QMARK_(s){var G__23069 = s;return goog.string.isEmptySafe(G__23069);
+clojure.string.blank_QMARK_ = (function blank_QMARK_(s){var G__23077 = s;return goog.string.isEmptySafe(G__23077);
 });
 /**
 * Return a new string, using cmap to escape each character ch
@@ -221,14 +221,14 @@ clojure.string.escape = (function escape__$1(s,cmap){var buffer = (new goog.stri
 if(cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(length,index))
 {return buffer.toString();
 } else
-{var ch = s.charAt(index);var temp__4124__auto___23070 = cljs.core.get.cljs$core$IFn$_invoke$arity$2(cmap,ch);if(cljs.core.truth_(temp__4124__auto___23070))
-{var replacement_23071 = temp__4124__auto___23070;buffer.append((''+cljs.core.str.cljs$core$IFn$_invoke$arity$1(replacement_23071)));
+{var ch = s.charAt(index);var temp__4124__auto___23078 = cljs.core.get.cljs$core$IFn$_invoke$arity$2(cmap,ch);if(cljs.core.truth_(temp__4124__auto___23078))
+{var replacement_23079 = temp__4124__auto___23078;buffer.append((''+cljs.core.str.cljs$core$IFn$_invoke$arity$1(replacement_23079)));
 } else
 {buffer.append(ch);
 }
 {
-var G__23072 = (index + (1));
-index = G__23072;
+var G__23080 = (index + (1));
+index = G__23080;
 continue;
 }
 }

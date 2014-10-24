@@ -172,20 +172,30 @@
     (render [this]
       (dom/div #js {:id "info"
                     :className "info"}
-        (om/build editable hive
-          {:opts {:id "name"
-                  :className "editable-input"
-                  :edit-key :name
-                  :on-edit nil}})
+        (dom/div #js {:id "name"
+                      :className "name single-line"
+                      :ref "hive-name"
+                      :contentEditable "true"
+                      :onBlur (fn [_]
+                                (om/update! hive
+                                  :name
+                                  (.-innerHTML (om/get-node owner "hive-name"))))
+                      :data-ph "Name"}
+          (display-name hive))
         (dom/div #js {:className "origin"}
           (display-origin hive))
         (dom/div #js {:className "location"}
           (display-pos hive))
-        (om/build editable hive
-          {:opts {:id "notes"
-                  :className "editable-input"
-                  :edit-key :notes
-                  :on-edit nil}})))))
+        (dom/div #js {:id "notes"
+                      :className "notes"
+                      :ref "hive-notes"
+                      :contentEditable "true"
+                      :onBlur (fn [_]
+                                (om/update! hive
+                                  :notes
+                                  (.-innerHTML (om/get-node owner "hive-notes"))))
+                      :data-ph "Notes..."}
+          (display-notes hive))))))
 
 (defn app [data owner]
   (om/component

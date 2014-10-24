@@ -115,3 +115,58 @@ input {
 .gmnoprint img {
     max-width: none;
 }
+
+.info .name {
+    height: 40px;
+    line-height: 40px;
+    vertical-align: middle;
+    width: 100%;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    margin: 2px;
+    padding: 4px;
+    border-radius: 3px;
+
+    font-size: 120%;
+
+}
+
+.info .notes {
+    width: 100%;
+    margin: 2px;
+    flex: 2 2 auto;
+    //box-shadow: 0px 0px 0pt 2pt #444444;
+    border-radius: 3px;
+    overflow: hidden;
+    padding: 4px;
+}
+
+[contentEditable=true]:hover {
+    cursor: pointer;
+    box-shadow: 0px 0px 0pt 2pt #5599ff;
+}
+
+[contentEditable=true]:focus {
+    cursor: text;
+    box-shadow: 0px 0px 0pt 2pt #44dd55;
+    outline: 0px solid transparent;
+}
+
+[contenteditable="true"].single-line {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+[contenteditable="true"].single-line br {
+    display: none;
+}
+
+[contenteditable="true"].single-line * {
+    display: inline;
+    white-space: nowrap;
+}
+
+[contentEditable=true]:empty:not(:focus):before {
+    content:attr(data-ph);
+    color: darkgrey;
+}
