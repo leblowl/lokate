@@ -178,21 +178,20 @@
 
 (defn app [data owner]
   (om/component
-    (dom/div #js {:className "content-liner"}
-      (dom/div #js {:className (str "flex-container"
+    (dom/div #js {:className (str "flex-container"
+                               (if (= (:orientation data) :portrait)
+                                 " column"
+                                 " row"))}
+      (dom/div #js {:className (str "one"
                                  (if (= (:orientation data) :portrait)
-                                   " column"
-                                   " row"))}
-        (dom/div #js {:className (str "one"
-                                   (if (= (:orientation data) :portrait)
-                                     " vert"
-                                     " flat"))}
-          (om/build goog-map data))
-        (dom/div #js {:className (str "two"
-                                   (if (= (:orientation data) :portrait)
-                                     " vert"
-                                     " flat"))}
-          (om/build hive-info (get (:hives data) (:active data))))))))
+                                   " vert"
+                                   " flat"))}
+        (om/build goog-map data))
+      (dom/div #js {:className (str "two"
+                                 (if (= (:orientation data) :portrait)
+                                   " vert"
+                                   " flat"))}
+        (om/build hive-info (get (:hives data) (:active data)))))))
 
 (defn main []
   (nav/render)
