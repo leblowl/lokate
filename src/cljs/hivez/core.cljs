@@ -101,7 +101,11 @@
              (let [initialLoc (google.maps.LatLng. (.-coords.latitude pos)
                                                    (.-coords.longitude pos))]
                (.setCenter map initialLoc))))
-          (println "Hey, where'd you go!? Geolocation Disabled"))))
+          (println "Hey, where'd you go!? Geolocation Disabled"))
+
+        (.addEventListener js/window "resize" (fn [e]
+                                                (println "hey")
+                                                (google.maps.event.trigger map "resize")))))
 
     om/IRender
     (render [this]
@@ -152,19 +156,7 @@
       (let [text (get data edit-key)]
         (dom/div #js {:id id
                       :className className
-                      :onBlur (fn [e] (end-edit text owner on-edit))}
-          (dom/span #js {:style (display (not editing))
-                         :onClick #(begin-edit owner)} text)
-          (dom/input
-            #js {:ref "input"
-                 :style (display editing)
-                 :value text
-                 :onChange #(handle-change % data edit-key owner)
-                 :onKeyPress #(when (== (.-keyCode %) 13)
-                                (end-edit text owner on-edit))
-                 :onBlur (fn [e]
-                           (when (om/get-state owner :editing)
-                             (end-edit text owner on-edit)))}))))))
+                      :onBlur (fn [e] (end-edit text owner on-edit))})))))
 
 (defn hive-info [hive owner]
   (reify
@@ -203,10 +195,7 @@
                                (if (= (:orientation data) :portrait)
                                  " column"
                                  " row"))}
-      (dom/div #js {:className (str "one"
-                                 (if (= (:orientation data) :portrait)
-                                   " vert"
-                                   " flat"))}
+      (dom/div #js {:className "one"}
         (om/build goog-map data))
       (dom/div #js {:className (str "two"
                                  (if (= (:orientation data) :portrait)
