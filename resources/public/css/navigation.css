@@ -5,14 +5,14 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    background-color: #333;
+    background-color: #444;
 }
 
 .banner-icon {
     padding-left: .5em;
     padding-right: .3em;
     font-size: 200%;
-    color: #bbee99;
+    color: #eeff77;
 }
 
 .banner-title {

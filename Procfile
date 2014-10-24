@@ -1,1 +1,1 @@
-web: java $JVM_OPTS -cp target/hive.jar clojure.main -m hive.server
+web: java $JVM_OPTS -cp target/hivez.jar clojure.main -m hivez.server
