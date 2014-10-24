@@ -97,6 +97,10 @@ goog.debug.Logger = function(name) {
 };
 
 
+/** @const */
+goog.debug.Logger.ROOT_LOGGER_NAME = '';
+
+
 /**
  * @define {boolean} Toggles whether loggers other than the root logger can have
  *     log handlers attached to them and whether they can have their log level
@@ -355,7 +359,7 @@ goog.debug.Logger.getLogger = function(name) {
 
 /**
  * Logs a message to profiling tools, if available.
- * {@see http://code.google.com/webtoolkit/speedtracer/logging-api.html}
+ * {@see https://developers.google.com/web-toolkit/speedtracer/logging-api}
  * {@see http://msdn.microsoft.com/en-us/library/dd433074(VS.85).aspx}
  * @param {string} msg The message to log.
  */
@@ -540,7 +544,8 @@ goog.debug.Logger.prototype.log = function(level, msg, opt_exception) {
       msg = msg();
     }
 
-    this.doLogRecord_(this.getLogRecord(level, msg, opt_exception));
+    this.doLogRecord_(this.getLogRecord(
+        level, msg, opt_exception, goog.debug.Logger.prototype.log));
   }
 };
 
@@ -551,9 +556,13 @@ goog.debug.Logger.prototype.log = function(level, msg, opt_exception) {
  * @param {string} msg The string message.
  * @param {Error|Object=} opt_exception An exception associated with the
  *     message.
+ * @param {Function=} opt_fnStackContext A function to use as the base
+ *     of the stack trace used in the log record.
  * @return {!goog.debug.LogRecord} A log record.
+ * @suppress {es5Strict}
  */
-goog.debug.Logger.prototype.getLogRecord = function(level, msg, opt_exception) {
+goog.debug.Logger.prototype.getLogRecord = function(
+    level, msg, opt_exception, opt_fnStackContext) {
   if (goog.debug.LogBuffer.isBufferingEnabled()) {
     var logRecord =
         goog.debug.LogBuffer.getInstance().addRecord(level, msg, this.name_);
@@ -561,9 +570,17 @@ goog.debug.Logger.prototype.getLogRecord = function(level, msg, opt_exception) {
     logRecord = new goog.debug.LogRecord(level, String(msg), this.name_);
   }
   if (opt_exception) {
+    var context;
+    if (goog.STRICT_MODE_COMPATIBLE) {
+      context = opt_fnStackContext || goog.debug.Logger.prototype.getLogRecord;
+    } else {
+      context = opt_fnStackContext || arguments.callee.caller;
+    }
+
     logRecord.setException(opt_exception);
     logRecord.setExceptionText(
-        goog.debug.exposeException(opt_exception, arguments.callee.caller));
+        goog.debug.exposeException(opt_exception,
+            opt_fnStackContext || goog.debug.Logger.prototype.getLogRecord));
   }
   return logRecord;
 };
@@ -780,8 +797,10 @@ goog.debug.LogManager.rootLogger_ = null;
  */
 goog.debug.LogManager.initialize = function() {
   if (!goog.debug.LogManager.rootLogger_) {
-    goog.debug.LogManager.rootLogger_ = new goog.debug.Logger('');
-    goog.debug.LogManager.loggers_[''] = goog.debug.LogManager.rootLogger_;
+    goog.debug.LogManager.rootLogger_ = new goog.debug.Logger(
+        goog.debug.Logger.ROOT_LOGGER_NAME);
+    goog.debug.LogManager.loggers_[goog.debug.Logger.ROOT_LOGGER_NAME] =
+        goog.debug.LogManager.rootLogger_;
     goog.debug.LogManager.rootLogger_.setLevel(goog.debug.Logger.Level.CONFIG);
   }
 };

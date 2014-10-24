@@ -1,1 +1,1 @@
-web: lein run -m hivez.handler $PORT
+web: java $JVM_OPTS -cp target/hive.jar clojure.main -m hive.server

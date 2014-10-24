@@ -58,6 +58,7 @@ goog.array.ArrayLike;
 
 /**
  * Returns the last element in an array without removing it.
+ * Same as goog.array.last.
  * @param {Array.<T>|goog.array.ArrayLike} array The array.
  * @return {T} Last item in array.
  * @template T
@@ -65,6 +66,16 @@ goog.array.ArrayLike;
 goog.array.peek = function(array) {
   return array[array.length - 1];
 };
+
+
+/**
+ * Returns the last element in an array without removing it.
+ * Same as goog.array.peek.
+ * @param {Array.<T>|goog.array.ArrayLike} array The array.
+ * @return {T} Last item in array.
+ * @template T
+ */
+goog.array.last = goog.array.peek;
 
 
 /**
@@ -501,7 +512,7 @@ goog.array.count = function(arr, f, opt_obj) {
  *     for every element. This function takes 3 arguments (the element, the
  *     index and the array) and should return a boolean.
  * @param {S=} opt_obj An optional "this" context for the function.
- * @return {T} The first array element that passes the test, or null if no
+ * @return {?T} The first array element that passes the test, or null if no
  *     element is found.
  * @template T,S
  */
@@ -547,7 +558,7 @@ goog.array.findIndex = function(arr, f, opt_obj) {
  *     takes 3 arguments (the element, the index and the array) and should
  *     return a boolean.
  * @param {S=} opt_obj An optional "this" context for the function.
- * @return {T} The last array element that passes the test, or null if no
+ * @return {?T} The last array element that passes the test, or null if no
  *     element is found.
  * @template T,S
  */
@@ -761,6 +772,18 @@ goog.array.removeIf = function(arr, f, opt_obj) {
  * @return {!Array} The new resultant array.
  */
 goog.array.concat = function(var_args) {
+  return goog.array.ARRAY_PROTOTYPE_.concat.apply(
+      goog.array.ARRAY_PROTOTYPE_, arguments);
+};
+
+
+/**
+ * Returns a new array that contains the contents of all the arrays passed.
+ * @param {...!Array.<T>} var_args
+ * @return {!Array.<T>}
+ * @template T
+ */
+goog.array.join = function(var_args) {
   return goog.array.ARRAY_PROTOTYPE_.concat.apply(
       goog.array.ARRAY_PROTOTYPE_, arguments);
 };

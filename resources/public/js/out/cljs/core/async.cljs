@@ -6,7 +6,8 @@
               [cljs.core.async.impl.timers :as timers]
               [cljs.core.async.impl.dispatch :as dispatch]
               [cljs.core.async.impl.ioc-helpers :as helpers])
-    (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
+    (:require-macros [cljs.core.async.impl.ioc-macros :as ioc]
+                     [cljs.core.async.macros :refer [go go-loop]]))
 
 (defn- fn-handler [f]
   (reify
@@ -439,6 +440,17 @@
   (toggle* [m state-map])
   (solo-mode* [m mode]))
 
+(defn ioc-alts! [state cont-block ports & {:as opts}]
+  (ioc/aset-all! state helpers/STATE-IDX cont-block)
+  (when-let [cb (cljs.core.async/do-alts
+                  (fn [val]
+                    (ioc/aset-all! state helpers/VALUE-IDX val)
+                    (helpers/run-state-machine-wrapped state))
+                  ports
+                  opts)]
+    (ioc/aset-all! state helpers/VALUE-IDX @cb)
+    :recur))
+
 (defn mix
   "Creates and returns a mix of one or more input channels which will
   be put on the supplied out channel. Input sources can be added to
@@ -719,7 +731,7 @@
          (reify
           impl/Handler
           (active? [_] (impl/active? fn1))
-          (lock-id [_] (impl/lock-id fn1))
+          #_(lock-id [_] (impl/lock-id fn1))
           (commit [_]
            (let [f1 (impl/commit fn1)]
              #(f1 (if (nil? %) nil (f %)))))))]
