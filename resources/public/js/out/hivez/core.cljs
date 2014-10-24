@@ -83,8 +83,6 @@
           "rightclick"
           (fn [evt]
             (let [marker (mark-pos map (.-latLng evt))]
-              (.blur (.getElementById js/document "name"))
-              (.blur (.getElementById js/document "notes"))
               (add-hive data marker)
               (google.maps.event.addListener marker
                 "click"
