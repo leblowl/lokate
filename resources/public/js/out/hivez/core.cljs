@@ -41,9 +41,6 @@
                              :portrait
                              :landscape))))
 
-(defn setOrientation [evt]
-  (println (.-orientation js/window)))
-
 (defn lat-lng-key [lat-lng]
   (keyword (str
              "lat=" (.lat lat-lng)
@@ -187,7 +184,7 @@
                                 (om/update! hive
                                   :name
                                   (.-innerHTML (om/get-node owner "hive-name")))
-                                (om/set-state! owner :editing false))
+                                (js/setTimeout #(om/set-state! owner :editing false) 350))
                       :data-ph "Name"}
           (display-name hive))
         (dom/div #js {:className "origin"}
@@ -226,5 +223,4 @@
 (defn main []
   (nav/render)
   (.addEventListener js/window "resize" handleOrientation)
-  (.addEventListener js/window "orientationchange" setOrientation)
   (om/root app app-state {:target (.getElementById js/document "content")}))
