@@ -16,11 +16,11 @@
                             (.-innerWidth js/window))
                         :portrait
                         :landscape)
-         :hives {:none {:name "Name"
+         :hives {:none {:name ""
                         :origin "12/21/2012"
                         :pos {:lat -0
                               :lng -0}
-                        :notes "Notes..."}}
+                        :notes ""}}
          :active :none}))
 
 (defn mark-pos [map pos]
@@ -40,6 +40,9 @@
                                  (.-innerWidth js/window))
                              :portrait
                              :landscape))))
+
+(defn setOrientation [evt]
+  (println (.-orientation js/window)))
 
 (defn lat-lng-key [lat-lng]
   (keyword (str
@@ -104,7 +107,6 @@
           (println "Hey, where'd you go!? Geolocation Disabled"))
 
         (.addEventListener js/window "resize" (fn [e]
-                                                (println "hey")
                                                 (google.maps.event.trigger map "resize")))))
 
     om/IRender
@@ -118,6 +120,11 @@
   (if show
     #js {}
     #js {:display "none"}))
+
+(defn visible [show]
+  (if show
+    #js {:visibility "visible"}
+    #js {:visibility "hidden"}))
 
 (defn display-name [hive]
   (:name hive))
@@ -160,18 +167,27 @@
 
 (defn hive-info [hive owner]
   (reify
-    om/IRender
-    (render [this]
+    om/IInitState
+    (init-state [_]
+      {:editing false})
+
+    om/IRenderState
+    (render-state [_ {:keys [editing]}]
       (dom/div #js {:id "info"
-                    :className "info"}
+                    :className "info"
+                    :style (visible (not editing))}
         (dom/div #js {:id "name"
                       :className "name single-line"
+                      :style (visible true)
                       :ref "hive-name"
                       :contentEditable "true"
+                      :onFocus (fn [_]
+                                 (om/set-state! owner :editing true))
                       :onBlur (fn [_]
                                 (om/update! hive
                                   :name
-                                  (.-innerHTML (om/get-node owner "hive-name"))))
+                                  (.-innerHTML (om/get-node owner "hive-name")))
+                                (om/set-state! owner :editing false))
                       :data-ph "Name"}
           (display-name hive))
         (dom/div #js {:className "origin"}
@@ -180,12 +196,16 @@
           (display-pos hive))
         (dom/div #js {:id "notes"
                       :className "notes"
+                      :style (visible true)
                       :ref "hive-notes"
                       :contentEditable "true"
+                      :onFocus (fn [_]
+                                 (om/set-state! owner :editing true))
                       :onBlur (fn [_]
                                 (om/update! hive
                                   :notes
-                                  (.-innerHTML (om/get-node owner "hive-notes"))))
+                                  (.-innerHTML (om/get-node owner "hive-notes")))
+                                (om/set-state! owner :editing false))
                       :data-ph "Notes..."}
           (display-notes hive))))))
 
@@ -206,4 +226,5 @@
 (defn main []
   (nav/render)
   (.addEventListener js/window "resize" handleOrientation)
+  (.addEventListener js/window "orientationchange" setOrientation)
   (om/root app app-state {:target (.getElementById js/document "content")}))

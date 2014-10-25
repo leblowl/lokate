@@ -58,7 +58,6 @@ div {
     right: 0;
     margin: auto;
     //background-color: #ddeeee;
-    background-color: rgba(33,33,33,0.9);
 }
 
 .info {
@@ -68,6 +67,8 @@ div {
     display: flex;
     flex-direction: column;
     color: white;
+    font-size: .9em;
+    background-color: rgba(33,33,33,0.9);
 }
 
 input {
@@ -129,14 +130,22 @@ input {
     line-height: 40px;
     vertical-align: middle;
     width: 100%;
-    box-sizing: border-box;
-    -webkit-box-sizing: border-box;
     margin: 2px;
     padding: 4px;
     border-radius: 3px;
 
-    font-size: 120%;
+    font-size: 1.3em;
+}
 
+.info .name:focus {
+    position: fixed;
+    top: 43px;
+    bottom: 0;
+    left: -2px;
+    right: 0;
+    margin: 0;
+    background-color: rgba(33,33,33,0.9);
+    font-size: 1.3em;
 }
 
 .info .notes {
@@ -157,6 +166,7 @@ input {
     right: 0;
     margin: 0;
     background-color: rgba(33,33,33,0.9);
+    font-size: 1em;
 }
 
 [contentEditable=true]:hover {
