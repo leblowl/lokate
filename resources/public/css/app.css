@@ -112,9 +112,12 @@ div {
 
 .name {
     height: 33px;
-    line-height: 33px;
+    padding-top: 11px;
+    padding-left: 4px;
+    padding-right: 4px;
+    line-height: normal;
     vertical-align: middle;
-    padding: 4px;
+    //padding: 4px;
     border-radius: 3px;
     font-size: 1.3em;
     cursor: pointer;
@@ -179,7 +182,6 @@ div {
     color: darkgrey;
 }
 
-
 [contentEditable="true"]:focus {
     cursor: text;
     box-shadow: inset 0px 0px 0pt 2pt #33ff99;
@@ -187,7 +189,7 @@ div {
 }
 
 [contenteditable="true"].single-line {
-    display: inline;
+    display: inline-block;
     white-space: nowrap;
     overflow: hidden;
     box-sizing: content-box;

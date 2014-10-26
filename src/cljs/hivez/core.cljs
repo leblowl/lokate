@@ -144,10 +144,10 @@
   (om/set-state! owner :editing nil))
 
 (defn on-edit [cb hive key owner]
-  (om/update! hive key (.-innerHTML (om/get-node owner key)))
+  (om/update! hive key (gstring/unescapeEntities (.-innerHTML (om/get-node owner key))))
   (cb))
 
-(defn input [hive owner {:keys [id className edit-key on-edit] :as opts}]
+(defn input [hive owner {:keys [id className edit-key on-edit on-key-down] :as opts}]
   (reify
     om/IInitState
     (init-state [_]
@@ -165,10 +165,11 @@
                       :className className
                       :style (display (not exit-type))
                       :contentEditable "true"
+                      :onKeyDown on-key-down
                       :onBlur (fn []
                                 (om/set-state! owner :exit-type "out")
-                                (js/setTimeout #(on-edit hive edit-key owner) 100))}
-          (edit-key hive))
+                                (js/setTimeout #(on-edit hive edit-key owner) 100))
+                      :dangerouslySetInnerHTML #js {:__html (edit-key hive)}})
         (dom/div #js {:id "input-ok"
                       :style (display (not (= exit-type "out")))
                       :onClick (fn []
@@ -189,23 +190,24 @@
       (dom/div #js {:id "info-wrapper"}
         (case editing
           :name (om/build input hive {:opts {:id "name-input"
-                                              :className "name input single-line"
-                                              :edit-key :name
+                                             :className "name input single-line"
+                                             :edit-key :name
+                                             :on-edit
+                                             (partial on-edit #(end-edit owner))
+                                             :on-key-down (fn [e] (if (= (.-keyCode e) 13) false))}})
+          :notes (om/build input hive {:opts {:id "notes-input"
+                                              :className "notes input"
+                                              :edit-key :notes
                                               :on-edit
                                               (partial on-edit #(end-edit owner))}})
-          :notes (om/build input hive {:opts {:id "notes-input"
-                                               :className "notes input"
-                                               :edit-key :notes
-                                               :on-edit
-                                               (partial on-edit #(end-edit owner))}})
           nil)
         (dom/div #js {:id "info"
                       :className (if editing "hide" "show")}
           (dom/span #js {:id "name-editable"
-                        :className "name editable"
-                        :onClick #(begin-edit owner :name)
-                        :data-ph "Name"}
-            (:name hive))
+                         :className "name editable single-line"
+                         :onClick #(begin-edit owner :name)
+                         :data-ph "Name"
+                         :dangerouslySetInnerHTML #js {:__html (:name hive)}})
           (dom/div #js {:className "origin"}
             (display-origin hive))
           (dom/div #js {:className "location"}
@@ -213,8 +215,9 @@
           (dom/div #js {:id "notes-editable"
                         :className "notes editable"
                         :onClick #(begin-edit owner :notes)
-                        :data-ph "Notes..."}
-            (:notes hive))
+                        :data-ph "Notes..."
+                        :dangerouslySetInnerHTML #js {:__html (:notes hive)}}
+            )
 )))))
 
 (defn app [data owner]
