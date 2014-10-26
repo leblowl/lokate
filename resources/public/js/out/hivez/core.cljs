@@ -149,22 +149,33 @@
 
 (defn input [hive owner {:keys [id className edit-key on-edit] :as opts}]
   (reify
+    om/IInitState
+    (init-state [_]
+      {:exit-type nil})
+
     om/IDidMount
     (did-mount [_]
       (.focus (om/get-node owner edit-key)))
 
-    om/IRender
-    (render [_]
+    om/IRenderState
+    (render-state [_ {:keys [exit-type]}]
       (dom/div #js {:id "input-wrapper"}
         (dom/div #js {:id id
                       :ref edit-key
                       :className className
+                      :style (display (not exit-type))
                       :contentEditable "true"
-                      :onBlur #(on-edit hive edit-key owner)}
+                      :onBlur (fn []
+                                (om/set-state! owner :exit-type "out")
+                                (js/setTimeout #(on-edit hive edit-key owner) 100))}
           (edit-key hive))
         (dom/div #js {:id "input-ok"
-                      :onClick #(.blur (om/get-node owner edit-key))}
-          (dom/span #js {:id "input-ok-mark"}
+                      :style (display (not (= exit-type "out")))
+                      :onClick (fn []
+                                 (om/set-state! owner :exit-type "btn")
+                                 (js/setTimeout #(on-edit hive edit-key owner) 100))}
+          (dom/span #js {:id "input-ok-mark"
+                         :style style}
             (gstring/unescapeEntities "&#10003;")))))))
 
 (defn hive-info [hive owner]
