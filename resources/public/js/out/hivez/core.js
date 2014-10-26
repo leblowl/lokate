@@ -215,98 +215,94 @@ return (function __GT_t16165(owner__$1,data__$1,editable__$1,edit_key__$1,map__1
 }
 return (new hivez.core.t16165(owner,data,editable,edit_key,map__16164__$1,p__16156,className,on_edit,id,opts,null));
 });
-hivez.core.hive_info = (function hive_info(hive,owner){if(typeof hivez.core.t16191 !== 'undefined')
+hivez.core.hive_info = (function hive_info(hive,owner){if(typeof hivez.core.t16189 !== 'undefined')
 {} else
 {
 /**
 * @constructor
 */
-hivez.core.t16191 = (function (owner,hive,hive_info,meta16192){
+hivez.core.t16189 = (function (owner,hive,hive_info,meta16190){
 this.owner = owner;
 this.hive = hive;
 this.hive_info = hive_info;
-this.meta16192 = meta16192;
+this.meta16190 = meta16190;
 this.cljs$lang$protocol_mask$partition1$ = 0;
 this.cljs$lang$protocol_mask$partition0$ = 393216;
 })
-hivez.core.t16191.cljs$lang$type = true;
-hivez.core.t16191.cljs$lang$ctorStr = "hivez.core/t16191";
-hivez.core.t16191.cljs$lang$ctorPrWriter = (function (this__4217__auto__,writer__4218__auto__,opt__4219__auto__){return cljs.core._write(writer__4218__auto__,"hivez.core/t16191");
+hivez.core.t16189.cljs$lang$type = true;
+hivez.core.t16189.cljs$lang$ctorStr = "hivez.core/t16189";
+hivez.core.t16189.cljs$lang$ctorPrWriter = (function (this__4217__auto__,writer__4218__auto__,opt__4219__auto__){return cljs.core._write(writer__4218__auto__,"hivez.core/t16189");
 });
-hivez.core.t16191.prototype.om$core$IRenderState$ = true;
-hivez.core.t16191.prototype.om$core$IRenderState$render_state$arity$2 = (function (_,p__16194){var self__ = this;
-var map__16195 = p__16194;var map__16195__$1 = ((cljs.core.seq_QMARK_(map__16195))?cljs.core.apply.cljs$core$IFn$_invoke$arity$2(cljs.core.hash_map,map__16195):map__16195);var editing = cljs.core.get.cljs$core$IFn$_invoke$arity$2(map__16195__$1,cljs.core.constant$keyword$142);var ___$1 = this;var G__16196 = {"style": hivez.core.visible(cljs.core.not(editing)), "className": "info", "id": "info"};var G__16197 = (function (){var G__16201 = {"data-ph": "Name", "onBlur": ((function (G__16196,___$1,map__16195,map__16195__$1,editing){
-return (function (___$2){om.core.update_BANG_.cljs$core$IFn$_invoke$arity$3(self__.hive,cljs.core.constant$keyword$64,om.core.get_node.cljs$core$IFn$_invoke$arity$2(self__.owner,"hive-name").innerHTML);
-var G__16203 = ((function (G__16196,___$1,map__16195,map__16195__$1,editing){
-return (function (){return om.core.set_state_BANG_.cljs$core$IFn$_invoke$arity$3(self__.owner,cljs.core.constant$keyword$142,false);
-});})(G__16196,___$1,map__16195,map__16195__$1,editing))
-;var G__16204 = (350);return setTimeout(G__16203,G__16204);
-});})(G__16196,___$1,map__16195,map__16195__$1,editing))
-, "onFocus": ((function (G__16196,___$1,map__16195,map__16195__$1,editing){
+hivez.core.t16189.prototype.om$core$IRenderState$ = true;
+hivez.core.t16189.prototype.om$core$IRenderState$render_state$arity$2 = (function (_,p__16192){var self__ = this;
+var map__16193 = p__16192;var map__16193__$1 = ((cljs.core.seq_QMARK_(map__16193))?cljs.core.apply.cljs$core$IFn$_invoke$arity$2(cljs.core.hash_map,map__16193):map__16193);var editing = cljs.core.get.cljs$core$IFn$_invoke$arity$2(map__16193__$1,cljs.core.constant$keyword$142);var ___$1 = this;var G__16194 = {"style": hivez.core.visible(cljs.core.not(editing)), "className": "info", "id": "info"};var G__16195 = (function (){var G__16199 = {"data-ph": "Name", "onBlur": ((function (G__16194,___$1,map__16193,map__16193__$1,editing){
+return (function (___$2){return om.core.update_BANG_.cljs$core$IFn$_invoke$arity$3(self__.hive,cljs.core.constant$keyword$64,om.core.get_node.cljs$core$IFn$_invoke$arity$2(self__.owner,"hive-name").innerHTML);
+});})(G__16194,___$1,map__16193,map__16193__$1,editing))
+, "onFocus": ((function (G__16194,___$1,map__16193,map__16193__$1,editing){
 return (function (___$2){return om.core.set_state_BANG_.cljs$core$IFn$_invoke$arity$3(self__.owner,cljs.core.constant$keyword$142,true);
-});})(G__16196,___$1,map__16195,map__16195__$1,editing))
-, "contentEditable": "true", "ref": "hive-name", "style": hivez.core.visible(true), "className": "name single-line", "id": "name"};var G__16202 = hivez.core.display_name(self__.hive);return React.DOM.div(G__16201,G__16202);
-})();var G__16198 = (function (){var G__16205 = {"className": "origin"};var G__16206 = hivez.core.display_origin(self__.hive);return React.DOM.div(G__16205,G__16206);
-})();var G__16199 = (function (){var G__16207 = {"className": "location"};var G__16208 = hivez.core.display_pos(self__.hive);return React.DOM.div(G__16207,G__16208);
-})();var G__16200 = (function (){var G__16209 = {"data-ph": "Notes...", "onBlur": ((function (G__16196,G__16197,G__16198,G__16199,___$1,map__16195,map__16195__$1,editing){
+});})(G__16194,___$1,map__16193,map__16193__$1,editing))
+, "contentEditable": "true", "ref": "hive-name", "style": hivez.core.visible(true), "className": "name single-line", "id": "name"};var G__16200 = hivez.core.display_name(self__.hive);return React.DOM.div(G__16199,G__16200);
+})();var G__16196 = (function (){var G__16201 = {"className": "origin"};var G__16202 = hivez.core.display_origin(self__.hive);return React.DOM.div(G__16201,G__16202);
+})();var G__16197 = (function (){var G__16203 = {"className": "location"};var G__16204 = hivez.core.display_pos(self__.hive);return React.DOM.div(G__16203,G__16204);
+})();var G__16198 = (function (){var G__16205 = {"data-ph": "Notes...", "onBlur": ((function (G__16194,G__16195,G__16196,G__16197,___$1,map__16193,map__16193__$1,editing){
 return (function (___$2){om.core.update_BANG_.cljs$core$IFn$_invoke$arity$3(self__.hive,cljs.core.constant$keyword$138,om.core.get_node.cljs$core$IFn$_invoke$arity$2(self__.owner,"hive-notes").innerHTML);
 return om.core.set_state_BANG_.cljs$core$IFn$_invoke$arity$3(self__.owner,cljs.core.constant$keyword$142,false);
-});})(G__16196,G__16197,G__16198,G__16199,___$1,map__16195,map__16195__$1,editing))
-, "onFocus": ((function (G__16196,G__16197,G__16198,G__16199,___$1,map__16195,map__16195__$1,editing){
+});})(G__16194,G__16195,G__16196,G__16197,___$1,map__16193,map__16193__$1,editing))
+, "onFocus": ((function (G__16194,G__16195,G__16196,G__16197,___$1,map__16193,map__16193__$1,editing){
 return (function (___$2){return om.core.set_state_BANG_.cljs$core$IFn$_invoke$arity$3(self__.owner,cljs.core.constant$keyword$142,true);
-});})(G__16196,G__16197,G__16198,G__16199,___$1,map__16195,map__16195__$1,editing))
-, "contentEditable": "true", "ref": "hive-notes", "style": hivez.core.visible(true), "className": "notes", "id": "notes"};var G__16210 = hivez.core.display_notes(self__.hive);return React.DOM.div(G__16209,G__16210);
-})();return React.DOM.div(G__16196,G__16197,G__16198,G__16199,G__16200);
+});})(G__16194,G__16195,G__16196,G__16197,___$1,map__16193,map__16193__$1,editing))
+, "contentEditable": "true", "ref": "hive-notes", "style": hivez.core.visible(true), "className": "notes", "id": "notes"};var G__16206 = hivez.core.display_notes(self__.hive);return React.DOM.div(G__16205,G__16206);
+})();return React.DOM.div(G__16194,G__16195,G__16196,G__16197,G__16198);
 });
-hivez.core.t16191.prototype.om$core$IInitState$ = true;
-hivez.core.t16191.prototype.om$core$IInitState$init_state$arity$1 = (function (_){var self__ = this;
+hivez.core.t16189.prototype.om$core$IInitState$ = true;
+hivez.core.t16189.prototype.om$core$IInitState$init_state$arity$1 = (function (_){var self__ = this;
 var ___$1 = this;return new cljs.core.PersistentArrayMap(null, 1, [cljs.core.constant$keyword$142,false], null);
 });
-hivez.core.t16191.prototype.cljs$core$IMeta$_meta$arity$1 = (function (_16193){var self__ = this;
-var _16193__$1 = this;return self__.meta16192;
+hivez.core.t16189.prototype.cljs$core$IMeta$_meta$arity$1 = (function (_16191){var self__ = this;
+var _16191__$1 = this;return self__.meta16190;
 });
-hivez.core.t16191.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (_16193,meta16192__$1){var self__ = this;
-var _16193__$1 = this;return (new hivez.core.t16191(self__.owner,self__.hive,self__.hive_info,meta16192__$1));
+hivez.core.t16189.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (_16191,meta16190__$1){var self__ = this;
+var _16191__$1 = this;return (new hivez.core.t16189(self__.owner,self__.hive,self__.hive_info,meta16190__$1));
 });
-hivez.core.__GT_t16191 = (function __GT_t16191(owner__$1,hive__$1,hive_info__$1,meta16192){return (new hivez.core.t16191(owner__$1,hive__$1,hive_info__$1,meta16192));
+hivez.core.__GT_t16189 = (function __GT_t16189(owner__$1,hive__$1,hive_info__$1,meta16190){return (new hivez.core.t16189(owner__$1,hive__$1,hive_info__$1,meta16190));
 });
 }
-return (new hivez.core.t16191(owner,hive,hive_info,null));
+return (new hivez.core.t16189(owner,hive,hive_info,null));
 });
-hivez.core.app = (function app(data,owner){if(typeof hivez.core.t16221 !== 'undefined')
+hivez.core.app = (function app(data,owner){if(typeof hivez.core.t16217 !== 'undefined')
 {} else
 {
 /**
 * @constructor
 */
-hivez.core.t16221 = (function (owner,data,app,meta16222){
+hivez.core.t16217 = (function (owner,data,app,meta16218){
 this.owner = owner;
 this.data = data;
 this.app = app;
-this.meta16222 = meta16222;
+this.meta16218 = meta16218;
 this.cljs$lang$protocol_mask$partition1$ = 0;
 this.cljs$lang$protocol_mask$partition0$ = 393216;
 })
-hivez.core.t16221.cljs$lang$type = true;
-hivez.core.t16221.cljs$lang$ctorStr = "hivez.core/t16221";
-hivez.core.t16221.cljs$lang$ctorPrWriter = (function (this__4217__auto__,writer__4218__auto__,opt__4219__auto__){return cljs.core._write(writer__4218__auto__,"hivez.core/t16221");
+hivez.core.t16217.cljs$lang$type = true;
+hivez.core.t16217.cljs$lang$ctorStr = "hivez.core/t16217";
+hivez.core.t16217.cljs$lang$ctorPrWriter = (function (this__4217__auto__,writer__4218__auto__,opt__4219__auto__){return cljs.core._write(writer__4218__auto__,"hivez.core/t16217");
 });
-hivez.core.t16221.prototype.om$core$IRender$ = true;
-hivez.core.t16221.prototype.om$core$IRender$render$arity$1 = (function (this__5247__auto__){var self__ = this;
-var this__5247__auto____$1 = this;var G__16224 = {"className": ("flex-container"+cljs.core.str.cljs$core$IFn$_invoke$arity$1(((cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(cljs.core.constant$keyword$131.cljs$core$IFn$_invoke$arity$1(self__.data),cljs.core.constant$keyword$133))?" column":" row")))};var G__16225 = (function (){var G__16227 = {"className": "one"};var G__16228 = om.core.build.cljs$core$IFn$_invoke$arity$2(hivez.core.goog_map,self__.data);return React.DOM.div(G__16227,G__16228);
-})();var G__16226 = (function (){var G__16229 = {"className": ("two"+cljs.core.str.cljs$core$IFn$_invoke$arity$1(((cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(cljs.core.constant$keyword$131.cljs$core$IFn$_invoke$arity$1(self__.data),cljs.core.constant$keyword$133))?" vert":" flat")))};var G__16230 = om.core.build.cljs$core$IFn$_invoke$arity$2(hivez.core.hive_info,cljs.core.get.cljs$core$IFn$_invoke$arity$2(cljs.core.constant$keyword$132.cljs$core$IFn$_invoke$arity$1(self__.data),cljs.core.constant$keyword$63.cljs$core$IFn$_invoke$arity$1(self__.data)));return React.DOM.div(G__16229,G__16230);
-})();return React.DOM.div(G__16224,G__16225,G__16226);
+hivez.core.t16217.prototype.om$core$IRender$ = true;
+hivez.core.t16217.prototype.om$core$IRender$render$arity$1 = (function (this__5247__auto__){var self__ = this;
+var this__5247__auto____$1 = this;var G__16220 = {"className": ("flex-container"+cljs.core.str.cljs$core$IFn$_invoke$arity$1(((cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(cljs.core.constant$keyword$131.cljs$core$IFn$_invoke$arity$1(self__.data),cljs.core.constant$keyword$133))?" column":" row")))};var G__16221 = (function (){var G__16223 = {"className": "one"};var G__16224 = om.core.build.cljs$core$IFn$_invoke$arity$2(hivez.core.goog_map,self__.data);return React.DOM.div(G__16223,G__16224);
+})();var G__16222 = (function (){var G__16225 = {"className": ("two"+cljs.core.str.cljs$core$IFn$_invoke$arity$1(((cljs.core._EQ_.cljs$core$IFn$_invoke$arity$2(cljs.core.constant$keyword$131.cljs$core$IFn$_invoke$arity$1(self__.data),cljs.core.constant$keyword$133))?" vert":" flat")))};var G__16226 = om.core.build.cljs$core$IFn$_invoke$arity$2(hivez.core.hive_info,cljs.core.get.cljs$core$IFn$_invoke$arity$2(cljs.core.constant$keyword$132.cljs$core$IFn$_invoke$arity$1(self__.data),cljs.core.constant$keyword$63.cljs$core$IFn$_invoke$arity$1(self__.data)));return React.DOM.div(G__16225,G__16226);
+})();return React.DOM.div(G__16220,G__16221,G__16222);
 });
-hivez.core.t16221.prototype.cljs$core$IMeta$_meta$arity$1 = (function (_16223){var self__ = this;
-var _16223__$1 = this;return self__.meta16222;
+hivez.core.t16217.prototype.cljs$core$IMeta$_meta$arity$1 = (function (_16219){var self__ = this;
+var _16219__$1 = this;return self__.meta16218;
 });
-hivez.core.t16221.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (_16223,meta16222__$1){var self__ = this;
-var _16223__$1 = this;return (new hivez.core.t16221(self__.owner,self__.data,self__.app,meta16222__$1));
+hivez.core.t16217.prototype.cljs$core$IWithMeta$_with_meta$arity$2 = (function (_16219,meta16218__$1){var self__ = this;
+var _16219__$1 = this;return (new hivez.core.t16217(self__.owner,self__.data,self__.app,meta16218__$1));
 });
-hivez.core.__GT_t16221 = (function __GT_t16221(owner__$1,data__$1,app__$1,meta16222){return (new hivez.core.t16221(owner__$1,data__$1,app__$1,meta16222));
+hivez.core.__GT_t16217 = (function __GT_t16217(owner__$1,data__$1,app__$1,meta16218){return (new hivez.core.t16217(owner__$1,data__$1,app__$1,meta16218));
 });
 }
-return (new hivez.core.t16221(owner,data,app,null));
+return (new hivez.core.t16217(owner,data,app,null));
 });
 hivez.core.main = (function main(){hivez.navigation.render();
 window.addEventListener("resize",hivez.core.handleOrientation);

@@ -184,7 +184,8 @@
                                 (om/update! hive
                                   :name
                                   (.-innerHTML (om/get-node owner "hive-name")))
-                                (js/setTimeout #(om/set-state! owner :editing false) 350))
+                                ;(js/setTimeout #(om/set-state! owner :editing false) 350)
+                                )
                       :data-ph "Name"}
           (display-name hive))
         (dom/div #js {:className "origin"}

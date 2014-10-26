@@ -7,8 +7,8 @@ cljs.core.async.impl.buffers.acopy = (function acopy(src,src_start,dest,dest_sta
 if((cnt < len))
 {(dest[(dest_start + cnt)] = (src[(src_start + cnt)]));
 {
-var G__27438 = (cnt + (1));
-cnt = G__27438;
+var G__27434 = (cnt + (1));
+cnt = G__27434;
 continue;
 }
 } else
@@ -81,14 +81,14 @@ return self__.arr = new_arr;
 cljs.core.async.impl.buffers.RingBuffer.prototype.cleanup = (function (keep_QMARK_){var self__ = this;
 var this$ = this;var n__4510__auto__ = self__.length;var x = (0);while(true){
 if((x < n__4510__auto__))
-{var v_27440 = this$.pop();if(cljs.core.truth_((function (){var G__27439 = v_27440;return (keep_QMARK_.cljs$core$IFn$_invoke$arity$1 ? keep_QMARK_.cljs$core$IFn$_invoke$arity$1(G__27439) : keep_QMARK_.call(null,G__27439));
+{var v_27436 = this$.pop();if(cljs.core.truth_((function (){var G__27435 = v_27436;return (keep_QMARK_.cljs$core$IFn$_invoke$arity$1 ? keep_QMARK_.cljs$core$IFn$_invoke$arity$1(G__27435) : keep_QMARK_.call(null,G__27435));
 })()))
-{this$.unshift(v_27440);
+{this$.unshift(v_27436);
 } else
 {}
 {
-var G__27441 = (x + (1));
-x = G__27441;
+var G__27437 = (x + (1));
+x = G__27437;
 continue;
 }
 } else
