@@ -148,22 +148,26 @@
   (om/set-state! owner :editing nil))
 
 (defn on-edit [cb hive key owner]
-  (om/update! hive key (.-innerHTML (om/get-node owner)))
+  (om/update! hive key (.-innerHTML (om/get-node owner key)))
   (cb))
 
 (defn input [hive owner {:keys [id className edit-key on-edit] :as opts}]
   (reify
     om/IDidMount
     (did-mount [_]
-      (.focus (om/get-node owner)))
+      (.focus (om/get-node owner edit-key)))
 
     om/IRender
     (render [_]
-      (dom/div #js {:id id
-                    :className className
-                    :contentEditable "true"
-                    :onBlur #(on-edit hive edit-key owner)}
-        (edit-key hive)))))
+      (dom/div #js {:id "input-wrapper"}
+        (dom/div #js {:id id
+                      :ref edit-key
+                      :className className
+                      :contentEditable "true"
+                      :onBlur #(on-edit hive edit-key owner)}
+          (edit-key hive))
+        (dom/div #js {:id "input-ok"
+                      :onClick #(.blur (om/get-node owner edit-key))})))))
 
 (defn hive-info [hive owner]
   (reify
