@@ -102,22 +102,19 @@ div {
 
 #info .origin {
     width: 100%;
-    margin: 2px;
     padding: 4px;
 }
 
 #info .location {
     width: 100%;
-    margin: 2px;
     padding: 4px;
 }
 
 .name {
-    height: 40px;
-    line-height: 40px;
+    height: 33px;
+    line-height: normal;
     vertical-align: middle;
     width: 100%;
-    margin: 2px;
     padding: 4px;
     border-radius: 3px;
     font-size: 1.3em;
@@ -126,7 +123,6 @@ div {
 
 .notes {
     width: 100%;
-    margin: 2px;
     flex: 2 2 auto;
     border-radius: 3px;
     overflow: hidden;
