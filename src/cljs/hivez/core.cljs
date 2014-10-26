@@ -175,8 +175,7 @@
                       :onClick (fn []
                                  (om/set-state! owner :exit-type "btn")
                                  (js/setTimeout #(on-edit hive edit-key owner) 100))}
-          (dom/span #js {:id "input-ok-mark"
-                         :style style}
+          (dom/span #js {:id "input-ok-mark"}
             (gstring/unescapeEntities "&#10003;")))))))
 
 (defn hive-info [hive owner]
@@ -186,7 +185,7 @@
       {:editing nil})
 
     om/IRenderState
-    (render-state [_ {:keys [editing]}]
+    (render-state [_ {:keys [active editing]}]
       (dom/div #js {:id "info-wrapper"}
         (case editing
           :name (om/build input hive {:opts {:id "name-input"
@@ -202,7 +201,7 @@
                                               (partial on-edit #(end-edit owner))}})
           nil)
         (dom/div #js {:id "info"
-                      :className (if editing "hide" "show")}
+                      :className (if (or (= active :none) editing) "hide" "show")}
           (dom/span #js {:id "name-editable"
                          :className "name editable single-line"
                          :onClick #(begin-edit owner :name)
@@ -216,9 +215,7 @@
                         :className "notes editable"
                         :onClick #(begin-edit owner :notes)
                         :data-ph "Notes..."
-                        :dangerouslySetInnerHTML #js {:__html (:notes hive)}}
-            )
-)))))
+                        :dangerouslySetInnerHTML #js {:__html (:notes hive)}}))))))
 
 (defn app [data owner]
   (om/component
@@ -232,7 +229,7 @@
                                  (if (= (:orientation data) :portrait)
                                    " vert"
                                    " flat"))}
-        (om/build hive-info (get (:hives data) (:active data)))))))
+        (om/build hive-info (get (:hives data) (:active data)) {:state {:active (:active data)}})))))
 
 (defn main []
   (nav/render)
