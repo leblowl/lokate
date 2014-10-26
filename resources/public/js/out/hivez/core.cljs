@@ -228,7 +228,10 @@
       (dom/div #js {:className (str "two"
                                  (if (= (:orientation data) :portrait)
                                    " vert"
-                                   " flat"))}
+                                   " flat")
+                                 (if (= (:active data) :none)
+                                   " hide"
+                                   " show"))}
         (om/build hive-info (get (:hives data) (:active data)) {:state {:active (:active data)}})))))
 
 (defn main []
