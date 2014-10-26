@@ -7,6 +7,7 @@ html, body {
     width: 100%;
     height: 100%;
     font-family: 'Lato', 'DejaVuSans', sans-serif;
+    overflow: hidden;
 }
 
 div {
@@ -36,6 +37,21 @@ div {
     height: 100%;
 }
 
+.two {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin: auto;
+}
+
+.column {
+    flex-direction: column;
+}
+
+.row {
+    flex-direction: row;
+}
+
 .vert {
     width: 100%;
     height: 33%;
@@ -51,13 +67,8 @@ div {
     height: 100%;
 }
 
-.two {
-    //flex: 1 1 50%;
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    margin: auto;
-    //background-color: #ddeeee;
+.gmnoprint img {
+    max-width: none;
 }
 
 #info-wrapper {
@@ -65,7 +76,7 @@ div {
     height: 100%;
 }
 
-.info {
+#info {
     width: 100%;
     height: 100%;
     padding: .5em;
@@ -76,61 +87,30 @@ div {
     background-color: rgba(33,33,33,0.9);
 }
 
-input {
-    background-color: transparent;
-    border: 0px solid;
+#info.show {
+    transition-delay: .37s;
+    transition-duration: 1s;
+    transition-property: transform;
+    transform: translate3d(0, 0, 0);
 }
 
-.editable-input span{
-    cursor: pointer;
+#info.hide {
+    transform: translate3d(0, 100%, 0);
 }
 
-.info #name {
-    height: 40px;
+#info .origin {
     width: 100%;
     margin: 2px;
     padding: 4px;
 }
 
-.info .origin {
+#info .location {
     width: 100%;
     margin: 2px;
     padding: 4px;
 }
 
-.info .location {
-    width: 100%;
-    margin: 2px;
-    padding: 4px;
-}
-
-.info #notes {
-    width: 100%;
-    margin: 2px;
-    flex: 2 2 auto;
-    //box-shadow: 0px 0px 0pt 2pt #444444;
-    border-radius: 3px;
-    overflow: hidden;
-    padding: 4px;
-}
-
-.column {
-    flex-direction: column;
-}
-
-.row {
-    flex-direction: row;
-}
-
-.row {
-    max-width: 100%;
-}
-
-.gmnoprint img {
-    max-width: none;
-}
-
-.info .name {
+.name {
     height: 40px;
     line-height: 40px;
     vertical-align: middle;
@@ -138,22 +118,23 @@ input {
     margin: 2px;
     padding: 4px;
     border-radius: 3px;
-
     font-size: 1.3em;
+    cursor: pointer;
 }
 
-.info .name:focus {
+.input {
     position: fixed;
     top: 43px;
     bottom: 0;
-    left: -2px;
+    left: 0;
     right: 0;
     margin: 0;
     background-color: rgba(33,33,33,0.9);
     font-size: 1.3em;
+    color: white;
 }
 
-.info .notes {
+#info .notes {
     width: 100%;
     margin: 2px;
     flex: 2 2 auto;
@@ -174,12 +155,18 @@ input {
     font-size: 1em;
 }
 
-[contentEditable=true]:hover {
+.editable:hover {
     cursor: pointer;
     box-shadow: inset 0px 0px 0pt 2pt #5599ff;
 }
 
-[contentEditable=true]:focus {
+.editable:empty:not(:focus):before {
+    content:attr(data-ph);
+    color: darkgrey;
+}
+
+
+[contentEditable="true"]:focus {
     cursor: text;
     box-shadow: inset 0px 0px 0pt 2pt #44dd55;
     outline: 0px solid transparent;
@@ -197,9 +184,4 @@ input {
 [contenteditable="true"].single-line * {
     display: inline;
     white-space: nowrap;
-}
-
-[contentEditable=true]:empty:not(:focus):before {
-    content:attr(data-ph);
-    color: darkgrey;
 }

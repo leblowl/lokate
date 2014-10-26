@@ -11,11 +11,14 @@
 
 (enable-console-print!)
 
+(defn orientation []
+  (if (> (.-height (.-screen js/window))
+         (.-width (.-screen js/window)))
+    :portrait
+    :landscape))
+
 (def app-state
-  (atom {:orientation (if (> (.-innerHeight js/window)
-                            (.-innerWidth js/window))
-                        :portrait
-                        :landscape)
+  (atom {:orientation (orientation)
          :hives {:none {:name ""
                         :origin "12/21/2012"
                         :pos {:lat -0
@@ -34,12 +37,15 @@
            (vals (:hives @data))))
   (.setIcon marker "http://maps.google.com/mapfiles/ms/icons/green-dot.png"))
 
+
 (defn handleOrientation [evt]
-  (swap! app-state #(assoc % :orientation
-                           (if (> (.-innerHeight js/window)
-                                 (.-innerWidth js/window))
-                             :portrait
-                             :landscape))))
+  (println (.-innerHeight js/window))
+  (println (.-innerWidth js/window))
+  (println (.-outerHeight js/window))
+  (println (.-outerWidth js/window))
+  (println (str "screen height "(.-height (.-screen js/window))))
+
+  (swap! app-state #(assoc % :orientation (orientation))))
 
 (defn lat-lng-key [lat-lng]
   (keyword (str
@@ -123,9 +129,6 @@
     #js {:visibility "visible"}
     #js {:visibility "hidden"}))
 
-(defn display-name [hive]
-  (:name hive))
-
 (defn display-pos [hive]
   (let [pos (:pos hive)]
     (str
@@ -135,77 +138,71 @@
 (defn display-origin [hive]
   (str "Originated: " (:origin hive)))
 
-(defn display-notes [hive]
-  (:notes hive))
-
 (defn handle-change [e data edit-key owner]
   (om/transact! data edit-key (fn [_] (.. e -target -value))))
 
-(defn begin-edit [owner]
-  (om/set-state! owner :editing true)
-  (.focus (om/get-node owner "input")))
+(defn begin-edit [owner edit-key]
+  (om/set-state! owner :editing edit-key))
 
-(defn end-edit [text owner cb]
-  (om/set-state! owner :editing false)
-  (when cb (cb text)))
+(defn end-edit [owner]
+  (om/set-state! owner :editing nil))
 
-(defn editable [data owner {:keys [id className edit-key on-edit] :as opts}]
+(defn on-edit [cb hive key owner]
+  (om/update! hive key (.-innerHTML (om/get-node owner)))
+  (cb))
+
+(defn input [hive owner {:keys [id className edit-key on-edit] :as opts}]
   (reify
-    om/IInitState
-    (init-state [_]
-      {:editing false})
+    om/IDidMount
+    (did-mount [_]
+      (.focus (om/get-node owner)))
 
-    om/IRenderState
-    (render-state [_ {:keys [editing]}]
-      (let [text (get data edit-key)]
-        (dom/div #js {:id id
-                      :className className
-                      :onBlur (fn [e] (end-edit text owner on-edit))})))))
+    om/IRender
+    (render [_]
+      (dom/div #js {:id id
+                    :className className
+                    :contentEditable "true"
+                    :onBlur #(on-edit hive edit-key owner)}
+        (edit-key hive)))))
 
 (defn hive-info [hive owner]
   (reify
     om/IInitState
     (init-state [_]
-      {:editing false})
+      {:editing nil})
 
     om/IRenderState
     (render-state [_ {:keys [editing]}]
-      (dom/div #js {:id "info"
-                    :className "info"
-                    :style (visible (not editing))}
-        (dom/div #js {:id "name"
-                      :className "name single-line"
-                      :style (visible true)
-                      :ref "hive-name"
-                      :contentEditable "true"
-                      :onFocus (fn [_]
-                                 (om/set-state! owner :editing true))
-                      :onBlur (fn [_]
-                                (om/update! hive
-                                  :name
-                                  (.-innerHTML (om/get-node owner "hive-name")))
-                                ;(js/setTimeout #(om/set-state! owner :editing false) 350)
-                                )
-                      :data-ph "Name"}
-          (display-name hive))
-        (dom/div #js {:className "origin"}
-          (display-origin hive))
-        (dom/div #js {:className "location"}
-          (display-pos hive))
-        (dom/div #js {:id "notes"
-                      :className "notes"
-                      :style (visible true)
-                      :ref "hive-notes"
-                      :contentEditable "true"
-                      :onFocus (fn [_]
-                                 (om/set-state! owner :editing true))
-                      :onBlur (fn [_]
-                                (om/update! hive
-                                  :notes
-                                  (.-innerHTML (om/get-node owner "hive-notes")))
-                                (om/set-state! owner :editing false))
-                      :data-ph "Notes..."}
-          (display-notes hive))))))
+      (dom/div #js {:id "info-wrapper"}
+        (case editing
+          :name (om/build input hive {:opts {:id "name-input"
+                                              :className "name input single-line"
+                                              :edit-key :name
+                                              :on-edit
+                                              (partial on-edit #(end-edit owner))}})
+          :notes (om/build input hive {:opts {:id "notes-input"
+                                               :className "notes input"
+                                               :edit-key :notes
+                                               :on-edit
+                                               (partial on-edit #(end-edit owner))}})
+          nil)
+        (dom/div #js {:id "info"
+                      :className (if editing "hide" "show")}
+          (dom/div #js {:id "name-editable"
+                        :className "name editable"
+                        :onClick #(begin-edit owner :name)
+                        :data-ph "Name"}
+            (:name hive))
+          (dom/div #js {:className "origin"}
+            (display-origin hive))
+          (dom/div #js {:className "location"}
+            (display-pos hive))
+          (dom/div #js {:id "notes-editable"
+                        :className "notes editable"
+                        :onClick #(begin-edit owner :notes)
+                        :data-ph "Notes..."}
+            (:notes hive))
+)))))
 
 (defn app [data owner]
   (om/component
