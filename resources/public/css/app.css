@@ -112,13 +112,16 @@ div {
 
 .name {
     height: 33px;
-    line-height: normal;
+    line-height: 33px;
     vertical-align: middle;
-    width: 100%;
     padding: 4px;
     border-radius: 3px;
     font-size: 1.3em;
     cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 0;
 }
 
 .notes {
@@ -168,7 +171,7 @@ div {
 
 .editable:hover {
     cursor: pointer;
-    box-shadow: inset 0px 0px 0pt 2pt #5599ff;
+    box-shadow: 0px 0px 0pt 2pt #5599ff;
 }
 
 .editable:empty:not(:focus):before {
@@ -184,8 +187,10 @@ div {
 }
 
 [contenteditable="true"].single-line {
+    display: inline;
     white-space: nowrap;
     overflow: hidden;
+    box-sizing: content-box;
 }
 
 [contenteditable="true"].single-line br {

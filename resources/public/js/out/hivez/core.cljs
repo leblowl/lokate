@@ -201,7 +201,7 @@
           nil)
         (dom/div #js {:id "info"
                       :className (if editing "hide" "show")}
-          (dom/div #js {:id "name-editable"
+          (dom/span #js {:id "name-editable"
                         :className "name editable"
                         :onClick #(begin-edit owner :name)
                         :data-ph "Name"}
