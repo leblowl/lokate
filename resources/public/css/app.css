@@ -141,7 +141,7 @@ div {
     width: 35px;
     height: 35px;
     border-radius: 50%;
-    border: 3px solid #44dd55;
+    border: 3px solid #ddffcc;
     cursor: pointer;
 }
 
@@ -179,7 +179,7 @@ div {
 
 [contentEditable="true"]:focus {
     cursor: text;
-    box-shadow: inset 0px 0px 0pt 2pt #44dd55;
+    box-shadow: inset 0px 0px 0pt 2pt #ddffcc;
     outline: 0px solid transparent;
 }
 
