@@ -39,10 +39,6 @@
 
 
 (defn handleOrientation [evt]
-  (println (.-innerHeight js/window))
-  (println (.-innerWidth js/window))
-  (println (.-outerHeight js/window))
-  (println (.-outerWidth js/window))
   (println (str "screen height "(.-height (.-screen js/window))))
 
   (swap! app-state #(assoc % :orientation (orientation))))
@@ -167,7 +163,9 @@
                       :onBlur #(on-edit hive edit-key owner)}
           (edit-key hive))
         (dom/div #js {:id "input-ok"
-                      :onClick #(.blur (om/get-node owner edit-key))})))))
+                      :onClick #(.blur (om/get-node owner edit-key))}
+          (dom/span #js {:id "input-ok-mark"}
+            (gstring/unescapeEntities "&#10003;")))))))
 
 (defn hive-info [hive owner]
   (reify

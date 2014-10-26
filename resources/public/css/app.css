@@ -122,6 +122,15 @@ div {
     cursor: pointer;
 }
 
+.notes {
+    width: 100%;
+    margin: 2px;
+    flex: 2 2 auto;
+    border-radius: 3px;
+    overflow: hidden;
+    padding: 4px;
+}
+
 .input {
     position: fixed;
     top: 45px;
@@ -132,6 +141,7 @@ div {
     background-color: rgba(33,33,33,0.9);
     font-size: 1.3em;
     color: white;
+    border-radius: 0;
 }
 
 #input-ok {
@@ -141,29 +151,18 @@ div {
     width: 35px;
     height: 35px;
     border-radius: 50%;
-    border: 3px solid #ddffcc;
+    border: 3px solid #33ff99;
     cursor: pointer;
+    display: flex;
 }
 
-#info .notes {
-    width: 100%;
-    margin: 2px;
-    flex: 2 2 auto;
-    //box-shadow: 0px 0px 0pt 2pt #444444;
-    border-radius: 3px;
-    overflow: hidden;
-    padding: 4px;
+#input-ok-mark {
+    font-size: 150%;
+    margin: auto;
 }
 
-#notes:focus {
-    position: fixed;
-    top: 45px;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    margin: 0;
-    background-color: rgba(33,33,33,0.9);
-    font-size: 1em;
+#input-ok:hover {
+    color: #33ff99;
 }
 
 .editable:hover {
@@ -172,14 +171,14 @@ div {
 }
 
 .editable:empty:not(:focus):before {
-    content:attr(data-ph);
+    content: attr(data-ph);
     color: darkgrey;
 }
 
 
 [contentEditable="true"]:focus {
     cursor: text;
-    box-shadow: inset 0px 0px 0pt 2pt #ddffcc;
+    box-shadow: inset 0px 0px 0pt 2pt #33ff99;
     outline: 0px solid transparent;
 }
 
