@@ -48,6 +48,16 @@
              "lat=" (.lat lat-lng)
              "lng=" (.lng lat-lng))))
 
+(defn distance
+ "Euclidean distance between 2 points"
+ [pos1 pos2]
+ (Math/pow (+ (Math/pow (- (:lat pos1) (:lat pos2)) 2)
+              (Math/pow (- (:lng pos1) (:lng pos2)) 2))
+   0.5))
+
+(defn nearest [hive hives]
+  (apply min-key (partial distance (:pos hive)) (map :pos hives)))
+
 (defn fdate-now []
   (let [d (js/Date.)
         date (.getDate d)
@@ -95,6 +105,8 @@
                 "rightclick"
                 (fn [_]
                   (.setMap marker nil)
+                  (println (:active @data))
+                  (println (nearest ((:active @data) (:hives @data)) (:hives @data)))
                   (om/update! data :active :none))))))
 
         (if navigator.geolocation
@@ -229,9 +241,8 @@
                                  (if (= (:orientation data) :portrait)
                                    " vert"
                                    " flat")
-                                 (if (= (:active data) :none)
-                                   " hide"
-                                   " show"))}
+                                 (when (= (:active data) :none)
+                                   " hide"))}
         (om/build hive-info (get (:hives data) (:active data)) {:state {:active (:active data)}})))))
 
 (defn main []
