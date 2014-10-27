@@ -11,42 +11,56 @@
 
 (enable-console-print!)
 
+(def app-state
+  (atom {:orientation nil
+         :hives {}
+         :active nil}))
+
 (defn orientation []
   (if (> (.-height (.-screen js/window))
          (.-width (.-screen js/window)))
-    :portrait
-    :landscape))
+    "portrait"
+    "landscape"))
 
-(def app-state
-  (atom {:orientation (orientation)
-         :hives {:none {:name ""
-                        :origin "12/21/2012"
-                        :pos {:lat -0
-                              :lng -0}
-                        :notes ""}}
-         :active :none}))
+(defn handleOrientation []
+  (swap! app-state #(assoc % :orientation (orientation))))
+
+(defn pos-key [lat-lng]
+  (keyword (str
+             "lat=" (.lat lat-lng)
+             "lng=" (.lng lat-lng))))
+
+(defn fdate-now []
+  (let [d (js/Date.)
+        date (.getDate d)
+        month (+ (.getMonth d) 1)
+        year (.getFullYear d)]
+    (str month "/" date "/" year)))
+
+(defn new-hive [marker]
+  (let [pos (.getPosition marker)]
+    {:marker marker
+     :name ""
+     :origin (fdate-now)
+     :pos {:lat (.lat pos)
+           :lng (.lng pos)}
+     :notes ""}))
+
+(defn activate-marker [data marker]
+  (dorun (map #(.setIcon (:marker %) "http://maps.google.com/mapfiles/ms/icons/red-dot.png")
+           (vals (:hives @data))))
+  (.setIcon marker "http://maps.google.com/mapfiles/ms/icons/green-dot.png"))
+
+(defn add-hive [data marker]
+  (let [key (pos-key (.getPosition marker))]
+    (om/transact! data :hives #(assoc % key (new-hive marker)))
+    (om/update! data :active key)
+    (activate-marker data marker)))
 
 (defn mark-pos [map pos]
   (google.maps.Marker. #js {:position pos
                             :map map
                             :title "hive"}))
-
-(defn activate-marker [data marker]
-  (dorun (map #(when (not (nil? (:marker %)))
-                 (.setIcon (:marker %) "http://maps.google.com/mapfiles/ms/icons/red-dot.png"))
-           (vals (:hives @data))))
-  (.setIcon marker "http://maps.google.com/mapfiles/ms/icons/green-dot.png"))
-
-
-(defn handleOrientation [evt]
-  (println (str "screen height "(.-height (.-screen js/window))))
-
-  (swap! app-state #(assoc % :orientation (orientation))))
-
-(defn lat-lng-key [lat-lng]
-  (keyword (str
-             "lat=" (.lat lat-lng)
-             "lng=" (.lng lat-lng))))
 
 (defn distance
  "Euclidean distance between 2 points"
@@ -56,35 +70,12 @@
    0.5))
 
 (defn nearest [hive hives]
-  (apply min-key (partial distance (:pos hive)) (map :pos hives)))
-
-(defn fdate-now []
-  (let [d (js/Date.)
-        date (.getDate d)
-        month (+ (.getMonth d) 1)
-        year (.getFullYear d)]
-    (str month "/" date "/" year)))
-
-(defn add-hive [data marker]
-  (om/transact! data
-    :hives
-    (fn [_] (let [pos (.getPosition marker)]
-            (assoc _ (lat-lng-key pos)
-                   {:marker marker
-                    :name ""
-                    :origin (fdate-now)
-                    :pos {:lat (.lat pos)
-                          :lng (.lng pos)}
-                    :notes ""}))))
-  (om/update! data
-    :active (lat-lng-key (.getPosition marker)))
-
-  (activate-marker data marker))
+  (apply min-key #(distance (:pos hive) (:pos (second %))) (seq hives)))
 
 (defn goog-map [data owner]
   (reify
     om/IDidMount
-    (did-mount [this]
+    (did-mount [_]
       (let [map-options #js {:center #js {:lat 0 :lng 0}
                              :zoom 6}
             map (google.maps.Map. (om/get-node owner)
@@ -99,15 +90,21 @@
               (google.maps.event.addListener marker
                 "click"
                 (fn [_]
-                  (om/update! data :active (lat-lng-key (.getPosition marker)))
+                  (om/update! data :active (pos-key (.getPosition marker)))
                   (activate-marker data marker)))
               (google.maps.event.addListener marker
                 "rightclick"
                 (fn [_]
                   (.setMap marker nil)
-                  (println (:active @data))
-                  (println (nearest ((:active @data) (:hives @data)) (:hives @data)))
-                  (om/update! data :active :none))))))
+                  (let [active (:active @data)
+                        fallen-key (pos-key (.getPosition marker))]
+                    (om/transact! data :hives #(dissoc % fallen-key))
+                    (if (= fallen-key active)
+                      (do
+                        (let [new-active (first (nearest fallen-key (:hives @data)))]
+                          (om/update! data :active new-active)
+                          (when new-active
+                            (activate-marker data (:marker (new-active (:hives @data))))))))))))))
 
         (if navigator.geolocation
           (.getCurrentPosition navigator.geolocation
@@ -121,21 +118,16 @@
                                                 (google.maps.event.trigger map "resize")))))
 
     om/IRender
-    (render [this]
+    (render [_]
       (dom/div #js {:id "map-canvas"}))))
-
-(defn floormat [& args]
-  (apply gstring/format args))
 
 (defn display [show]
   (if show
     #js {}
     #js {:display "none"}))
 
-(defn visible [show]
-  (if show
-    #js {:visibility "visible"}
-    #js {:visibility "hidden"}))
+(defn floormat [& args]
+  (apply gstring/format args))
 
 (defn display-pos [hive]
   (let [pos (:pos hive)]
@@ -145,9 +137,6 @@
 
 (defn display-origin [hive]
   (str "Originated: " (:origin hive)))
-
-(defn handle-change [e data edit-key owner]
-  (om/transact! data edit-key (fn [_] (.. e -target -value))))
 
 (defn begin-edit [owner edit-key]
   (om/set-state! owner :editing edit-key))
@@ -190,62 +179,76 @@
           (dom/span #js {:id "input-ok-mark"}
             (gstring/unescapeEntities "&#10003;")))))))
 
-(defn hive-info [hive owner]
+(defn input-control [hive owner {:keys [on-edit] :as opts}]
+  (reify
+    om/IRenderState
+    (render-state [_ {:keys [editing]}]
+      (dom/div #js {:id "input-ctrl"}
+        (case editing
+          :name (om/build input hive {:opts {:id "name-input"
+                                             :className "name input single-line"
+                                             :edit-key :name
+                                             :on-edit on-edit
+                                             :on-key-down (fn [e] (if (= (.-keyCode e) 13) false))}})
+          :notes (om/build input hive {:opts {:id "notes-input"
+                                              :className "notes input"
+                                              :edit-key :notes
+                                              :on-edit on-edit}})
+          nil)))))
+
+(defn hive-info [hive owner {:keys [begin-edit] :as opts}]
+  (reify
+    om/IRender
+    (render [_]
+      (dom/div #js {:id "info"}
+        (dom/span #js {:id "name-editable"
+                       :className "name editable single-line"
+                       :onClick #(begin-edit :name)
+                       :data-ph "Name"
+                       :dangerouslySetInnerHTML #js {:__html (:name hive)}})
+        (dom/div #js {:className "origin"}
+          (display-origin hive))
+        (dom/div #js {:className "location"}
+          (display-pos hive))
+        (dom/div #js {:id "notes-editable"
+                      :className "notes editable"
+                      :onClick #(begin-edit :notes)
+                      :data-ph "Notes..."
+                      :dangerouslySetInnerHTML #js {:__html (:notes hive)}})))))
+
+(defn drawer [data owner]
   (reify
     om/IInitState
     (init-state [_]
       {:editing nil})
 
     om/IRenderState
-    (render-state [_ {:keys [active editing]}]
-      (dom/div #js {:id "info-wrapper"}
-        (case editing
-          :name (om/build input hive {:opts {:id "name-input"
-                                             :className "name input single-line"
-                                             :edit-key :name
-                                             :on-edit
-                                             (partial on-edit #(end-edit owner))
-                                             :on-key-down (fn [e] (if (= (.-keyCode e) 13) false))}})
-          :notes (om/build input hive {:opts {:id "notes-input"
-                                              :className "notes input"
-                                              :edit-key :notes
-                                              :on-edit
-                                              (partial on-edit #(end-edit owner))}})
-          nil)
-        (dom/div #js {:id "info"
-                      :className (if (or (= active :none) editing) "hide" "show")}
-          (dom/span #js {:id "name-editable"
-                         :className "name editable single-line"
-                         :onClick #(begin-edit owner :name)
-                         :data-ph "Name"
-                         :dangerouslySetInnerHTML #js {:__html (:name hive)}})
-          (dom/div #js {:className "origin"}
-            (display-origin hive))
-          (dom/div #js {:className "location"}
-            (display-pos hive))
-          (dom/div #js {:id "notes-editable"
-                        :className "notes editable"
-                        :onClick #(begin-edit owner :notes)
-                        :data-ph "Notes..."
-                        :dangerouslySetInnerHTML #js {:__html (:notes hive)}}))))))
+    (render-state [_ {:keys [editing]}]
+      (dom/div #js {:id "drawer-wrapper"}
+        (when (:active data)
+          (om/build input-control
+            ((:active data) (:hives data))
+            {:state {:editing editing}
+             :opts {:on-edit (partial on-edit #(end-edit owner))}}))
+        (dom/div #js {:id "drawer"
+                      :className (str (:orientation data)
+                                   (if (or (not (:active data)) editing) " hide" " show"))}
+          (when (:active data)
+            (om/build hive-info
+              ((:active data) (:hives data))
+              {:opts {:begin-edit (partial begin-edit owner)}})))))))
 
 (defn app [data owner]
-  (om/component
-    (dom/div #js {:className (str "flex-container"
-                               (if (= (:orientation data) :portrait)
-                                 " column"
-                                 " row"))}
-      (dom/div #js {:className "one"}
-        (om/build goog-map data))
-      (dom/div #js {:className (str "two"
-                                 (if (= (:orientation data) :portrait)
-                                   " vert"
-                                   " flat")
-                                 (when (= (:active data) :none)
-                                   " hide"))}
-        (om/build hive-info (get (:hives data) (:active data)) {:state {:active (:active data)}})))))
+  (reify
+    om/IRender
+    (render [_]
+      (dom/div #js {:className (str "flex-container " (:orientation data))}
+        (dom/div #js {:className "flex-content"}
+          (om/build goog-map data))
+        (om/build drawer data)))))
 
 (defn main []
   (nav/render)
+  (handleOrientation)
   (.addEventListener js/window "resize" handleOrientation)
   (om/root app app-state {:target (.getElementById js/document "content")}))
