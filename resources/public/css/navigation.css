@@ -9,14 +9,15 @@
 }
 
 .banner-icon {
-    padding-left: 12px;
-    padding-right: .3em;
-    font-size: 200%;
+    padding-left: 6px;
+    padding-right: 4px;
+    font-size: 175%;
     color: #ddffcc;
 }
 
 
 .banner-title {
+    font-weight: 400;
     font-size: 150%;
     color: white;
 }
