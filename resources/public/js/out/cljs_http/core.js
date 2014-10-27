@@ -7,13 +7,13 @@ goog.require('cljs_http.util');
 goog.require('cljs_http.util');
 goog.require('goog.net.EventType');
 goog.require('goog.net.XhrIo');
-cljs_http.core.pending_requests = (function (){var G__24028 = cljs.core.PersistentArrayMap.EMPTY;return (cljs.core.atom.cljs$core$IFn$_invoke$arity$1 ? cljs.core.atom.cljs$core$IFn$_invoke$arity$1(G__24028) : cljs.core.atom.call(null,G__24028));
+cljs_http.core.pending_requests = (function (){var G__24071 = cljs.core.PersistentArrayMap.EMPTY;return (cljs.core.atom.cljs$core$IFn$_invoke$arity$1 ? cljs.core.atom.cljs$core$IFn$_invoke$arity$1(G__24071) : cljs.core.atom.call(null,G__24071));
 })();
 /**
 * Attempt to close the given channel and abort the pending HTTP request
 * with which it is associated.
 */
-cljs_http.core.abort_BANG_ = (function abort_BANG_(channel){var temp__4126__auto__ = (function (){var G__24030 = cljs_http.core.pending_requests;return (cljs.core.deref.cljs$core$IFn$_invoke$arity$1 ? cljs.core.deref.cljs$core$IFn$_invoke$arity$1(G__24030) : cljs.core.deref.call(null,G__24030));
+cljs_http.core.abort_BANG_ = (function abort_BANG_(channel){var temp__4126__auto__ = (function (){var G__24073 = cljs_http.core.pending_requests;return (cljs.core.deref.cljs$core$IFn$_invoke$arity$1 ? cljs.core.deref.cljs$core$IFn$_invoke$arity$1(G__24073) : cljs.core.deref.call(null,G__24073));
 })().call(null,channel);if(cljs.core.truth_(temp__4126__auto__))
 {var xhr = temp__4126__auto__;cljs.core.swap_BANG_.cljs$core$IFn$_invoke$arity$3(cljs_http.core.pending_requests,cljs.core.dissoc,channel);
 cljs.core.async.close_BANG_(channel);
@@ -26,7 +26,7 @@ return xhr.abort();
 * Execute the HTTP request corresponding to the given Ring request
 * map and return a core.async channel.
 */
-cljs_http.core.request = (function request(p__24032){var map__24035 = p__24032;var map__24035__$1 = ((cljs.core.seq_QMARK_(map__24035))?cljs.core.apply.cljs$core$IFn$_invoke$arity$2(cljs.core.hash_map,map__24035):map__24035);var request__$1 = map__24035__$1;var with_credentials_QMARK_ = cljs.core.get.cljs$core$IFn$_invoke$arity$2(map__24035__$1,cljs.core.constant$keyword$98);var body = cljs.core.get.cljs$core$IFn$_invoke$arity$2(map__24035__$1,cljs.core.constant$keyword$99);var headers = cljs.core.get.cljs$core$IFn$_invoke$arity$2(map__24035__$1,cljs.core.constant$keyword$100);var request_method = cljs.core.get.cljs$core$IFn$_invoke$arity$2(map__24035__$1,cljs.core.constant$keyword$101);var channel = cljs.core.async.chan.cljs$core$IFn$_invoke$arity$0();var request_url = cljs_http.util.build_url(request__$1);var method = cljs.core.name((function (){var or__3640__auto__ = request_method;if(cljs.core.truth_(or__3640__auto__))
+cljs_http.core.request = (function request(p__24075){var map__24078 = p__24075;var map__24078__$1 = ((cljs.core.seq_QMARK_(map__24078))?cljs.core.apply.cljs$core$IFn$_invoke$arity$2(cljs.core.hash_map,map__24078):map__24078);var request__$1 = map__24078__$1;var with_credentials_QMARK_ = cljs.core.get.cljs$core$IFn$_invoke$arity$2(map__24078__$1,cljs.core.constant$keyword$98);var body = cljs.core.get.cljs$core$IFn$_invoke$arity$2(map__24078__$1,cljs.core.constant$keyword$99);var headers = cljs.core.get.cljs$core$IFn$_invoke$arity$2(map__24078__$1,cljs.core.constant$keyword$100);var request_method = cljs.core.get.cljs$core$IFn$_invoke$arity$2(map__24078__$1,cljs.core.constant$keyword$101);var channel = cljs.core.async.chan.cljs$core$IFn$_invoke$arity$0();var request_url = cljs_http.util.build_url(request__$1);var method = cljs.core.name((function (){var or__3640__auto__ = request_method;if(cljs.core.truth_(or__3640__auto__))
 {return or__3640__auto__;
 } else
 {return cljs.core.constant$keyword$102;
@@ -36,15 +36,15 @@ cljs_http.core.request = (function request(p__24032){var map__24035 = p__24032;v
 } else
 {return (0);
 }
-})();var headers__$1 = cljs_http.util.build_headers(headers);var send_credentials = (((with_credentials_QMARK_ == null))?true:with_credentials_QMARK_);var xhr = (function (){var G__24036 = (new goog.net.XhrIo());G__24036.setTimeoutInterval(timeout);
-G__24036.setWithCredentials(send_credentials);
-return G__24036;
+})();var headers__$1 = cljs_http.util.build_headers(headers);var send_credentials = (((with_credentials_QMARK_ == null))?true:with_credentials_QMARK_);var xhr = (function (){var G__24079 = (new goog.net.XhrIo());G__24079.setTimeoutInterval(timeout);
+G__24079.setWithCredentials(send_credentials);
+return G__24079;
 })();cljs.core.swap_BANG_.cljs$core$IFn$_invoke$arity$4(cljs_http.core.pending_requests,cljs.core.assoc,channel,xhr);
-xhr.listen(goog.net.EventType.COMPLETE,((function (channel,request_url,method,timeout,headers__$1,send_credentials,xhr,map__24035,map__24035__$1,request__$1,with_credentials_QMARK_,body,headers,request_method){
-return (function (p1__24031_SHARP_){var target = p1__24031_SHARP_.target;cljs.core.async.put_BANG_.cljs$core$IFn$_invoke$arity$2(channel,new cljs.core.PersistentArrayMap(null, 5, [cljs.core.constant$keyword$104,target.getStatus(),cljs.core.constant$keyword$105,target.isSuccess(),cljs.core.constant$keyword$99,target.getResponseText(),cljs.core.constant$keyword$100,cljs_http.util.parse_headers(target.getAllResponseHeaders()),cljs.core.constant$keyword$106,new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [request_url,target.getLastUri()], null)], null));
+xhr.listen(goog.net.EventType.COMPLETE,((function (channel,request_url,method,timeout,headers__$1,send_credentials,xhr,map__24078,map__24078__$1,request__$1,with_credentials_QMARK_,body,headers,request_method){
+return (function (p1__24074_SHARP_){var target = p1__24074_SHARP_.target;cljs.core.async.put_BANG_.cljs$core$IFn$_invoke$arity$2(channel,new cljs.core.PersistentArrayMap(null, 5, [cljs.core.constant$keyword$104,target.getStatus(),cljs.core.constant$keyword$105,target.isSuccess(),cljs.core.constant$keyword$99,target.getResponseText(),cljs.core.constant$keyword$100,cljs_http.util.parse_headers(target.getAllResponseHeaders()),cljs.core.constant$keyword$106,new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [request_url,target.getLastUri()], null)], null));
 cljs.core.swap_BANG_.cljs$core$IFn$_invoke$arity$3(cljs_http.core.pending_requests,cljs.core.dissoc,channel);
 return cljs.core.async.close_BANG_(channel);
-});})(channel,request_url,method,timeout,headers__$1,send_credentials,xhr,map__24035,map__24035__$1,request__$1,with_credentials_QMARK_,body,headers,request_method))
+});})(channel,request_url,method,timeout,headers__$1,send_credentials,xhr,map__24078,map__24078__$1,request__$1,with_credentials_QMARK_,body,headers,request_method))
 );
 xhr.send(request_url,method,body,headers__$1);
 return channel;

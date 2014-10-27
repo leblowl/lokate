@@ -73,11 +73,40 @@
 (defn nearest [hive hives]
   (apply min-key #(distance (:pos hive) (:pos (second %))) (seq hives)))
 
+(defn init-marker [data map marker]
+  (add-hive data marker)
+  (.panTo map (.getPosition marker))
+  (google.maps.event.addListener marker
+    "click"
+    (fn [_]
+      (if (= (:active @data) (pos-key (.getPosition marker)))
+        (do (om/update! data :active nil)
+            (activate-marker data nil))
+        (do
+          (om/update! data :active (pos-key (.getPosition marker)))
+          (activate-marker data marker)
+          (.panTo map (.getPosition marker))))))
+  (google.maps.event.addListener marker
+    "rightclick"
+    (fn [_]
+      (.setMap marker nil)
+      (let [active (:active @data)
+            fallen-key (pos-key (.getPosition marker))]
+        (om/transact! data :hives #(dissoc % fallen-key))
+        (if (= fallen-key active)
+          (do
+            (let [new-active (first (nearest fallen-key (:hives @data)))]
+              (om/update! data :active new-active)
+              (when new-active
+                (activate-marker data (:marker (new-active (:hives @data))))
+                (.panTo map (.getPosition (:marker (new-active (:hives @data)))))))))))))
+
 (defn goog-map [data owner]
   (reify
     om/IInitState
     (init-state [_]
-      {:center #js {:lat 0 :lng 0}})
+      {:center #js {:lat 0 :lng 0}
+       :evt-timeouts []})
 
     om/IDidMount
     (did-mount [_]
@@ -87,41 +116,39 @@
                              :zoomControl false
                              :scaleControl true
                              :streetViewControl false}
-            map (google.maps.Map.
-                  (om/get-node owner)
-                  map-options)]
+            map (google.maps.Map. (om/get-node owner) map-options)]
+
+        (google.maps.event.addListener
+          map
+          "mousedown"
+          (fn [evt]
+            (if (empty? (om/get-state owner :evt-timeouts))
+              (om/set-state! owner :evt-timeouts [(js/setTimeout #(init-marker data map (mark-pos map (.-latLng evt))) 1000)])
+              (do
+                (js/clearTimeout (om/get-state owner [:evt-timeouts 0]))
+                (om/set-state! owner :evt-timeouts [])))))
+
+        (google.maps.event.addListener
+          map
+          "mouseup"
+          (fn [evt]
+            (js/clearTimeout (om/get-state owner [:evt-timeouts 0]))
+            (om/set-state! owner :evt-timeouts [])))
+
+        (google.maps.event.addListener
+          map
+          "mousemove"
+          (fn [evt]
+            (js/clearTimeout (om/get-state owner [:evt-timeouts 0]))
+            (om/set-state! owner :evt-timeouts [])))
 
         (google.maps.event.addListener
           map
           "rightclick"
           (fn [evt]
-            (let [marker (mark-pos map (.-latLng evt))]
-              (add-hive data marker)
-              (.panTo map (.getPosition marker))
-              (google.maps.event.addListener marker
-                "click"
-                (fn [_]
-                  (if (= (:active @data) (pos-key (.getPosition marker)))
-                    (do (om/update! data :active nil)
-                        (activate-marker data nil))
-                    (do
-                     (om/update! data :active (pos-key (.getPosition marker)))
-                     (activate-marker data marker)
-                     (.panTo map (.getPosition marker))))))
-              (google.maps.event.addListener marker
-                "rightclick"
-                (fn [_]
-                  (.setMap marker nil)
-                  (let [active (:active @data)
-                        fallen-key (pos-key (.getPosition marker))]
-                    (om/transact! data :hives #(dissoc % fallen-key))
-                    (if (= fallen-key active)
-                      (do
-                        (let [new-active (first (nearest fallen-key (:hives @data)))]
-                          (om/update! data :active new-active)
-                          (when new-active
-                            (activate-marker data (:marker (new-active (:hives @data))))
-                            (.panTo map (.getPosition (:marker (new-active (:hives @data)))))))))))))))
+            (js/clearTimeout (om/get-state owner [:evt-timeouts 0]))
+            (om/set-state! owner :evt-timeouts [])
+            (init-marker data map (mark-pos map (.-latLng evt)))))
 
         (if navigator.geolocation
           (.getCurrentPosition navigator.geolocation
@@ -132,7 +159,6 @@
           (println "Hey, where'd you go!? Geolocation Disabled"))
 
         (google.maps.event.addListener map "idle" #(om/set-state! owner :center (.getCenter map)))
-
         (.addEventListener js/window "resize" (fn [e]
                                                 (google.maps.event.trigger map "resize")
                                                 (.setCenter map (om/get-state owner :center))))))
