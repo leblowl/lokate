@@ -49,7 +49,8 @@
 (defn activate-marker [data marker]
   (dorun (map #(.setIcon (:marker %) "http://maps.google.com/mapfiles/ms/icons/red-dot.png")
            (vals (:hives @data))))
-  (.setIcon marker "http://maps.google.com/mapfiles/ms/icons/green-dot.png"))
+  (when marker
+    (.setIcon marker "http://maps.google.com/mapfiles/ms/icons/green-dot.png")))
 
 (defn add-hive [data marker]
   (let [key (pos-key (.getPosition marker))]
@@ -74,12 +75,21 @@
 
 (defn goog-map [data owner]
   (reify
+    om/IInitState
+    (init-state [_]
+      {:center #js {:lat 0 :lng 0}})
+
     om/IDidMount
     (did-mount [_]
-      (let [map-options #js {:center #js {:lat 0 :lng 0}
-                             :zoom 6}
-            map (google.maps.Map. (om/get-node owner)
-                                  map-options)]
+      (let [map-options #js {:center (om/get-state owner :center)
+                             :zoom 6
+                             :panControl false
+                             :zoomControl false
+                             :scaleControl true
+                             :streetViewControl false}
+            map (google.maps.Map.
+                  (om/get-node owner)
+                  map-options)]
 
         (google.maps.event.addListener
           map
@@ -87,11 +97,17 @@
           (fn [evt]
             (let [marker (mark-pos map (.-latLng evt))]
               (add-hive data marker)
+              (.panTo map (.getPosition marker))
               (google.maps.event.addListener marker
                 "click"
                 (fn [_]
-                  (om/update! data :active (pos-key (.getPosition marker)))
-                  (activate-marker data marker)))
+                  (if (= (:active @data) (pos-key (.getPosition marker)))
+                    (do (om/update! data :active nil)
+                        (activate-marker data nil))
+                    (do
+                     (om/update! data :active (pos-key (.getPosition marker)))
+                     (activate-marker data marker)
+                     (.panTo map (.getPosition marker))))))
               (google.maps.event.addListener marker
                 "rightclick"
                 (fn [_]
@@ -104,7 +120,8 @@
                         (let [new-active (first (nearest fallen-key (:hives @data)))]
                           (om/update! data :active new-active)
                           (when new-active
-                            (activate-marker data (:marker (new-active (:hives @data))))))))))))))
+                            (activate-marker data (:marker (new-active (:hives @data))))
+                            (.panTo map (.getPosition (:marker (new-active (:hives @data)))))))))))))))
 
         (if navigator.geolocation
           (.getCurrentPosition navigator.geolocation
@@ -114,8 +131,11 @@
                (.setCenter map initialLoc))))
           (println "Hey, where'd you go!? Geolocation Disabled"))
 
+        (google.maps.event.addListener map "idle" #(om/set-state! owner :center (.getCenter map)))
+
         (.addEventListener js/window "resize" (fn [e]
-                                                (google.maps.event.trigger map "resize")))))
+                                                (google.maps.event.trigger map "resize")
+                                                (.setCenter map (om/get-state owner :center))))))
 
     om/IRender
     (render [_]
