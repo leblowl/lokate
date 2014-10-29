@@ -21,7 +21,8 @@
                           :data-cookiepolicy "single_host_origin"
                           :data-scope "profile"}))
           (dom/div #js {:id "or"} "or")
-          (dom/div #js {:id "play-btn"}
+          (dom/div #js {:id "play-btn"
+                        :onClick #(om/detach-root (.getElementById js/document "content-overlay"))}
             (dom/span #js {:id "play-label"} "play")))))))
 
 
