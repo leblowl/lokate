@@ -10,6 +10,7 @@
 #login-control {
     width: 50%;
     height: 30%;
+    min-width: 300px;
     margin: auto;
     display:flex;
     justify-content: center;
