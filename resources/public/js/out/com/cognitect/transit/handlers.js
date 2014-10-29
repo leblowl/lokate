@@ -30,7 +30,7 @@ handlers.ctorGuid = 0;
  * @const
  * @type {string}
  */
-handlers.ctorGuidProperty = "com$cognitect$transit$ctor$guid";
+handlers.ctorGuidProperty = "transit$guid$" + util.randomUUID();
 
 handlers.typeTag = function(ctor) {
     if(ctor == null) {
@@ -48,7 +48,15 @@ handlers.typeTag = function(ctor) {
     } else {
         var tag = ctor[handlers.ctorGuidProperty];
         if(tag == null) {
-            ctor[handlers.ctorGuidProperty] = tag = ++handlers.ctorGuid;
+            if(typeof Object.defineProperty != "undefined") {
+                tag = ++handlers.ctorGuid;
+                Object.defineProperty(ctor, handlers.ctorGuidProperty, {
+                    value: tag,
+                    enumerable: false
+                });
+            } else {
+                ctor[handlers.ctorGuidProperty] = tag = ++handlers.ctorGuid;
+            }
         }
         return tag;
     }
@@ -252,11 +260,39 @@ handlers.Handlers = function() {
 };
 
 handlers.Handlers.prototype.get = function(ctor) {
-    return this.handlers[handlers.typeTag(ctor)];
+    var h = null;
+    if(typeof ctor === "string") {
+        h = this.handlers[ctor];
+    } else {
+        h = this.handlers[handlers.typeTag(ctor)];
+    }
+    if(h != null) {
+        return h;
+    } else {
+        return this.handlers["default"];
+    }
+};
+
+handlers.validTag = function(tag) {
+    switch(tag) {
+        case "null":
+        case "string":
+        case "boolean":
+        case "number":
+        case "array":
+        case "map":
+        return false;
+        break;
+    }
+    return true;
 };
 
 handlers.Handlers.prototype.set = function(ctor, handler) {
-    this.handlers[handlers.typeTag(ctor)] = handler;
+    if(typeof ctor === "string" && handlers.validTag(ctor)) {
+        this.handlers[ctor] = handler;
+    } else {
+        this.handlers[handlers.typeTag(ctor)] = handler;
+    }
 };
 
 });    

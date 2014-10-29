@@ -3,11 +3,14 @@
             [hivez.dev :refer [is-dev? inject-devmode-html browser-repl start-figwheel]]
             [compojure.core :refer [GET defroutes]]
             [compojure.route :refer [resources]]
-            [compojure.handler :refer [api]]
+            [compojure.handler :refer [api site]]
             [net.cgrand.enlive-html :refer [deftemplate]]
             [ring.middleware.reload :as reload]
+            [ring.util.response :as resp]
             [environ.core :refer [env]]
-            [org.httpkit.server :refer [run-server]]))
+            [org.httpkit.server :refer [run-server]]
+            [cemerick.friend :as friend]
+            [cemerick.friend.openid :as openid]))
 
 (deftemplate page
   (io/resource "index.html") [] [:body] (if is-dev? inject-devmode-html identity))
@@ -15,12 +18,12 @@
 (defroutes routes
   (resources "/")
   (resources "/react" {:root "react"})
-  (GET "/*" req (page)))
+  (GET "/" req (page)))
 
 (def http-handler
   (if is-dev?
-    (reload/wrap-reload (api #'routes))
-    (api routes)))
+    (reload/wrap-reload (site #'routes))
+    (site routes)))
 
 (defn run [& [port]]
   (defonce ^:private server

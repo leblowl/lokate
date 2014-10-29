@@ -53,9 +53,14 @@ writer.JSONMarshaller = function(opts) {
     this.objectBuilder = this.opts["objectBuilder"] || null;
 
     this.handlers = new handlers.Handlers();
-    if(this.opts["handlers"]) {
+
+    var optsHandlers = this.opts["handlers"];
+    if(optsHandlers) {
+        if(util.isArray(optsHandlers) || !optsHandlers.forEach) {
+            throw new Error("transit writer \"handlers\" option must be a map");
+        }
         var self = this;
-        this.opts["handlers"].forEach(function(v, k) {
+        optsHandlers.forEach(function(v, k) {
             self.handlers.set(k, v);
         });
     }
@@ -72,7 +77,18 @@ writer.JSONMarshaller = function(opts) {
 };
 
 writer.JSONMarshaller.prototype.handler = function(obj) {
-        return this.handlers.get(handlers.constructor(obj));
+    var h = this.handlers.get(handlers.constructor(obj));
+
+    if(h != null) {
+        return h;
+    } else {
+        var tag = obj && obj["transitTag"];
+        if(tag) {
+            return this.handlers.get(tag)
+        } else {
+            return null;
+        }
+    }
 };
 
 writer.JSONMarshaller.prototype.registerHandler = function(ctor, handler) {
@@ -106,7 +122,13 @@ writer.JSONMarshaller.prototype.emitBoolean = function(b, asMapKey, cache) {
 };
 
 writer.JSONMarshaller.prototype.emitInteger = function(i, asMapKey, cache) {
-    if(asMapKey || (typeof i === "string") || (i instanceof Long)) {
+    if(i === Infinity) {
+        return this.emitString(d.ESC, "z", "INF", asMapKey, cache);
+    } else if(i === -Infinity) {
+        return this.emitString(d.ESC, "z", "-INF", asMapKey, cache);
+    } else if(isNaN(i)) {
+        return this.emitString(d.ESC, "z", "NaN", asMapKey, cache);
+    } else if(asMapKey || (typeof i === "string") || (i instanceof Long)) {
         return this.emitString(d.ESC, "i", i.toString(), asMapKey, cache);
     } else {
         return i;
@@ -175,17 +197,29 @@ writer.stringableKeys = function(em, obj) {
             }
         }
         return stringableKeys;
-    } else {
+    } else if(obj.keys) {
         var iter = obj.keys();
+
+        if(iter.next) {
             step = iter.next();
-        while(!step.done) {
-            stringableKeys = writer.isStringableKey(em, step.value);
-            if(!stringableKeys) {
-                break;
+            while(!step.done) {
+                stringableKeys = writer.isStringableKey(em, step.value);
+                if(!stringableKeys) {
+                    break;
+                }
+                step = iter.next();
             }
-            step = iter.next();
+            return stringableKeys;
         }
+    }
+
+    if(obj.forEach) {
+        obj.forEach(function(v, k) {
+            stringableKeys = stringableKeys && writer.isStringableKey(em, k);
+        });
         return stringableKeys;
+    } else {
+        throw new Error("Cannot walk keys of object type " + handlers.constructor(obj).name);
     }
 };
 
@@ -405,7 +439,7 @@ writer.Writer.prototype["marshaller"] = writer.Writer.prototype.marshaller;
 
 writer.Writer.prototype.write = function(obj, opts) {
     var ret      = null,
-        ropts    = opts || {};
+        ropts    = opts || {},
         asMapKey = ropts["asMapKey"] || false,
         cache    = this._marshaller.verbose ? false : this.cache;
 

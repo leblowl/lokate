@@ -1,16 +1,21 @@
 (ns hivez.navigation
-  (:require [secretary.core :as secretary :include-macros true :refer [defroute]]
+  (:require [secretary.core :as secretary :include-macros true]
             [goog.events :as events]
             [goog.string :as gstring]
             [goog.history.EventType :as EventType]
             [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true])
+            [om.dom :as dom :include-macros true]
+            [hivez.core :as core]
+            [hivez.login :as login])
   (:import goog.History))
 
 (def history (History.))
 
 (def navigation-state
   (atom []))
+
+(secretary/defroute "/*" []
+  (login/render))
 
 (defn refresh-navigation []
   (let [token (.getToken history)
@@ -47,6 +52,11 @@
             "hivez"))
         (apply dom/ul #js {:className "nav nav-tabs"}
           (om/build-all navigation-item-view app))))))
+
+(defn ^:export authorize-cb [authResult]
+  (when (aget authResult "status" "signed_in")
+    (core/render)))
+(aset js/window "authorize-cb" hivez.navigation.authorize-cb)
 
 (defn render []
   (om/root navigation-view

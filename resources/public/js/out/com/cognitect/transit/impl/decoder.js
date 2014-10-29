@@ -97,6 +97,7 @@ decoder.Decoder.prototype.defaults = {
         ":": function(v) { return types.keyword(v); },
         "$": function(v) { return types.symbol(v); },
         "r": function(v) { return types.uri(v); },
+        "z": function(v) { return types.specialDouble(v); },
 
         // tagged
         "'": function(v) { return v; },
@@ -240,6 +241,7 @@ decoder.Decoder.prototype.decodeArray = function(node, cache, asMapKey, tagValue
         }
         return ret;
     } else {
+        var cacheIdx = cache && cache.idx;
         // tagged value as 2-array case
         if((node.length === 2) &&
            (typeof node[0] === "string")) {
@@ -254,6 +256,11 @@ decoder.Decoder.prototype.decodeArray = function(node, cache, asMapKey, tagValue
                     return types.taggedValue(tag.str, this.decode(val, cache, false, false))
                 }
             }
+        }
+
+        // rewind cache
+        if(cache && (cacheIdx != cache.idx)) {
+            cache.idx = cacheIdx;
         }
 
         if(this.arrayBuilder) {

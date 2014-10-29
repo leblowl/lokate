@@ -19,7 +19,19 @@
             [com.cognitect.transit.eq :as eq])
   (:import [goog.math Long]))
 
-(enable-console-print!)
+;; patch cljs.core/UUID IEquiv
+
+(extend-type UUID
+  IEquiv
+  (-equiv [this other]
+    (cond
+      (instance? UUID other)
+      (identical? (.-uuid this) (.-uuid other))
+
+      (instance? ty/UUID other)
+      (identical? (.-uuid this) (.toString other))
+
+      :else false)))
 
 (extend-protocol IEquiv
   Long
@@ -28,7 +40,9 @@
   
   ty/UUID
   (-equiv [this other]
-    (.equiv this other))
+    (if (instance? UUID other)
+      (-equiv other this)
+      (.equiv this other)))
 
   ty/TaggedValue
   (-equiv [this other]
@@ -47,20 +61,20 @@
   (-hash [this]
     (eq/hashCode this)))
 
-(defn opts-merge [a b]
+(defn ^:no-doc opts-merge [a b]
   (doseq [k (js-keys b)]
     (let [v (aget b k)]
       (aset a k v)))
   a)
 
-(deftype MapBuilder []
+(deftype ^:no-doc MapBuilder []
   Object
   (init [_ node] (transient {}))
   (add [_ m k v node] (assoc! m k v))
   (finalize [_ m node] (persistent! m))
   (fromArray [_ arr node] (cljs.core/PersistentArrayMap.fromArray arr true true)))
 
-(deftype VectorBuilder []
+(deftype ^:no-doc VectorBuilder []
   Object
   (init [_ node] (transient []))
   (add [_ v x node] (conj! v x))
@@ -77,19 +91,23 @@
      (t/reader (name type)
        (opts-merge
          #js {:handlers
-              #js {"$" (fn [v] (symbol v))
+              (clj->js
+                (merge
+                  {"$" (fn [v] (symbol v))
                    ":" (fn [v] (keyword v))
                    "set" (fn [v] (into #{} v))
                    "list" (fn [v] (into () (.reverse v)))
                    "cmap" (fn [v] 
                             (loop [i 0 ret (transient {})]
                               (if (< i (alength v))
-                                (recur (+ i 2) (assoc! ret (aget v i) (aget v (inc i))))
+                                (recur (+ i 2)
+                                  (assoc! ret (aget v i) (aget v (inc i))))
                                 (persistent! ret))))}
+                  (:handlers opts)))
               :mapBuilder (MapBuilder.)
               :arrayBuilder (VectorBuilder.)
               :prefersStrings false}
-         (clj->js opts)))))
+         (clj->js (dissoc opts :handlers))))))
 
 (defn read
   "Read a transit encoded string into ClojureScript values given a 
@@ -97,19 +115,19 @@
   [r str]
   (.read r str))
 
-(deftype KeywordHandler []
+(deftype ^:no-doc KeywordHandler []
   Object
   (tag [_ v] ":")
   (rep [_ v] (.-fqn v))
   (stringRep [_ v] (.-fqn v)))
 
-(deftype SymbolHandler []
+(deftype ^:no-doc SymbolHandler []
   Object
   (tag [_ v] "$")
   (rep [_ v] (.-str v))
   (stringRep [_ v] (.-str v)))
 
-(deftype ListHandler []
+(deftype ^:no-doc ListHandler []
   Object
   (tag [_ v] "list")
   (rep [_ v]
@@ -118,13 +136,13 @@
       (t/tagged "array" ret)))
   (stringRep [_ v] nil))
 
-(deftype MapHandler []
+(deftype ^:no-doc MapHandler []
   Object
   (tag [_ v] "map")
   (rep [_ v] v)
   (stringRep [_ v] nil))
 
-(deftype SetHandler []
+(deftype ^:no-doc SetHandler []
   Object
   (tag [_ v] "set")
   (rep [_ v]
@@ -133,7 +151,7 @@
       (t/tagged "array" ret)))
   (stringRep [v] nil))
 
-(deftype VectorHandler []
+(deftype ^:no-doc VectorHandler []
   Object
   (tag [_ v] "array")
   (rep [_ v]
@@ -141,6 +159,12 @@
       (doseq [x v] (.push ret x))
       ret))
   (stringRep [_ v] nil))
+
+(deftype ^:no-doc UUIDHandler []
+  Object
+  (tag [_ v] "u")
+  (rep [_ v] (.-uuid v))
+  (stringRep [this v] (.rep this v)))
 
 (defn writer
   "Return a transit writer. type maybe either :json or :json-verbose.
@@ -155,6 +179,7 @@
            map-handler     (MapHandler.)
            set-handler     (SetHandler.)
            vector-handler  (VectorHandler.)
+           uuid-handler    (UUIDHandler.)
            handlers
            (merge
              {cljs.core/Keyword               keyword-handler
@@ -182,7 +207,8 @@
               cljs.core/PersistentHashSet     set-handler
               cljs.core/PersistentTreeSet     set-handler
               cljs.core/PersistentVector      vector-handler
-              cljs.core/Subvec                vector-handler}
+              cljs.core/Subvec                vector-handler
+              cljs.core/UUID                  uuid-handler}
              (:handlers opts))]
       (t/writer (name type)
         (opts-merge

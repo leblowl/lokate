@@ -20,7 +20,9 @@
                  [leiningen "2.5.0"]
                  [http-kit "2.1.19"]
                  [cljs-http "0.1.16"]
-                 [secretary "1.2.1"]]
+                 [secretary "1.2.1"]
+                 [com.cemerick/friend "0.2.1" :exclusions [org.clojure/core.cache]]
+                 [com.cognitect/transit-cljs "0.8.188"]]
 
   :plugins [[lein-cljsbuild "1.0.3"]
             [lein-environ "1.0.0"]]

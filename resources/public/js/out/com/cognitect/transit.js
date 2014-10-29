@@ -27,6 +27,9 @@ var TRANSIT_NODE_TARGET = false;
 /** @define {boolean} */
 var TRANSIT_BROWSER_TARGET = false;
 
+/** @define {boolean} */
+var TRANSIT_BROWSER_AMD_TARGET = false;
+
 goog.scope(function() {
 
 /**
@@ -115,6 +118,7 @@ transit.makeBuilder = function(obj) {
     Builder.prototype.init = obj["init"];
     Builder.prototype.add = obj["add"];
     Builder.prototype.finalize = obj["finalize"];
+    Builder.prototype.fromArray = obj["fromArray"];
     return new Builder();
 };
 
@@ -375,15 +379,6 @@ transit.isLink = types.isLink;
 transit.hash = eq.hashCode;
 
 /**
- * A unique string that can be used to set the hash code on plain
- * JavaScript Objects as well property skip during iteration.
- * @property transit.hashKey
- * @const
- * @type {String}
- */
-transit.hashKey = eq.transitHashCodeProperty;
-
-/**
  * Compute the hashCode for JavaScript map-like types - either a JavaScript
  *    object or a JavaScript object that implements ES6 Map forEach.
  * @method transit.hashMapLike
@@ -453,7 +448,6 @@ transit.UUIDfromString = types.UUIDfromString;
 transit.randomUUID =     types.randomUUID;
 transit.stringableKeys = writer.stringableKeys;
 
-
 if(TRANSIT_BROWSER_TARGET) {
     goog.exportSymbol("transit.reader",         transit.reader);
     goog.exportSymbol("transit.writer",         transit.writer);
@@ -489,7 +483,6 @@ if(TRANSIT_BROWSER_TARGET) {
     goog.exportSymbol("transit.link",           types.link);
     goog.exportSymbol("transit.isLink",         types.isLink);
     goog.exportSymbol("transit.hash",           eq.hashCode);
-    goog.exportSymbol("transit.hashKey",        eq.transitHashCodeProperty);
     goog.exportSymbol("transit.hashMapLike",    eq.hashMapLike);
     goog.exportSymbol("transit.hashArrayLike",  eq.hashArrayLike);
     goog.exportSymbol("transit.equals",         eq.equals);
@@ -537,7 +530,6 @@ if(TRANSIT_NODE_TARGET) {
         link:           types.link,
         isLink:         types.isLink,
         hash:           eq.hashCode,
-        hashKey:        eq.transitHashCodeProperty,
         hashArrayLike:  eq.hashArrayLike,
         hashMapLike:    eq.hashMapLike,
         equals:         eq.equals,

@@ -470,11 +470,11 @@ types.mapEquals = function(me, you) {
         return true;
     } else if(you != null && (typeof you === "object")) {
         var ks    = util.objectKeys(you),
-            kslen = ks.length - ((you.hasOwnProperty(eq.transitHashCodeProperty) && 1) || 0); 
+            kslen = ks.length;
         if(me.size === kslen) {
-            for(var p in you) {
-                if((p !== eq.transitHashCodeProperty) &&
-                   (!eq.equals(you[p], me.get(p)))) {
+            for(var i = 0 ; i < kslen; i++) {
+                var k = ks[i];
+                if(!me.has(k) || !eq.equals(you[k], me.get(k))) {
                     return false;
                 }
             }
@@ -536,6 +536,7 @@ types.TransitArrayMap.prototype.convert = function() {
 };
 
 types.TransitArrayMap.prototype.clear = function() {
+    this.hashCode = -1;
     if(this.backingMap) {
         this.backingMap.clear();
         this.size = 0;
@@ -597,7 +598,7 @@ types.TransitArrayMap.prototype.forEach = function(f) {
 };
 types.TransitArrayMap.prototype["forEach"] = types.TransitArrayMap.prototype.forEach;
 
-types.TransitArrayMap.prototype.get = function(k) {
+types.TransitArrayMap.prototype.get = function(k, notFound) {
     if(this.backingMap) {
         return this.backingMap.get(k);
     } else {
@@ -609,7 +610,7 @@ types.TransitArrayMap.prototype.get = function(k) {
                     return this._entries[i+1];
                 }
             }
-            return null;
+            return notFound;
         }
     }
 };
@@ -634,6 +635,7 @@ types.TransitArrayMap.prototype.has = function(k) {
 types.TransitArrayMap.prototype["has"] = types.TransitArrayMap.prototype.has;
 
 types.TransitArrayMap.prototype.set = function(k, v) {
+    this.hashCode = -1;
     if(this.backingMap) {
         this.backingMap.set(k, v);
         this.size = this.backingMap.size;
@@ -658,6 +660,7 @@ types.TransitArrayMap.prototype.set = function(k, v) {
 types.TransitArrayMap.prototype["set"] = types.TransitArrayMap.prototype.set;
 
 types.TransitArrayMap.prototype["delete"] = function(k) {
+    this.hashCode = -1;
     if(this.backingMap) {
         this.backingMap["delete"](k);
         this.size = this.backingMap.size;
@@ -710,10 +713,10 @@ types.TransitMap.prototype.toString = function() {
 };
 
 types.TransitMap.prototype.clear = function() {
+    this.hashCode = -1;
     this.map = {};
     this._keys = [];
     this.size = 0;
-    this.hashCode = -1;
 };
 types.TransitMap.prototype["clear"] = types.TransitMap.prototype.clear;
 
@@ -726,6 +729,7 @@ types.TransitMap.prototype.getKeys = function() {
 };
 
 types.TransitMap.prototype['delete'] = function(k) {
+    this.hashCode = -1;
     this._keys = null;
     var code   = eq.hashCode(k),
         bucket = this.map[code];
@@ -758,7 +762,7 @@ types.TransitMap.prototype.forEach = function(callback) {
 };
 types.TransitMap.prototype["forEach"] = types.TransitMap.prototype.forEach;
 
-types.TransitMap.prototype.get = function(k) {
+types.TransitMap.prototype.get = function(k, notFound) {
   var code   = eq.hashCode(k),
       bucket = this.map[code];
     if(bucket != null) {
@@ -768,7 +772,7 @@ types.TransitMap.prototype.get = function(k) {
             }
         }
     } else {
-        return null;
+        return notFound;
     } 
 };
 types.TransitMap.prototype["get"] = types.TransitMap.prototype.get;
@@ -810,6 +814,7 @@ types.TransitMap.prototype.keySet = function() {
 types.TransitMap.prototype["keySet"] = types.TransitMap.prototype.keySet;
   
 types.TransitMap.prototype.set = function(k, v) {
+    this.hashCode = -1;
     var code = eq.hashCode(k),
         bucket = this.map[code];
     if(bucket == null) {
@@ -1052,6 +1057,20 @@ types.link = function(rep) {
 
 types.isLink = function(x) {
     return (x instanceof types.TaggedValue) && (x.tag === "link")
+};
+
+types.specialDouble = function(v) {
+  switch(v) {
+      case "-INF":
+          return -Infinity;
+      case "INF":
+          return Infinity;
+      case "NaN":
+          return NaN;
+      default:
+          throw new Error("Invalid special double value " + v);
+      break;
+  }
 };
 
 });
