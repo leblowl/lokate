@@ -26,4 +26,4 @@
 
 
 (defn render []
-    (om/root login app-state {:target (.getElementById js/document "content")}))
+    (om/root login app-state {:target (.getElementById js/document "content-overlay")}))

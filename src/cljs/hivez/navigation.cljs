@@ -15,7 +15,8 @@
   (atom []))
 
 (secretary/defroute "/*" []
-  (login/render))
+  (login/render)
+  (core/render))
 
 (defn refresh-navigation []
   (let [token (.getToken history)
