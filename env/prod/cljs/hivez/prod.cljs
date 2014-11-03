@@ -1,4 +1,4 @@
 (ns hivez.prod
-  (:require [hivez.core :as core]))
+  (:require [hivez.navigation :as nav]))
 
-(core/render)
+(nav/render)
