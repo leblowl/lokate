@@ -28,6 +28,11 @@
 (defn handleOrientation []
   (swap! app-state #(assoc % :orientation (orientation))))
 
+(defn display [show]
+  (if show
+    #js {}
+    #js {:display "none"}))
+
 (defn pos-key [lat-lng]
   (keyword (str
              "lat=" (.lat lat-lng)
