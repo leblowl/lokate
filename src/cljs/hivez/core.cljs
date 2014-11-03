@@ -143,6 +143,7 @@
 (defn on-edit [cb hive key owner]
   (om/update! hive key
     (gstring/unescapeEntities (.-innerHTML (om/get-node owner key))))
+  (db-add-hive @hive)
   (cb))
 
 (defn input [hive owner {:keys [id className edit-key on-edit on-key-down] :as opts}]
