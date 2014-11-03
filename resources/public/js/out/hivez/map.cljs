@@ -20,6 +20,7 @@
   (let [goog-map (om/get-state owner :map)
         markers (om/get-state owner :markers)
         active (om/get-state owner [:markers key :marker])]
+
     (dorun
       (map #(.setIcon (:marker %) red-dot) (vals markers)))
     (when active
@@ -73,8 +74,9 @@
             current-hives (set (:hives (om/get-props owner)))
             to-add (set/difference next-hives current-hives)
             to-delete (set/difference current-hives next-hives)]
-        (add-markers owner to-add opts)
+
         (delete-markers owner to-delete)
+        (add-markers owner to-add opts)
         (activate-marker owner (:active next-props))))
 
     om/IDidMount
