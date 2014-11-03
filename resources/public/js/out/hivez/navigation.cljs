@@ -15,7 +15,6 @@
   (atom []))
 
 (secretary/defroute "/*" []
-  (login/render)
   (core/render))
 
 (defn refresh-navigation []
@@ -55,6 +54,7 @@
           (om/build-all navigation-item-view app))))))
 
 (defn ^:export authorize-cb [authResult]
+  ;(println (.stringify js/JSON authResult))
   (when (aget authResult "status" "signed_in")
     (core/render)))
 (aset js/window "authorize-cb" hivez.navigation.authorize-cb)

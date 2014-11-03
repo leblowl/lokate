@@ -7,7 +7,8 @@
             [cljs-http.client :as http]
             [goog.string :as gstring]
             [goog.string.format]
-            [cognitect.transit :as t]))
+            [cognitect.transit :as t]
+            [hivez.map :as map]))
 
 (enable-console-print!)
 
@@ -15,6 +16,8 @@
   (atom {:orientation nil
          :hives {}
          :active nil}))
+
+(def db (atom nil))
 
 (defn orientation []
   (if (> (.-height (.-screen js/window))
@@ -37,31 +40,8 @@
         year (.getFullYear d)]
     (str month "/" date "/" year)))
 
-(defn new-hive [marker]
-  (let [pos (.getPosition marker)]
-    {:marker marker
-     :name ""
-     :origin (fdate-now)
-     :pos {:lat (.lat pos)
-           :lng (.lng pos)}
-     :notes ""}))
-
-(defn activate-marker [data marker]
-  (dorun (map #(.setIcon (:marker %) "http://maps.google.com/mapfiles/ms/icons/red-dot.png")
-           (vals (:hives @data))))
-  (when marker
-    (.setIcon marker "http://maps.google.com/mapfiles/ms/icons/green-dot.png")))
-
-(defn add-hive [data marker]
-  (let [key (pos-key (.getPosition marker))]
-    (om/transact! data :hives #(assoc % key (new-hive marker)))
-    (om/update! data :active key)
-    (activate-marker data marker)))
-
-(defn mark-pos [map pos]
-  (google.maps.Marker. #js {:position pos
-                            :map map
-                            :title "hive"}))
+(defn floormat [& args]
+  (apply gstring/format args))
 
 (defn distance
  "Euclidean distance between 2 points"
@@ -70,110 +50,75 @@
               (Math/pow (- (:lng pos1) (:lng pos2)) 2))
    0.5))
 
+(defn db-error [e]
+  (.error js/console "An IndexedDB error has occured!" e))
+
+(defn db-new [cb]
+  (let [version 1
+        request (.open js/indexedDB "hivez" version)]
+    (set! (.-onupgradeneeded request) (fn [e]
+                                        (reset! db (.. e -target -result))
+                                        (set! (.. e -target -transaction -onerror) db-error)
+                                        (.createObjectStore @db "hive" #js {:keyPath "key"})))
+    (set! (.-onsuccess request) (fn [e]
+                                  (reset! db (.. e -target -result))
+                                  (cb)))
+    (set! (.-onerror request) db-error)))
+
+(defn db-add-hive [hive]
+  (let [transaction (.transaction @db #js ["hive"] "readwrite")
+        store (.objectStore transaction "hive")
+        request (.put store (clj->js hive))]
+    (set! (.-onerror request) db-error)))
+
+(defn db-delete-hive [key]
+  (let [transaction (.transaction @db #js ["hive"] "readwrite")
+        store (.objectStore transaction "hive")
+        request (.delete store (name key))]
+    (set! (.-onerror request) db-error)))
+
+(defn db-get-all [cb]
+  (let [transaction (.transaction @db #js ["hive"] "readonly")
+        store (.objectStore transaction "hive")
+        keyRange (.lowerBound js/IDBKeyRange 0)
+        cursorRequest (.openCursor store keyRange)]
+    (set! (.-onsuccess cursorRequest)
+      (fn [e]
+        (if-let [result (.. e -target -result)]
+          (do
+            (swap! app-state #(assoc-in %
+                                [:hives (keyword (.-key result))]
+                                (js->clj (.-value result) :keywordize-keys true)))
+              (.continue result))
+          (cb))))))
+
+(defn new-hive [pos]
+  {:key (pos-key pos)
+   :name ""
+   :origin (fdate-now)
+   :pos {:lat (.lat pos)
+         :lng (.lng pos)}
+   :notes ""})
+
 (defn nearest [hive hives]
   (apply min-key #(distance (:pos hive) (:pos (second %))) (seq hives)))
 
-(defn init-marker [data map marker]
-  (add-hive data marker)
-  (.panTo map (.getPosition marker))
-  (google.maps.event.addListener marker
-    "click"
-    (fn [_]
-      (if (= (:active @data) (pos-key (.getPosition marker)))
-        (do (om/update! data :active nil)
-            (activate-marker data nil))
-        (do
-          (om/update! data :active (pos-key (.getPosition marker)))
-          (activate-marker data marker)
-          (.panTo map (.getPosition marker))))))
-  (google.maps.event.addListener marker
-    "rightclick"
-    (fn [_]
-      (.setMap marker nil)
-      (let [active (:active @data)
-            fallen-key (pos-key (.getPosition marker))]
-        (om/transact! data :hives #(dissoc % fallen-key))
-        (if (= fallen-key active)
-          (do
-            (let [new-active (first (nearest fallen-key (:hives @data)))]
-              (om/update! data :active new-active)
-              (when new-active
-                (activate-marker data (:marker (new-active (:hives @data))))
-                (.panTo map (.getPosition (:marker (new-active (:hives @data)))))))))))))
+(defn add-hive [data pos]
+  (let [hive (new-hive pos)]
+    (om/transact! data :hives #(assoc % (:key hive) hive))
+    (om/update! data :active (:key hive))
+    (db-add-hive hive)))
 
-(defn goog-map [data owner]
-  (reify
-    om/IInitState
-    (init-state [_]
-      {:center #js {:lat 0 :lng 0}
-       :evt-timeouts []})
+(defn activate-hive [data key]
+  (om/transact! data :active #(if (= key %) nil key)))
 
-    om/IDidMount
-    (did-mount [_]
-      (let [map-options #js {:center (om/get-state owner :center)
-                             :zoom 6
-                             :panControl false
-                             :zoomControl false
-                             :scaleControl true
-                             :streetViewControl false}
-            map (google.maps.Map. (om/get-node owner) map-options)]
-
-        (google.maps.event.addListener
-          map
-          "mousedown"
-          (fn [evt]
-            (if (empty? (om/get-state owner :evt-timeouts))
-              (om/set-state! owner :evt-timeouts [(js/setTimeout #(init-marker data map (mark-pos map (.-latLng evt))) 1000)])
-              (do
-                (js/clearTimeout (om/get-state owner [:evt-timeouts 0]))
-                (om/set-state! owner :evt-timeouts [])))))
-
-        (google.maps.event.addListener
-          map
-          "mouseup"
-          (fn [evt]
-            (js/clearTimeout (om/get-state owner [:evt-timeouts 0]))
-            (om/set-state! owner :evt-timeouts [])))
-
-        (google.maps.event.addListener
-          map
-          "mousemove"
-          (fn [evt]
-            (js/clearTimeout (om/get-state owner [:evt-timeouts 0]))
-            (om/set-state! owner :evt-timeouts [])))
-
-        (google.maps.event.addListener
-          map
-          "rightclick"
-          (fn [evt]
-            (js/clearTimeout (om/get-state owner [:evt-timeouts 0]))
-            (om/set-state! owner :evt-timeouts [])
-            (init-marker data map (mark-pos map (.-latLng evt)))))
-
-        (if navigator.geolocation
-          (.getCurrentPosition navigator.geolocation
-           (fn [pos]
-             (let [initialLoc (google.maps.LatLng. (.-coords.latitude pos)
-                                                   (.-coords.longitude pos))]
-               (.setCenter map initialLoc))))
-          (println "Hey, where'd you go!? Geolocation Disabled"))
-
-        (google.maps.event.addListener map "idle" #(om/set-state! owner :center (.getCenter map)))
-        (.addEventListener js/window "resize" (fn [e]
-                                                (google.maps.event.trigger map "resize")
-                                                (.setCenter map (om/get-state owner :center))))))
-
-    om/IRender
-    (render [_]
-      (dom/div #js {:id "map-canvas"}))))
-
-(defn display [show]
-  (if show
-    #js {}
-    #js {:display "none"}))
-
-(defn floormat [& args]
-  (apply gstring/format args))
+(defn delete-hive [data key]
+  (if (= key (:active @data))
+    (let [hive (key (:hives @data))]
+      (om/transact! data :hives #(dissoc % key))
+      (om/update! data :active (first (nearest hive (:hives @data)))))
+    (om/transact! data :hives #(dissoc % key)))
+  (db-delete-hive key))
 
 (defn display-pos [hive]
   (let [pos (:pos hive)]
@@ -191,7 +136,8 @@
   (om/set-state! owner :editing nil))
 
 (defn on-edit [cb hive key owner]
-  (om/update! hive key (gstring/unescapeEntities (.-innerHTML (om/get-node owner key))))
+  (om/update! hive key
+    (gstring/unescapeEntities (.-innerHTML (om/get-node owner key))))
   (cb))
 
 (defn input [hive owner {:keys [id className edit-key on-edit on-key-down] :as opts}]
@@ -290,10 +236,14 @@
     (render [_]
       (dom/div #js {:className (str "flex-container " (:orientation data))}
         (dom/div #js {:className "flex-content"}
-          (om/build goog-map data))
+          (om/build map/goog-map data {:opts {:add (partial add-hive data)
+                                              :activate (partial activate-hive data)
+                                              :delete (partial delete-hive data)}}))
         (om/build drawer data)))))
 
 (defn render []
   (handleOrientation)
   (.addEventListener js/window "resize" handleOrientation)
-  (om/root app app-state {:target (.getElementById js/document "content")}))
+  (db-new
+    #(db-get-all (fn []
+                   (om/root app app-state {:target (.getElementById js/document "content")})))))
