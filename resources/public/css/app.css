@@ -91,10 +91,14 @@ div {
 }
 
 #drawer.portrait.hide {
+    transition-duration: .1s;
+    transition-property: transform;
     transform: translate3d(0, 100%, 0);
 }
 
 #drawer.landscape.hide {
+    transition-duration: .1s;
+    transition-property: transform;
     transform: translate3d(100%, 0, 0);
 }
 
@@ -257,4 +261,45 @@ div {
 [contenteditable="true"].single-line * {
     display: inline;
     white-space: nowrap;
+}
+
+
+.control-panel {
+    position: fixed;
+    z-index: 3;
+    top: 0;
+    right: 0;
+    width: 50%;
+    height: 45px;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+}
+
+.navicon {
+    position: relative;
+    padding-left: 2em;
+}
+
+.navicon.active::before {
+    border-top: 0.5em double rgba(33, 150, 255, 0.9);
+    border-bottom: 0.2em solid rgba(33, 150, 255, 0.9);
+}
+
+
+.navicon::before {
+    content: "";
+    position: absolute;
+    top: -0.25em;
+    left: 0;
+    width: 1.5em;
+    height: 0.125em;
+    border-top: 0.5em double rgba(256, 256, 256, 0.9);
+    border-bottom: 0.2em solid rgba(256, 256, 256, 0.9);
+}
+
+.navicon:hover::before {
+    cursor: pointer;
+    border-top: 0.5em double rgba(33, 150, 255, 0.9);
+    border-bottom: 0.2em solid rgba(33, 150, 255, 0.9);
 }

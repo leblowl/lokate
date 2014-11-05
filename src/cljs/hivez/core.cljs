@@ -247,11 +247,29 @@
            :shared {:route-chan (om/get-state owner :route-chan)}}
       opts)))
 
+(defn navicon [data owner {:keys [route-chan] :as opts}]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:active false})
+
+    om/IRenderState
+    (render-state [_ {:keys [active]}]
+      (dom/div #js {:className (str "navicon" (when active " active"))
+                    :onClick (fn []
+                               (om/update-state! owner :active #(not %))
+                               (put! route-chan ["open"]))}))))
+
+(defn control-panel [data owner {:keys [route-chan] :as opts}]
+  (om/component
+    (dom/div #js {:className "control-panel"}
+      (om/build navicon data {:opts opts}))))
+
 (defn drawer [data owner]
   (reify
     om/IInitState
     (init-state [_]
-      {:open true
+      {:open false
        :editing nil
        :route-chan (chan)})
 
@@ -261,6 +279,7 @@
         (let [route (<! (om/get-state owner :route-chan))
               route! (partial root "drawer" owner)]
           (case (first route)
+            "open" (om/update-state! owner :open #(not %))
             "places" (route! places-info (:places @data) {})
             "place" (route! place-info (second route) {})
             "hive" (route! hive-info (second route)
@@ -272,8 +291,9 @@
       (put! (om/get-state owner :route-chan) ["places"]))
 
     om/IRenderState
-    (render-state [_ {:keys [editing]}]
+    (render-state [_ {:keys [open editing route-chan]}]
       (dom/div #js {:id "drawer-wrapper"}
+        (om/build control-panel data {:opts {:route-chan route-chan}})
         (when (:active data)
           (om/build input-control
             ((:active data) (:hives data))
@@ -281,7 +301,7 @@
              :opts {:on-edit (partial on-edit #(end-edit owner))}}))
         (dom/div #js {:id "drawer"
                       :className (str (:orientation data)
-                                   (if editing " hide" " show"))})))))
+                                   (if (and open (not editing)) " show" " hide"))})))))
 
 (defn to-save []
   (om/build places-info (:places data))
