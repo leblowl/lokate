@@ -59,7 +59,7 @@
   (js/clearTimeout (om/get-state owner :evt-timeout))
   (om/set-state! owner :evt-timeout nil))
 
-(defn goog-map [{:keys [hives active] :as data} owner {:keys [add activate delete] :as opts}]
+(defn goog-map [{:keys [places active] :as data} owner {:keys [add activate delete] :as opts}]
   (reify
     om/IInitState
     (init-state [_]
@@ -87,20 +87,20 @@
                              :zoomControl false
                              :scaleControl true
                              :streetViewControl false}
-            map (google.maps.Map. (om/get-node owner) map-options)]
+            goog-map (google.maps.Map. (om/get-node owner) map-options)]
 
         (google.maps.event.addListener
-          map
+          goog-map
           "mousedown"
           (fn [evt]
 
             (google.maps.event.addListener
-              map
+              goog-map
               "mouseup"
               (fn [evt] (cancel-action owner)))
 
             (google.maps.event.addListener
-              map
+              goog-map
               "mousemove"
               (fn [evt] (cancel-action owner)))
 
@@ -112,8 +112,8 @@
                 (js/setTimeout (fn [] (add (.-latLng evt))) 1000)))))
 
         (google.maps.event.addListener
-          map
-          "rightclick"
+          goog-map
+Dude          "rightclick"
           (fn [evt]
             (add (.-latLng evt))))
 
@@ -122,18 +122,18 @@
            (fn [pos]
              (let [initialLoc (google.maps.LatLng. (.-coords.latitude pos)
                                                    (.-coords.longitude pos))]
-               (.setCenter map initialLoc))))
+               (.setCenter goog-map initialLoc))))
           (println "Hey, where'd you go!? Geolocation Disabled"))
 
-        (google.maps.event.addListener map
-          "idle" #(om/set-state! owner :center (.getCenter map)))
+        (google.maps.event.addListener goog-map
+          "idle" #(om/set-state! owner :center (.getCenter goog-map)))
         (.addEventListener js/window
           "resize" (fn [e]
-                     (google.maps.event.trigger map "resize")
-                     (.setCenter map (om/get-state owner :center))))
+                     (google.maps.event.trigger goog-map "resize")
+                     (.setCenter goog-map (om/get-state owner :center))))
 
-        (om/set-state! owner :map map)
-        (add-markers owner hives opts)))
+        (om/set-state! owner :map goog-map)
+        (add-markers owner (reduce into {} (map :hives places)) opts)))
 
     om/IRenderState
     (render-state [_ {:keys [markers]}]

@@ -34,6 +34,11 @@
       (dom/li #js {:id id :className (if active "active" "")}
         (dom/a #js {:href (str "#" path)} name)))))
 
+(defn control-panel [app owner]
+  (om/component
+    (dom/div #js {:className "control-panel"}
+      (dom/div #js {:className "navicon"}))))
+
 (defn navigation-view [app owner]
   (reify
     om/IWillMount
@@ -50,8 +55,7 @@
             (gstring/unescapeEntities "&#11041;"))
           (dom/span #js {:className "banner-title"}
             "hivez"))
-        (apply dom/ul #js {:className "nav nav-tabs"}
-          (om/build-all navigation-item-view app))))))
+        (om/build control-panel app)))))
 
 (defn ^:export authorize-cb [authResult]
   ;(println (.stringify js/JSON authResult))

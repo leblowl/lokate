@@ -1,5 +1,5 @@
 (ns hivez.core
-  (:require-macros [cljs.core.async.macros :refer [go alt!]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]])
   (:require [goog.events :as events]
             [cljs.core.async :refer [put! <! >! chan timeout]]
             [om.core :as om :include-macros true]
@@ -8,14 +8,19 @@
             [goog.string :as gstring]
             [goog.string.format]
             [cognitect.transit :as t]
-            [hivez.map :as map]))
+            [hivez.map :as map]
+            [secretary.core :as secretary :include-macros true :refer [defroute]]))
 
 (enable-console-print!)
 
 (def app-state
   (atom {:orientation nil
          :hives {}
-         :active nil}))
+         :active nil
+         :places [{:name "Angels Camp"
+                   :bounds {:northeast {:lat 0 :lng 0}
+                            :southwest {:lat 5 :lng 5}}
+                   :hives {}}]}))
 
 (def db (atom nil))
 
@@ -92,7 +97,7 @@
         (if-let [result (.. e -target -result)]
           (do
             (swap! app-state #(assoc-in %
-                                [:hives (keyword (.-key result))]
+                                [:places 0 :hives (keyword (.-key result))]
                                 (js->clj (.-value result) :keywordize-keys true)))
               (.continue result))
           (cb))))))
@@ -214,11 +219,57 @@
                       :data-ph "Notes..."
                       :dangerouslySetInnerHTML #js {:__html (:notes hive)}})))))
 
+(defn name-select [data owner {:keys [route] :as opts}]
+  (om/component
+    (dom/div #js {:className "name-select"
+                  :onClick #(put! (om/get-shared owner :route-chan) [route data])}
+      (dom/span #js {:className "name-select-title"} (:name data)))))
+
+(defn places-info [places owner]
+  (reify
+    om/IRender
+    (render [_]
+      (apply dom/div #js {:className "select-list"}
+        (om/build-all name-select places {:opts {:route "place"}})))))
+
+(defn place-info [place owner]
+  (reify
+    om/IRender
+    (render [_]
+      (dom/div #js {:className "place-info"}
+        (dom/span #js {:className "place-title"})
+        (apply dom/div #js {:className "select-list"}
+          (om/build-all name-select (vals (:hives place)) {:opts {:route "hive"}}))))))
+
+(defn root [root-id owner comp data opts]
+  (om/root comp data
+    (into {:target (.getElementById js/document root-id)
+           :shared {:route-chan (om/get-state owner :route-chan)}}
+      opts)))
+
 (defn drawer [data owner]
   (reify
     om/IInitState
     (init-state [_]
-      {:editing nil})
+      {:open true
+       :editing nil
+       :route-chan (chan)})
+
+    om/IWillMount
+    (will-mount [_]
+      (go-loop []
+        (let [route (<! (om/get-state owner :route-chan))
+              route! (partial root "drawer" owner)]
+          (case (first route)
+            "places" (route! places-info (:places @data) {})
+            "place" (route! place-info (second route) {})
+            "hive" (route! hive-info (second route)
+                     {:opts {:begin-edit (partial begin-edit owner)}})))
+        (recur)))
+
+    om/IDidMount
+    (did-mount [_]
+      (put! (om/get-state owner :route-chan) ["places"]))
 
     om/IRenderState
     (render-state [_ {:keys [editing]}]
@@ -230,11 +281,14 @@
              :opts {:on-edit (partial on-edit #(end-edit owner))}}))
         (dom/div #js {:id "drawer"
                       :className (str (:orientation data)
-                                   (if (or (not (:active data)) editing) " hide" " show"))}
-          (when (:active data)
-            (om/build hive-info
-              ((:active data) (:hives data))
-              {:opts {:begin-edit (partial begin-edit owner)}})))))))
+                                   (if editing " hide" " show"))})))))
+
+(defn to-save []
+  (om/build places-info (:places data))
+  (when (:active data)
+    (om/build hive-info
+      ((:active data) (:hives data))
+      {:opts {:begin-edit (partial begin-edit owner)}})))
 
 (defn app [data owner]
   (reify

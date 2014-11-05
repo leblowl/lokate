@@ -32,3 +32,33 @@
     padding: .5em;
     border-radius: 4px;
 }
+
+.control-panel {
+    width: 50%;
+    height: 100%;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+}
+
+.navicon {
+    position: relative;
+    padding-left: 2em;
+}
+
+.navicon::before {
+    content: "";
+    position: absolute;
+    top: -0.25em;
+    left: 0;
+    width: 1.5em;
+    height: 0.125em;
+    border-top: 0.5em double rgba(256, 256, 256, 0.9);
+    border-bottom: 0.2em solid rgba(256, 256, 256, 0.9);
+}
+
+.navicon:hover::before {
+    cursor: pointer;
+    border-top: 0.5em double rgba(33, 150, 255, 0.9);
+    border-bottom: 0.2em solid rgba(33, 150, 255, 0.9);
+}
