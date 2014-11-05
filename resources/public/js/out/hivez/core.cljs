@@ -38,6 +38,12 @@
     #js {}
     #js {:display "none"}))
 
+(defn display-fade-in [show]
+  (if show
+    #js {:opacity 1
+         :transition "opacity .3s"}
+    #js {:opacity 0}))
+
 (defn pos-key [lat-lng]
   (keyword (str
              "lat=" (.lat lat-lng)
@@ -255,7 +261,7 @@
 
     om/IRenderState
     (render-state [_ {:keys [active editing]}]
-      (dom/div #js {:style (display (nil? editing))
+      (dom/div #js {:style (display-fade-in (nil? editing))
                     :className (str "navicon" (when active " active"))
                     :onClick (fn []
                                (om/update-state! owner :active #(not %))

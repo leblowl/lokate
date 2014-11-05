@@ -264,7 +264,6 @@ div {
     white-space: nowrap;
 }
 
-
 .control-panel {
     position: fixed;
     z-index: 3;
@@ -290,7 +289,7 @@ div {
 .navicon::before {
     content: "";
     position: absolute;
-    top: -0.25em;
+    top: -0.30em;
     left: 0;
     width: 1.5em;
     height: 0.125em;
