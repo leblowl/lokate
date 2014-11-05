@@ -171,12 +171,13 @@ div {
 #input-ok {
 /* #33ff99 */
     position: fixed;
+    z-index: 5;
     top: 5px;
     right: 5px;
     width: 35px;
     height: 35px;
     border-radius: 50%;
-    border: 3px solid rgb(33, 255, 150);;
+    border: 3px solid rgb(33, 255, 150);
     cursor: pointer;
     display: flex;
     display: inline-block;
@@ -285,7 +286,6 @@ div {
     border-top: 0.5em double rgba(33, 150, 255, 0.9);
     border-bottom: 0.2em solid rgba(33, 150, 255, 0.9);
 }
-
 
 .navicon::before {
     content: "";

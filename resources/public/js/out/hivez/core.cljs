@@ -254,16 +254,20 @@
       {:active false})
 
     om/IRenderState
-    (render-state [_ {:keys [active]}]
-      (dom/div #js {:className (str "navicon" (when active " active"))
+    (render-state [_ {:keys [active editing]}]
+      (dom/div #js {:style (display (nil? editing))
+                    :className (str "navicon" (when active " active"))
                     :onClick (fn []
                                (om/update-state! owner :active #(not %))
                                (put! route-chan ["open"]))}))))
 
 (defn control-panel [data owner {:keys [route-chan] :as opts}]
-  (om/component
-    (dom/div #js {:className "control-panel"}
-      (om/build navicon data {:opts opts}))))
+  (reify
+    om/IRenderState
+    (render-state [_ {:keys [editing]}]
+      (dom/div #js {:className "control-panel"}
+        (om/build navicon data {:opts opts
+                                :state {:editing editing}})))))
 
 (defn drawer [data owner]
   (reify
@@ -282,8 +286,10 @@
             "open" (om/update-state! owner :open #(not %))
             "places" (route! places-info (:places @data) {})
             "place" (route! place-info (second route) {})
-            "hive" (route! hive-info (second route)
-                     {:opts {:begin-edit (partial begin-edit owner)}})))
+            "hive" (do
+                     (om/update! data :active (keyword (:key @(second route))))
+                     (route! hive-info (second route)
+                       {:opts {:begin-edit (partial begin-edit owner)}}))))
         (recur)))
 
     om/IDidMount
@@ -292,11 +298,15 @@
 
     om/IRenderState
     (render-state [_ {:keys [open editing route-chan]}]
+      (println editing)
+      (println (:active data))
       (dom/div #js {:id "drawer-wrapper"}
-        (om/build control-panel data {:opts {:route-chan route-chan}})
+        (om/build control-panel data {:opts {:route-chan route-chan}
+                                      :init-state {:editing editing}
+                                      :state {:editing editing}})
         (when (:active data)
           (om/build input-control
-            ((:active data) (:hives data))
+            ((:active data)  (:hives (get (:places data) 0)))
             {:state {:editing editing}
              :opts {:on-edit (partial on-edit #(end-edit owner))}}))
         (dom/div #js {:id "drawer"
