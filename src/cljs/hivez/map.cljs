@@ -27,15 +27,16 @@
       (do (.setIcon active green-dot)
           (.panTo goog-map (.getPosition active))))))
 
-(defn mark-it! [owner map pos {:keys [activate delete] :as opts}]
-  (let [marker (google.maps.Marker. #js {:position (clj->js pos)
+(defn mark-it! [owner map hive {:keys [activate delete] :as opts}]
+  (let [pos (:pos hive)
+        marker (google.maps.Marker. #js {:position (clj->js pos)
                                          :map map
                                          :title "hive"
                                          :icon red-dot})]
     (google.maps.event.addListener marker
       "click"
       (fn [_]
-        (activate (pos-key (.getPosition marker)))))
+        (activate (om/path hive))))
 
     (google.maps.event.addListener marker
       "rightclick"
@@ -47,7 +48,7 @@
   (let [map (om/get-state owner :map)]
     (om/update-state! owner :markers
       #(into % (for [[k v] hives]
-                 [k (mark-it! owner map (:pos v) opts)])))))
+                 [k (mark-it! owner map v opts)])))))
 
 (defn delete-markers [owner hives]
   (dorun

@@ -9,7 +9,11 @@
             [goog.string.format]
             [cognitect.transit :as t]
             [hivez.map :as map]
-            [secretary.core :as secretary :include-macros true :refer [defroute]]))
+            [secretary.core :as secretary :include-macros true :refer [defroute]]
+            [goog.history.EventType :as EventType])
+  (:import goog.History))
+
+(def history (History.))
 
 (enable-console-print!)
 
@@ -125,8 +129,12 @@
     (om/update! data :active (:key hive))
     (db-add-hive hive)))
 
-(defn activate-hive [data key]
-  (om/transact! data :active #(if (= key %) nil key)))
+(defn activate-hive [owner data path]
+  (let [key (last path)]
+    (om/transact! data :active #(if (= key %) nil key))
+    (if (:active @data)
+      (put! (om/get-shared owner :nav-chan) ["hive" path])
+      (put! (om/get-shared owner :nav-chan) ["place" (take 2 path)]))))
 
 (defn delete-hive [data key]
   (if (= key (:active @data))
@@ -157,7 +165,7 @@
   (db-add-hive @hive)
   (cb))
 
-(defn input [hive owner {:keys [id className edit-key on-edit on-key-down] :as opts}]
+(defn input [data owner {:keys [id className edit-key on-edit on-key-down] :as opts}]
   (reify
     om/IInitState
     (init-state [_]
@@ -178,13 +186,13 @@
                       :onKeyDown on-key-down
                       :onBlur (fn []
                                 (om/set-state! owner :exit-type "out")
-                                (js/setTimeout #(on-edit hive edit-key owner) 100))
-                      :dangerouslySetInnerHTML #js {:__html (edit-key hive)}})
+                                (js/setTimeout #(on-edit data edit-key owner) 100))
+                      :dangerouslySetInnerHTML #js {:__html (edit-key data)}})
         (dom/div #js {:id "input-ok"
                       :style (display (not (= exit-type "out")))
                       :onClick (fn []
                                  (om/set-state! owner :exit-type "btn")
-                                 (js/setTimeout #(on-edit hive edit-key owner) 100))}
+                                 (js/setTimeout #(on-edit data edit-key owner) 100))}
           (dom/span #js {:id "input-ok-mark"}
             (gstring/unescapeEntities "&#10003;")))))))
 
@@ -204,6 +212,28 @@
                                               :edit-key :notes
                                               :on-edit on-edit}})
           nil)))))
+
+(defn name-select [data owner {:keys [route] :as opts}]
+  (om/component
+    (dom/a #js {:className "name-select"
+                :onClick #(put! (om/get-shared owner :nav-chan) [route (om/path data)])}
+      (dom/span #js {:className "name-select-title"} (:name data)))))
+
+(defn places-info [places owner]
+  (reify
+    om/IRender
+    (render [_]
+      (apply dom/div #js {:className "select-list"}
+        (om/build-all name-select places {:opts {:route "place"}})))))
+
+(defn place-info [place owner]
+  (reify
+    om/IRender
+    (render [_]
+      (dom/div #js {:className "place-info"}
+        (dom/span #js {:className "place-title"})
+        (apply dom/div #js {:className "select-list"}
+          (om/build-all name-select (vals (:hives place)) {:opts {:route "hive"}}))))))
 
 (defn hive-info [hive owner {:keys [begin-edit] :as opts}]
   (reify
@@ -225,35 +255,7 @@
                       :data-ph "Notes..."
                       :dangerouslySetInnerHTML #js {:__html (:notes hive)}})))))
 
-(defn name-select [data owner {:keys [route] :as opts}]
-  (om/component
-    (dom/div #js {:className "name-select"
-                  :onClick #(put! (om/get-shared owner :route-chan) [route data])}
-      (dom/span #js {:className "name-select-title"} (:name data)))))
-
-(defn places-info [places owner]
-  (reify
-    om/IRender
-    (render [_]
-      (apply dom/div #js {:className "select-list"}
-        (om/build-all name-select places {:opts {:route "place"}})))))
-
-(defn place-info [place owner]
-  (reify
-    om/IRender
-    (render [_]
-      (dom/div #js {:className "place-info"}
-        (dom/span #js {:className "place-title"})
-        (apply dom/div #js {:className "select-list"}
-          (om/build-all name-select (vals (:hives place)) {:opts {:route "hive"}}))))))
-
-(defn root [root-id owner comp data opts]
-  (om/root comp data
-    (into {:target (.getElementById js/document root-id)
-           :shared {:route-chan (om/get-state owner :route-chan)}}
-      opts)))
-
-(defn navicon [data owner {:keys [route-chan] :as opts}]
+(defn navicon [data owner {:keys [toggle-open] :as opts}]
   (reify
     om/IInitState
     (init-state [_]
@@ -265,9 +267,9 @@
                     :className (str "navicon" (when active " active"))
                     :onClick (fn []
                                (om/update-state! owner :active #(not %))
-                               (put! route-chan ["open"]))}))))
+                               (toggle-open))}))))
 
-(defn control-panel [data owner {:keys [route-chan] :as opts}]
+(defn control-panel [data owner opts]
   (reify
     om/IRenderState
     (render-state [_ {:keys [editing]}]
@@ -275,39 +277,41 @@
         (om/build navicon data {:opts opts
                                 :state {:editing editing}})))))
 
+(defn toggle-open [owner]
+  (om/update-state! owner :open not))
+
+(defn route! [owner child child-ks child-opts]
+  (om/set-state! owner :child child)
+  (om/set-state! owner :child-ks child-ks)
+  (om/set-state! owner :child-opts (or child-opts {})))
+
 (defn drawer [data owner]
   (reify
     om/IInitState
     (init-state [_]
       {:open false
        :editing nil
-       :route-chan (chan)})
+       :child places-info
+       :child-ks [:places]
+       :child-opts {}})
 
     om/IWillMount
     (will-mount [_]
       (go-loop []
-        (let [route (<! (om/get-state owner :route-chan))
-              route! (partial root "drawer" owner)]
+        (let [route (<! (om/get-shared owner :nav-chan))]
           (case (first route)
-            "open" (om/update-state! owner :open #(not %))
-            "places" (route! places-info (:places @data) {})
-            "place" (route! place-info (second route) {})
-            "hive" (do
-                     (om/update! data :active (keyword (:key @(second route))))
-                     (route! hive-info (second route)
-                       {:opts {:begin-edit (partial begin-edit owner)}}))))
+            "places" (route! owner places-info (second route))
+            "place"  (route! owner place-info (second route))
+            "hive"   (do
+                       (om/update! data :active (last (second route)))
+                       (route! owner hive-info (second route)
+                         {:opts {:begin-edit (partial begin-edit owner)}}))))
         (recur)))
 
-    om/IDidMount
-    (did-mount [_]
-      (put! (om/get-state owner :route-chan) ["places"]))
-
     om/IRenderState
-    (render-state [_ {:keys [open editing route-chan]}]
-      (println editing)
-      (println (:active data))
+    (render-state [_ {:keys [open editing nav-chan child child-ks child-opts]}]
       (dom/div #js {:id "drawer-wrapper"}
-        (om/build control-panel data {:opts {:route-chan route-chan}
+        (om/build control-panel data {:opts {:toggle-open (partial toggle-open owner)}
                                       :init-state {:editing editing}
                                       :state {:editing editing}})
         (when (:active data)
@@ -317,14 +321,8 @@
              :opts {:on-edit (partial on-edit #(end-edit owner))}}))
         (dom/div #js {:id "drawer"
                       :className (str (:orientation data)
-                                   (if (and open (not editing)) " show" " hide"))})))))
-
-(defn to-save []
-  (om/build places-info (:places data))
-  (when (:active data)
-    (om/build hive-info
-      ((:active data) (:hives data))
-      {:opts {:begin-edit (partial begin-edit owner)}})))
+                                   (if (and open (not editing)) " show" " hide"))}
+          (om/build child (get-in data child-ks) child-opts))))))
 
 (defn app [data owner]
   (reify
@@ -333,7 +331,7 @@
       (dom/div #js {:className (str "flex-container " (:orientation data))}
         (dom/div #js {:className "flex-content"}
           (om/build map/goog-map data {:opts {:add (partial add-hive data)
-                                              :activate (partial activate-hive data)
+                                              :activate (partial activate-hive owner data)
                                               :delete (partial delete-hive data)}}))
         (om/build drawer data)))))
 
@@ -342,4 +340,5 @@
   (.addEventListener js/window "resize" handleOrientation)
   (db-new
     #(db-get-all (fn []
-                   (om/root app app-state {:target (.getElementById js/document "content")})))))
+                   (om/root app app-state {:target (.getElementById js/document "content")
+                                           :shared {:nav-chan (chan)}})))))

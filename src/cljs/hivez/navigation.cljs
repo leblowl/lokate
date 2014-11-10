@@ -6,7 +6,7 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [hivez.core :as core]
-            [hivez.login :as login])
+            [cljs.core.async :refer [put! <! >! chan timeout]])
   (:import goog.History))
 
 (def history (History.))
@@ -14,34 +14,19 @@
 (def navigation-state
   (atom []))
 
-(secretary/defroute "/*" []
-  (core/render))
-
-(defn refresh-navigation []
-  (let [token (.getToken history)
-        set-active (fn [nav]
-                     (assoc nav :active (= (:path nav) token)))]
-    (swap! navigation-state #(map set-active %))))
+(def nav-chan (chan))
 
 (defn on-navigate [event]
-  (refresh-navigation)
   (secretary/dispatch! (if (nil? (.-token event)) "/" (.-token event))))
 
-(defn navigation-item-view [{:keys [id name path active]} owner]
-  (reify
-    om/IRender
-    (render [this]
-      (dom/li #js {:id id :className (if active "active" "")}
-        (dom/a #js {:href (str "#" path)} name)))))
+(defn init-nav []
+  (doto history
+    (events/listen EventType/NAVIGATE on-navigate)
+    (.setEnabled true))
+  nav-chan)
 
 (defn navigation-view [app owner]
   (reify
-    om/IWillMount
-    (will-mount [this]
-      (doto history
-        (events/listen EventType/NAVIGATE on-navigate)
-        (.setEnabled true)))
-
     om/IRender
     (render [this]
       (dom/div #js {:className "navigation-container"}
@@ -51,13 +36,8 @@
           (dom/span #js {:className "banner-title"}
             "hivez"))))))
 
-(defn ^:export authorize-cb [authResult]
-  ;(println (.stringify js/JSON authResult))
-  (when (aget authResult "status" "signed_in")
-    (core/render)))
-(aset js/window "authorize-cb" hivez.navigation.authorize-cb)
-
 (defn render []
   (om/root navigation-view
     navigation-state
-    {:target (. js/document (getElementById "static-header"))}))
+    {:target (. js/document (getElementById "static-header"))})
+  (core/render))
