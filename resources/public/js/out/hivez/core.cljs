@@ -272,11 +272,11 @@
 (defn control-panel [data owner opts]
   (reify
     om/IRenderState
-    (render-state [_ {:keys [open editing]}]
+    (render-state [_ {:keys [open editing route]}]
       (dom/div #js {:className "control-panel"}
         (dom/div #js {:id "nav-control"
                       :style (display-fade-in open)}
-          (dom/span #js {:id "nav-label"} ":hive all/Cat!")
+          (dom/span #js {:id "nav-label"} (str ":" route))
           (dom/div #js {:id "nav-back-btn"
                         :className "icon-arrow-left2"}))
         ;(dom/div #js {:id "divide"})
@@ -297,6 +297,7 @@
     (init-state [_]
       {:open false
        :editing nil
+       :route "places"
        :child places-info
        :child-ks [:places]
        :child-opts {}})
@@ -305,6 +306,7 @@
     (will-mount [_]
       (go-loop []
         (let [route (<! (om/get-shared owner :nav-chan))]
+          (om/set-state! owner :route (first route))
           (case (first route)
             "places" (route! owner places-info (second route))
             "place"  (route! owner place-info (second route))
@@ -316,12 +318,13 @@
         (recur)))
 
     om/IRenderState
-    (render-state [_ {:keys [open editing nav-chan child child-ks child-opts]}]
+    (render-state [_ {:keys [open editing nav-chan route child child-ks child-opts]}]
       (dom/div #js {:id "drawer-wrapper"}
         (om/build control-panel data {:opts {:toggle-open (partial toggle-open owner)}
                                       :init-state {:editing editing}
                                       :state {:open open
-                                              :editing editing}})
+                                              :editing editing
+                                              :route route}})
         (when (:active data)
           (om/build input-control
             ((:active data)  (:hives (get (:places data) 0)))
