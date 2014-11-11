@@ -38,7 +38,8 @@
                                         :source-map    "resources/public/js/out.js.map"
                                         :preamble      ["react/react.min.js"]
                                         :externs       ["react/externs/react.js"
-                                                        "resources/public/js/extern/google_maps_api_v3_18.js"]
+                                                        "resources/public/js/extern/leaflet.js"
+                                                        "resources/public/js/extern/leaflet.draw.js"]
                                         :optimizations :none
                                         :pretty-print  true}}}}
 

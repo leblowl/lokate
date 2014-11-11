@@ -13,35 +13,33 @@
              "lat=" (.lat lat-lng)
              "lng=" (.lng lat-lng))))
 
-(def red-dot "http://maps.google.com/mapfiles/ms/icons/red-dot.png")
-(def green-dot "http://maps.google.com/mapfiles/ms/icons/green-dot.png")
+(def blue-ico (.spriteIcon js/L))
+(def green-ico (.spriteIcon js/L "green"))
 
 (defn activate-marker [owner key]
-  (let [goog-map (om/get-state owner :map)
+  (let [l-map (om/get-state owner :map)
         markers (om/get-state owner :markers)
         active (om/get-state owner [:markers key :marker])]
 
     (dorun
-      (map #(.setIcon (:marker %) red-dot) (vals markers)))
+      (map #(.setIcon (:marker %) (.spriteIcon js/L)) (vals markers)))
     (when active
-      (do (.setIcon active green-dot)
-          (.panTo goog-map (.getPosition active))))))
+      (do (.setIcon active green-ico)
+          (.panTo l-map (.getLatLng active))))))
 
 (defn mark-it! [owner map hive {:keys [activate delete] :as opts}]
   (let [pos (:pos hive)
-        marker (google.maps.Marker. #js {:position (clj->js pos)
-                                         :map map
-                                         :title "hive"
-                                         :icon red-dot})]
-    (google.maps.event.addListener marker
-      "click"
-      (fn [_]
-        (activate (om/path hive))))
+        marker (-> js/L
+                 (.marker (clj->js pos) #js {:icon blue-ico})
+                 (.addTo map))]
 
-    (google.maps.event.addListener marker
-      "rightclick"
+    (.on marker "click"
+      #(activate (om/path hive)))
+
+    (.on marker "contextmenu"
       (fn [_]
-        (delete (pos-key (.getPosition marker)))))
+        (delete (om/path hive))))
+
     {:marker marker :pos pos :active false}))
 
 (defn add-markers [owner hives opts]
@@ -51,28 +49,29 @@
                  [k (mark-it! owner map v opts)])))))
 
 (defn delete-markers [owner hives]
-  (dorun
-    (map #(.setMap (om/get-state owner [:markers % :marker]) nil)
-      (map first hives)))
+  (let [l-map (om/get-state owner :map)]
+    (dorun
+     (map #(.removeLayer l-map (om/get-state owner [:markers % :marker]))
+       (map first hives))))
   (om/update-state! owner :markers #(apply dissoc % (map first hives))))
 
 (defn cancel-action [owner]
   (js/clearTimeout (om/get-state owner :evt-timeout))
   (om/set-state! owner :evt-timeout nil))
 
-(defn goog-map [{:keys [places active] :as data} owner {:keys [add activate delete] :as opts}]
+(defn l-map [{:keys [places active] :as data} owner {:keys [add activate delete] :as opts}]
   (reify
     om/IInitState
     (init-state [_]
-      {:center #js {:lat 0 :lng 0}
+      {:center #js [0 0]
        :evt-timeout nil
        :markers {}
        :map nil})
 
     om/IWillReceiveProps
-    (will-receive-props [this next-props]
-      (let [next-hives (set (:hives next-props))
-            current-hives (set (:hives (om/get-props owner)))
+    (will-receive-props [this {:keys [places active] :as next-props}]
+      (let [next-hives (reduce into #{} (map :hives places))
+            current-hives (reduce into #{} (map :hives (:places (om/get-props owner))))
             to-add (set/difference next-hives current-hives)
             to-delete (set/difference current-hives next-hives)]
 
@@ -82,60 +81,34 @@
 
     om/IDidMount
     (did-mount [_]
-      (let [map-options #js {:center (om/get-state owner :center)
-                             :zoom 6
-                             :panControl false
-                             :zoomControl false
-                             :scaleControl true
-                             :streetViewControl false}
-            goog-map (google.maps.Map. (om/get-node owner) map-options)]
+      (let [tile-url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
+            tile-attr "&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors"
+            l-map (-> js/L
+                    (.map "map")
+                    (.setView (om/get-state owner :center) 9))]
 
-        (google.maps.event.addListener
-          goog-map
-          "mousedown"
-          (fn [evt]
+        (-> js/L
+          (.tileLayer tile-url #js {:attribution tile-attr})
+          (.addTo l-map))
 
-            (google.maps.event.addListener
-              goog-map
-              "mouseup"
-              (fn [evt] (cancel-action owner)))
-
-            (google.maps.event.addListener
-              goog-map
-              "mousemove"
-              (fn [evt] (cancel-action owner)))
-
-            (if-let [timeout (om/get-state owner :evt-timeout)]
-              (do
-                (js/clearTimeout timeout)
-                (om/set-state! owner :evt-timeout nil))
-              (om/set-state! owner :evt-timeout
-                (js/setTimeout (fn [] (add (.-latLng evt))) 1000)))))
-
-        (google.maps.event.addListener
-          goog-map
-Dude          "rightclick"
-          (fn [evt]
-            (add (.-latLng evt))))
+        (.on l-map "contextmenu"
+          (fn [e]
+            (add (select-keys
+                   (js->clj (.-latlng e) :keywordize-keys true)
+                   [:lat :lng]))))
 
         (if navigator.geolocation
           (.getCurrentPosition navigator.geolocation
            (fn [pos]
-             (let [initialLoc (google.maps.LatLng. (.-coords.latitude pos)
-                                                   (.-coords.longitude pos))]
-               (.setCenter goog-map initialLoc))))
+             (let [initialLoc #js [(.-coords.latitude pos)
+                                   (.-coords.longitude pos)]]
+               (.setView l-map initialLoc 9))))
           (println "Hey, where'd you go!? Geolocation Disabled"))
 
-        (google.maps.event.addListener goog-map
-          "idle" #(om/set-state! owner :center (.getCenter goog-map)))
-        (.addEventListener js/window
-          "resize" (fn [e]
-                     (google.maps.event.trigger goog-map "resize")
-                     (.setCenter goog-map (om/get-state owner :center))))
 
-        (om/set-state! owner :map goog-map)
+        (om/set-state! owner :map l-map)
         (add-markers owner (reduce into {} (map :hives places)) opts)))
 
     om/IRenderState
     (render-state [_ {:keys [markers]}]
-      (dom/div #js {:id "map-canvas"}))))
+      (dom/div #js {:id "map"}))))

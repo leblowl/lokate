@@ -19,7 +19,6 @@
 
 (def app-state
   (atom {:orientation nil
-         :hives {}
          :active nil
          :places [{:name "Angels Camp"
                    :bounds {:northeast {:lat 0 :lng 0}
@@ -50,8 +49,8 @@
 
 (defn pos-key [lat-lng]
   (keyword (str
-             "lat=" (.lat lat-lng)
-             "lng=" (.lng lat-lng))))
+             "lat=" (:lat lat-lng)
+             "lng=" (:lng lat-lng))))
 
 (defn fdate-now []
   (let [d (js/Date.)
@@ -63,6 +62,7 @@
 (defn floormat [& args]
   (apply gstring/format args))
 
+; switch to haversine
 (defn distance
  "Euclidean distance between 2 points"
  [pos1 pos2]
@@ -116,18 +116,11 @@
   {:key (pos-key pos)
    :name ""
    :origin (fdate-now)
-   :pos {:lat (.lat pos)
-         :lng (.lng pos)}
+   :pos pos
    :notes ""})
 
 (defn nearest [hive hives]
   (apply min-key #(distance (:pos hive) (:pos (second %))) (seq hives)))
-
-(defn add-hive [data pos]
-  (let [hive (new-hive pos)]
-    (om/transact! data :hives #(assoc % (:key hive) hive))
-    (om/update! data :active (:key hive))
-    (db-add-hive hive)))
 
 (defn activate-hive [owner data path]
   (let [key (last path)]
@@ -136,13 +129,19 @@
       (put! (om/get-shared owner :nav-chan) ["hive" path])
       (put! (om/get-shared owner :nav-chan) ["place" (take 2 path)]))))
 
-(defn delete-hive [data key]
-  (if (= key (:active @data))
-    (let [hive (key (:hives @data))]
-      (om/transact! data :hives #(dissoc % key))
-      (om/update! data :active (first (nearest hive (:hives @data)))))
-    (om/transact! data :hives #(dissoc % key)))
-  (db-delete-hive key))
+(defn add-hive [owner data pos]
+  (let [hive (new-hive pos)]
+    (om/transact! data [:places 0 :hives] #(assoc % (:key hive) hive))
+    (activate-hive owner data [:places 0 :hives (:key hive)])
+    (db-add-hive hive)))
+
+(defn delete-hive [owner data path]
+  (if (= (last path) (:active @data))
+    (let [hive (get-in @data path)]
+      (om/transact! data (butlast path) #(dissoc % (last path)))
+      (activate-hive owner data (conj (vec (butlast path)) (first (nearest hive (get-in @data (butlast path)))))))
+    (om/transact! data (butlast path) #(dissoc % (last path))))
+  (db-delete-hive (last path)))
 
 (defn display-pos [hive]
   (let [pos (:pos hive)]
@@ -322,7 +321,8 @@
         (dom/div #js {:id "drawer"
                       :className (str (:orientation data)
                                    (if (and open (not editing)) " show" " hide"))}
-          (om/build child (get-in data child-ks) child-opts))))))
+          (when (get-in data child-ks)
+           (om/build child (get-in data child-ks) child-opts)))))))
 
 (defn app [data owner]
   (reify
@@ -330,9 +330,9 @@
     (render [_]
       (dom/div #js {:className (str "flex-container " (:orientation data))}
         (dom/div #js {:className "flex-content"}
-          (om/build map/goog-map data {:opts {:add (partial add-hive data)
+          (om/build map/l-map data {:opts {:add (partial add-hive owner data)
                                               :activate (partial activate-hive owner data)
-                                              :delete (partial delete-hive data)}}))
+                                              :delete (partial delete-hive owner data)}}))
         (om/build drawer data)))))
 
 (defn render []
