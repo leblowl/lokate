@@ -20,7 +20,7 @@
 (def app-state
   (atom {:orientation nil
          :active nil
-         :places [{:name "Angels Camp"
+         :places [{:name "All"
                    :bounds {:northeast {:lat 0 :lng 0}
                             :southwest {:lat 5 :lng 5}}
                    :hives {}}]}))
@@ -129,6 +129,7 @@
       (put! (om/get-shared owner :nav-chan) ["hive" path])
       (put! (om/get-shared owner :nav-chan) ["place" (take 2 path)]))))
 
+;have hive only render from active to bypass having to check for nil on drawer child
 (defn add-hive [owner data pos]
   (let [hive (new-hive pos)]
     (om/transact! data [:places 0 :hives] #(assoc % (:key hive) hive))
@@ -302,6 +303,7 @@
             "places" (route! owner places-info (second route))
             "place"  (route! owner place-info (second route))
             "hive"   (do
+                       (om/set-state! owner :open true)
                        (om/update! data :active (last (second route)))
                        (route! owner hive-info (second route)
                          {:opts {:begin-edit (partial begin-edit owner)}}))))
