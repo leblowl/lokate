@@ -290,7 +290,7 @@
     (render-state [_ {:keys [open editing history path-str]}]
       (dom/div #js {:className "control-panel"}
         (dom/div #js {:id "nav-control"
-                      :style (display-fade-in open)}
+                      :style (display-fade-in (and open (not editing)))}
           (dom/span #js {:id "nav-label"} (str ":" route " " path-str))
           (dom/div #js {:id "nav-back-btn"
                         :className "icon-arrow-left2"
