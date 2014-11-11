@@ -180,6 +180,8 @@
     (render-state [_ {:keys [exit-type]}]
       (dom/div #js {:id "input-wrapper"}
         (dom/div #js {:id id
+
+
                       :ref edit-key
                       :className className
                       :style (display (not exit-type))
@@ -197,18 +199,20 @@
           (dom/span #js {:id "input-ok-mark"}
             (gstring/unescapeEntities "&#10003;")))))))
 
-(defn input-control [hive owner {:keys [on-edit] :as opts}]
+(defn input-control [data owner {:keys [on-edit] :as opts}]
   (reify
     om/IRenderState
     (render-state [_ {:keys [editing]}]
       (dom/div #js {:id "input-ctrl"}
+        (println editing)
+        (println data)
         (case editing
-          :name (om/build input hive {:opts {:id "name-input"
+          :name (om/build input data {:opts {:id "name-input"
                                              :className "name input single-line"
                                              :edit-key :name
                                              :on-edit on-edit
                                              :on-key-down (fn [e] (if (= (.-keyCode e) 13) false))}})
-          :notes (om/build input hive {:opts {:id "notes-input"
+          :notes (om/build input data {:opts {:id "notes-input"
                                               :className "notes input"
                                               :edit-key :notes
                                               :on-edit on-edit}})
@@ -220,20 +224,27 @@
                 :onClick #(put! (om/get-shared owner :nav-chan) [route (om/path data)])}
       (dom/span #js {:className "name-select-title"} (:name data)))))
 
+
 (defn places-info [places owner]
   (reify
     om/IRender
     (render [_]
-      (apply dom/div #js {:className "select-list"}
-        (om/build-all name-select places {:opts {:route "place"}})))))
+      (dom/div #js {:id "places"}
+        (apply dom/div #js {:className "select-list"}
+         (om/build-all name-select places {:opts {:route "place"}}))))))
 
-(defn place-info [place owner]
+(defn place-info [place owner {:keys [begin-edit] :as opts}]
   (reify
     om/IRender
     (render [_]
       (dom/div #js {:className "place-info"}
-        (dom/span #js {:className "place-title"})
+        (dom/span #js {:id "name-editable"
+                       :className "name editable single-line"
+                       :onClick #(begin-edit :name)
+                       :data-ph "Name"
+                       :dangerouslySetInnerHTML #js {:__html (:name place)}})
         (apply dom/div #js {:className "select-list"}
+          (dom/span nil "hives: ")
           (om/build-all name-select (vals (:hives place)) {:opts {:route "hive"}}))))))
 
 (defn hive-info [hive owner {:keys [begin-edit] :as opts}]
@@ -284,7 +295,9 @@
           (om/update-state! owner :history #(conj % next-props))))
 
       (om/set-state! owner :path-str
-        (str/join "/" (reverse (filter (comp not nil?) (map last (om/get-state owner :history)))))))
+        (str/join "/"
+          (reverse (filter (comp not nil?)
+                     (map last (om/get-state owner :history)))))))
 
     om/IRenderState
     (render-state [_ {:keys [open editing history path-str]}]
@@ -292,6 +305,13 @@
         (dom/div #js {:id "nav-control"
                       :style (display-fade-in (and open (not editing)))}
           (dom/span #js {:id "nav-label"} (str ":" route " " path-str))
+          (dom/div #js {:id "nav-add-btn"
+                        :className "icon-plus"
+                        :style (display (= (count history) 1))
+                        :onClick (fn []
+                                        ;add new place
+                                        ;route to new place
+                                   )})
           (dom/div #js {:id "nav-back-btn"
                         :className "icon-arrow-left2"
                         :style (display (> (count history) 1))
@@ -330,7 +350,8 @@
           (om/set-state! owner :route (first route))
           (case (first route)
             "places" (route! owner places-info (second route))
-            "place"  (route! owner place-info (second route))
+            "place"  (route! owner place-info (second route)
+                       {:opts {:begin-edit (partial begin-edit owner)}})
             "hive"   (do
                        (om/set-state! owner :open true)
                        (om/update! data :active (last (second route)))
@@ -348,9 +369,9 @@
            :state {:open open
                    :editing editing}})
 
-        (when (:active data)
+        (when editing
           (om/build input-control
-            ((:active data)  (:hives (get (:places data) 0)))
+            (get-in data child-ks child-opts)
             {:state {:editing editing}
              :opts {:on-edit (partial on-edit #(end-edit owner))}}))
 

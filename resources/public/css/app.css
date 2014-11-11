@@ -209,11 +209,29 @@ div {
     color: darkgrey;
 }
 
-.select-list {
+#places {
     width: 100%;
     height: 100%;
     padding-left: .5em;
     padding-right: .5em;
+}
+
+.place-info {
+    width: 100%;
+    height: 100%;
+    padding: .5em;
+    display: flex;
+    flex-direction: column;
+}
+
+.select-list {
+    width: 100%;
+    height: 100%;
+    padding-top: 4px;
+}
+
+.select-list span {
+    padding: 4px;
 }
 
 .name-select {
@@ -224,10 +242,12 @@ div {
     border-radius: 3px;
     display: flex;
     box-shadow: 0px 0px 0pt 1pt rgba(33, 150, 255, 0.9);
+    /*box-shadow: 0px 0px 0pt 1pt #666;*/
 }
 
 .name-select:hover {
     cursor: pointer;
+    box-shadow: 0px 0px 0pt 1pt rgba(33, 150, 255, 0.9);
 }
 
 .name-select:focus {
@@ -303,12 +323,14 @@ div {
 .icon-arrow-left:before {
 	content: "\e602";
 }
-.icon-arrow-left2:before {
-	content: "\e604";
+.icon-plus:before {
+	content: "\e601";
 }
-
 .icon-list:before {
 	content: "\e600";
+}
+.icon-arrow-left2:before {
+	content: "\e604";
 }
 
 #nav-control {
@@ -327,6 +349,18 @@ div {
     padding-left: .5em;
     flex: 1 1 auto;
     background: #333;
+}
+
+#nav-add-btn {
+    width: 20px;
+    font-size: 1.3em;
+    margin-left: .3em;
+    color: white;
+}
+
+#nav-add-btn:hover {
+    cursor: pointer;
+    color: rgb(33, 255, 150);
 }
 
 #nav-back-btn {

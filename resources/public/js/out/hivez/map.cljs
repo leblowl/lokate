@@ -48,6 +48,9 @@
       #(into % (for [[k v] hives]
                  [k (mark-it! owner map v opts)])))))
 
+(defn add-group [owner places opts]
+  (map #({:name (:name %) :group (js/L.MarkerClusterGroup.)})))
+
 (defn delete-markers [owner hives]
   (let [l-map (om/get-state owner :map)]
     (dorun
