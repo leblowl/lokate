@@ -274,6 +274,11 @@
     om/IRenderState
     (render-state [_ {:keys [editing]}]
       (dom/div #js {:className "control-panel"}
+        (dom/div #js {:id "nav-control"}
+          (dom/span #js {:id "nav-label"} ":hive all/Cat!")
+          (dom/div #js {:id "nav-back-btn"
+                        :className "icon-arrow-left2"}))
+        ;(dom/div #js {:id "divide"})
         (om/build navicon data {:opts opts
                                 :state {:editing editing}})))))
 

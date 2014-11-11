@@ -265,11 +265,91 @@ div {
     z-index: 3;
     top: 0;
     right: 0;
-    width: 50%;
+    width: 33%;
+    min-width: 233px;
     height: 45px;
     display: flex;
-    flex-direction: row-reverse;
+    flex-direction: row;
     align-items: center;
+    justify-content: space-between;
+}
+
+@font-face {
+	font-family: 'icomoon';
+	src:url('/fonts/icomoon/icomoon.eot?q1s9kp');
+	src:url('/fonts/icomoon/icomoon.eot?#iefixq1s9kp') format('embedded-opentype'),
+		url('/fonts/icomoon/icomoon.woff?q1s9kp') format('woff'),
+		url('/fonts/icomoon/icomoon.ttf?q1s9kp') format('truetype'),
+		url('/fonts/icomoon/icomoon.svg?q1s9kp#icomoon') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+	font-family: 'icomoon';
+	speak: none;
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	text-transform: none;
+	line-height: 1;
+
+	/* Better Font Rendering =========== */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.icon-arrow-left:before {
+	content: "\e602";
+}
+.icon-arrow-left2:before {
+	content: "\e604";
+}
+
+.icon-list:before {
+	content: "\e600";
+}
+
+#nav-control {
+    height: 45px;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+}
+
+#nav-label {
+    color: white;
+    width: 50%;
+    height: 33px;
+    line-height: 33px;
+    border: 1px solid black;
+    border-radius: 2px;
+    padding-left: .5em;
+    flex: 1 1 auto;
+    background: #333;
+}
+
+#nav-back-btn {
+    width: 20px;
+    font-size: 1.3em;
+    margin-left: .3em;
+    margin-right: .3em;
+    color: white;
+}
+
+#nav-back-btn:hover {
+    cursor: pointer;
+    color: rgba(33, 150, 255, 0.9);
+}
+
+#divide {
+    width: 1px;
+    height: 33px;
+    background: black;
+    background: -webkit-gradient(radial, 50% 50%, 0, 50% 50%, 350, from(#000), to(#fff));
+    margin-left: .5em;
+    margin-right: .5em;
+    border-radius: 1px;
 }
 
 .navicon {
@@ -277,15 +357,15 @@ div {
     padding-left: 2em;
 }
 
-.navicon.active::before {
+.navicon.active::after {
     border-top: 0.5em double rgba(33, 150, 255, 0.9);
     border-bottom: 0.2em solid rgba(33, 150, 255, 0.9);
 }
 
-.navicon::before {
+.navicon::after {
     content: "";
     position: absolute;
-    top: -0.30em;
+    top: -0.38em;
     left: 0;
     width: 1.5em;
     height: 0.125em;
@@ -293,7 +373,7 @@ div {
     border-bottom: 0.2em solid rgba(256, 256, 256, 0.9);
 }
 
-.navicon:hover::before {
+.navicon:hover::after {
     cursor: pointer;
     border-top: 0.5em double rgba(33, 150, 255, 0.9);
     border-bottom: 0.2em solid rgba(33, 150, 255, 0.9);
