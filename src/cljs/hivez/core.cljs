@@ -294,6 +294,7 @@
           (dom/span #js {:id "nav-label"} (str ":" route " " path-str))
           (dom/div #js {:id "nav-back-btn"
                         :className "icon-arrow-left2"
+                        :style (display (> (count history) 1))
                         :onClick (fn []
                                    (let [new-history (pop history)]
                                      (when (not (empty? new-history))

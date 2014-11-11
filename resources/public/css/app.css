@@ -320,7 +320,6 @@ div {
 
 #nav-label {
     color: white;
-    width: 50%;
     height: 33px;
     line-height: 33px;
     border: 1px solid black;
@@ -334,7 +333,6 @@ div {
     width: 20px;
     font-size: 1.3em;
     margin-left: .3em;
-    margin-right: .3em;
     color: white;
 }
 
@@ -356,6 +354,7 @@ div {
 .navicon {
     position: relative;
     padding-left: 2em;
+    margin-left: .5em;
 }
 
 .navicon.active::after {
