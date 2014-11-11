@@ -269,16 +269,32 @@
                                (om/update-state! owner :active #(not %))
                                (toggle-open))}))))
 
-(defn control-panel [data owner opts]
+(defn control-panel [[route path] owner opts]
   (reify
+    om/InitState
+    (init-state [_]
+      {:history []})
+
+    om/IWillReceiveProps
+    (will-receive-props [_ next-props]
+      (let [history (om/get-state owner :history)]
+        (when-not (= (peek history) next-props)
+          (om/update-state! owner :history #(conj % next-props))))
+      (println (om/get-state owner :history)))
+
     om/IRenderState
-    (render-state [_ {:keys [open editing route]}]
+    (render-state [_ {:keys [open editing history]}]
       (dom/div #js {:className "control-panel"}
         (dom/div #js {:id "nav-control"
                       :style (display-fade-in open)}
           (dom/span #js {:id "nav-label"} (str ":" route))
           (dom/div #js {:id "nav-back-btn"
-                        :className "icon-arrow-left2"}))
+                        :className "icon-arrow-left2"
+                        :onClick (fn []
+                                   (let [new-history (pop history)]
+                                     (when (not (empty? new-history))
+                                       (put! (om/get-shared owner :nav-chan) (peek new-history))
+                                       (om/set-state! owner :history new-history))))}))
         ;(dom/div #js {:id "divide"})
         (om/build navicon data {:opts opts
                                 :state {:editing editing}})))))
@@ -320,16 +336,19 @@
     om/IRenderState
     (render-state [_ {:keys [open editing nav-chan route child child-ks child-opts]}]
       (dom/div #js {:id "drawer-wrapper"}
-        (om/build control-panel data {:opts {:toggle-open (partial toggle-open owner)}
-                                      :init-state {:editing editing}
-                                      :state {:open open
-                                              :editing editing
-                                              :route route}})
+        (om/build control-panel
+          [route child-ks]
+          {:opts {:toggle-open (partial toggle-open owner)}
+           :init-state {:editing editing}
+           :state {:open open
+                   :editing editing}})
+
         (when (:active data)
           (om/build input-control
             ((:active data)  (:hives (get (:places data) 0)))
             {:state {:editing editing}
              :opts {:on-edit (partial on-edit #(end-edit owner))}}))
+
         (dom/div #js {:id "drawer"
                       :className (str (:orientation data)
                                    (if (and open (not editing)) " show" " hide"))}
