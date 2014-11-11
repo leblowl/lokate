@@ -35,7 +35,7 @@ goog.addDependency("../clojure/walk.js", ['clojure.walk'], ['cljs.core']);
 goog.addDependency("../secretary/core.js", ['secretary.core'], ['cljs.core', 'clojure.string', 'clojure.walk']);
 goog.addDependency("../clojure/set.js", ['clojure.set'], ['cljs.core']);
 goog.addDependency("../hivez/map.js", ['hivez.map'], ['goog.string', 'cljs.core', 'om.dom', 'cljs.core.async', 'clojure.set', 'goog.string.format', 'om.core', 'goog.events']);
-goog.addDependency("../hivez/core.js", ['hivez.core'], ['goog.string', 'cljs.core', 'cljs_http.client', 'om.dom', 'goog.history.EventType', 'goog.History', 'cljs.core.async', 'cognitect.transit', 'goog.string.format', 'om.core', 'secretary.core', 'hivez.map', 'goog.events']);
+goog.addDependency("../hivez/core.js", ['hivez.core'], ['goog.string', 'cljs.core', 'cljs_http.client', 'om.dom', 'goog.history.EventType', 'goog.History', 'cljs.core.async', 'cognitect.transit', 'goog.string.format', 'om.core', 'secretary.core', 'hivez.map', 'clojure.string', 'goog.events']);
 goog.addDependency("../hivez/navigation.js", ['hivez.navigation'], ['goog.string', 'cljs.core', 'om.dom', 'goog.history.EventType', 'goog.History', 'cljs.core.async', 'hivez.core', 'om.core', 'secretary.core', 'goog.events']);
 goog.addDependency("../hivez/dev.js", ['hivez.dev'], ['weasel.repl', 'cljs.core', 'cljs.core.async', 'figwheel.client', 'hivez.navigation']);
 goog.addDependency("../hivez/login.js", ['hivez.login'], ['cljs.core', 'om.dom', 'cljs.core.async', 'om.core', 'goog.events']);

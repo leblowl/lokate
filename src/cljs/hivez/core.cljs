@@ -10,7 +10,8 @@
             [cognitect.transit :as t]
             [hivez.map :as map]
             [secretary.core :as secretary :include-macros true :refer [defroute]]
-            [goog.history.EventType :as EventType])
+            [goog.history.EventType :as EventType]
+            [clojure.string :as str])
   (:import goog.History))
 
 (def history (History.))
@@ -273,21 +274,24 @@
   (reify
     om/InitState
     (init-state [_]
-      {:history []})
+      {:history []
+       :path-str ""})
 
     om/IWillReceiveProps
     (will-receive-props [_ next-props]
       (let [history (om/get-state owner :history)]
         (when-not (= (peek history) next-props)
           (om/update-state! owner :history #(conj % next-props))))
-      (println (om/get-state owner :history)))
+
+      (om/set-state! owner :path-str
+        (str/join "/" (reverse (filter (comp not nil?) (map last (om/get-state owner :history)))))))
 
     om/IRenderState
-    (render-state [_ {:keys [open editing history]}]
+    (render-state [_ {:keys [open editing history path-str]}]
       (dom/div #js {:className "control-panel"}
         (dom/div #js {:id "nav-control"
                       :style (display-fade-in open)}
-          (dom/span #js {:id "nav-label"} (str ":" route))
+          (dom/span #js {:id "nav-label"} (str ":" route " " path-str))
           (dom/div #js {:id "nav-back-btn"
                         :className "icon-arrow-left2"
                         :onClick (fn []
@@ -337,7 +341,7 @@
     (render-state [_ {:keys [open editing nav-chan route child child-ks child-opts]}]
       (dom/div #js {:id "drawer-wrapper"}
         (om/build control-panel
-          [route child-ks]
+          [route child-ks (:name (get-in data child-ks))]
           {:opts {:toggle-open (partial toggle-open owner)}
            :init-state {:editing editing}
            :state {:open open
