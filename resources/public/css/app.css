@@ -99,8 +99,9 @@ div {
 }
 
 .show {
-    transition-delay: .37s;
-    transition-duration: 1s;
+    /* transition-delay: .37s; */
+    /* transition-duration: 1s; */
+    transition-duration: .3s;
     transition-property: transform;
     transform: translate3d(0, 0, 0);
 }

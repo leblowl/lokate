@@ -263,8 +263,8 @@
 
     om/IRenderState
     (render-state [_ {:keys [active editing]}]
-      (dom/div #js {:style (display-fade-in (nil? editing))
-                    :className (str "navicon" (when active " active"))
+      (dom/div #js {:className (str "navicon" (when active " active"))
+                    :style (display-fade-in (nil? editing))
                     :onClick (fn []
                                (om/update-state! owner :active #(not %))
                                (toggle-open))}))))
@@ -272,9 +272,10 @@
 (defn control-panel [data owner opts]
   (reify
     om/IRenderState
-    (render-state [_ {:keys [editing]}]
+    (render-state [_ {:keys [open editing]}]
       (dom/div #js {:className "control-panel"}
-        (dom/div #js {:id "nav-control"}
+        (dom/div #js {:id "nav-control"
+                      :style (display-fade-in open)}
           (dom/span #js {:id "nav-label"} ":hive all/Cat!")
           (dom/div #js {:id "nav-back-btn"
                         :className "icon-arrow-left2"}))
@@ -319,7 +320,8 @@
       (dom/div #js {:id "drawer-wrapper"}
         (om/build control-panel data {:opts {:toggle-open (partial toggle-open owner)}
                                       :init-state {:editing editing}
-                                      :state {:editing editing}})
+                                      :state {:open open
+                                              :editing editing}})
         (when (:active data)
           (om/build input-control
             ((:active data)  (:hives (get (:places data) 0)))
