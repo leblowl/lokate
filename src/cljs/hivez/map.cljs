@@ -81,7 +81,7 @@
 
         (delete-markers owner to-delete)
         (add-markers owner to-add)
-        ;(activate-marker owner (:active next-props))
+        (activate-marker owner (last active-hive))
         ))
 
     om/IDidMount
