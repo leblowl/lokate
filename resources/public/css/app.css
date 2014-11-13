@@ -349,6 +349,9 @@ div {
     padding-left: .5em;
     flex: 1 1 auto;
     background: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 #nav-add-btn {

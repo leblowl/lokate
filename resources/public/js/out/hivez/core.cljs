@@ -1,117 +1,55 @@
 (ns hivez.core
   (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]])
-  (:require [goog.events :as events]
-            [cljs.core.async :refer [put! <! >! chan timeout]]
+  (:require [cljs.core.async :refer [put! <! >! chan timeout]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [cljs-http.client :as http]
             [goog.string :as gstring]
-            [goog.string.format]
-            [cognitect.transit :as t]
+            [clojure.string :as str]
             [hivez.map :as map]
-            [secretary.core :as secretary :include-macros true :refer [defroute]]
-            [goog.history.EventType :as EventType]
-            [clojure.string :as str])
-  (:import goog.History))
-
-(def history (History.))
+            [hivez.input :refer [input]]
+            [hivez.util :refer [display display-fade-in fdate-now floormat distance]]
+            [hivez.db :refer [db-new db-add db-delete db-get-all]]))
 
 (enable-console-print!)
 
 (def app-state
   (atom {:orientation nil
          :active nil
-         :places [{:name "All"
-                   :bounds {:northeast {:lat 0 :lng 0}
-                            :southwest {:lat 5 :lng 5}}
-                   :hives {}}]}))
-
-(def db (atom nil))
+         :places []}))
 
 (defn orientation []
-  (if (> (.-height (.-screen js/window))
-         (.-width (.-screen js/window)))
-    "portrait"
-    "landscape"))
-
-(defn handleOrientation []
-  (swap! app-state #(assoc % :orientation (orientation))))
-
-(defn display [show]
-  (if show
-    #js {}
-    #js {:display "none"}))
-
-(defn display-fade-in [show]
-  (if show
-    #js {:opacity 1
-         :transition "opacity .3s"}
-    #js {:opacity 0}))
+  (swap! app-state #(assoc % :orientation
+                           (if (> (.-height (.-screen js/window))
+                                  (.-width (.-screen js/window)))
+                             "portrait"
+                             "landscape"))))
 
 (defn pos-key [lat-lng]
   (keyword (str
              "lat=" (:lat lat-lng)
              "lng=" (:lng lat-lng))))
 
-(defn fdate-now []
-  (let [d (js/Date.)
-        date (.getDate d)
-        month (+ (.getMonth d) 1)
-        year (.getFullYear d)]
-    (str month "/" date "/" year)))
+(defn nearest [hive hives]
+  (apply min-key #(distance (:pos hive) (:pos (second %))) (seq hives)))
 
-(defn floormat [& args]
-  (apply gstring/format args))
+(defn new-place [id]
+  {:name ""
+   :hives {}
+   :active true
+   :id id})
 
-; switch to haversine
-(defn distance
- "Euclidean distance between 2 points"
- [pos1 pos2]
- (Math/pow (+ (Math/pow (- (:lat pos1) (:lat pos2)) 2)
-              (Math/pow (- (:lng pos1) (:lng pos2)) 2))
-   0.5))
+(defn add-place [places]
+  (om/transact! places (fn [places]
+                         (into [] (map #(assoc % :active false) places))))
+  (let [id (count (:places @app-state))
+        new (new-place id)]
+    (om/transact! places #(conj % new))
+    (db-add (dissoc new :active))))
 
-(defn db-error [e]
-  (.error js/console "An IndexedDB error has occured!" e))
-
-(defn db-new [cb]
-  (let [version 1
-        request (.open js/indexedDB "hivez" version)]
-    (set! (.-onupgradeneeded request) (fn [e]
-                                        (reset! db (.. e -target -result))
-                                        (set! (.. e -target -transaction -onerror) db-error)
-                                        (.createObjectStore @db "hive" #js {:keyPath "key"})))
-    (set! (.-onsuccess request) (fn [e]
-                                  (reset! db (.. e -target -result))
-                                  (cb)))
-    (set! (.-onerror request) db-error)))
-
-(defn db-add-hive [hive]
-  (let [transaction (.transaction @db #js ["hive"] "readwrite")
-        store (.objectStore transaction "hive")
-        request (.put store (clj->js hive))]
-    (set! (.-onerror request) db-error)))
-
-(defn db-delete-hive [key]
-  (let [transaction (.transaction @db #js ["hive"] "readwrite")
-        store (.objectStore transaction "hive")
-        request (.delete store (name key))]
-    (set! (.-onerror request) db-error)))
-
-(defn db-get-all [cb]
-  (let [transaction (.transaction @db #js ["hive"] "readonly")
-        store (.objectStore transaction "hive")
-        keyRange (.lowerBound js/IDBKeyRange 0)
-        cursorRequest (.openCursor store keyRange)]
-    (set! (.-onsuccess cursorRequest)
-      (fn [e]
-        (if-let [result (.. e -target -result)]
-          (do
-            (swap! app-state #(assoc-in %
-                                [:places 0 :hives (keyword (.-key result))]
-                                (js->clj (.-value result) :keywordize-keys true)))
-              (.continue result))
-          (cb))))))
+(defn activate-place [places place]
+    (om/transact! places (fn [places]
+                           (into [] (map #(assoc % :active false) places))))
+    (om/update! place :active true))
 
 (defn new-hive [pos]
   {:key (pos-key pos)
@@ -120,22 +58,17 @@
    :pos pos
    :notes ""})
 
-(defn nearest [hive hives]
-  (apply min-key #(distance (:pos hive) (:pos (second %))) (seq hives)))
-
-(defn activate-hive [owner data path]
-  (let [key (last path)]
-    (om/transact! data :active #(if (= key %) nil key))
-    (if (:active @data)
-      (put! (om/get-shared owner :nav-chan) ["hive" path])
-      (put! (om/get-shared owner :nav-chan) ["place" (take 2 path)]))))
-
 ;have hive only render from active to bypass having to check for nil on drawer child
 (defn add-hive [owner data pos]
   (let [hive (new-hive pos)]
     (om/transact! data [:places 0 :hives] #(assoc % (:key hive) hive))
     (activate-hive owner data [:places 0 :hives (:key hive)])
     (db-add-hive hive)))
+
+(defn activate-hive [place hive]
+  (om/transact! place :hives (fn [hives]
+                               (into {} (for [[k v] hives] [k (assoc v :active false)]))))
+  (om/update! hive :active true))
 
 (defn delete-hive [owner data path]
   (if (= (last path) (:active @data))
@@ -160,52 +93,17 @@
 (defn end-edit [owner]
   (om/set-state! owner :editing nil))
 
-(defn on-edit [cb hive key owner]
-  (om/update! hive key
+(defn on-edit [cb data key owner]
+  (om/update! data key
     (gstring/unescapeEntities (.-innerHTML (om/get-node owner key))))
-  (db-add-hive @hive)
+  (db-add (dissoc @data :active))
   (cb))
-
-(defn input [data owner {:keys [id className edit-key on-edit on-key-down] :as opts}]
-  (reify
-    om/IInitState
-    (init-state [_]
-      {:exit-type nil})
-
-    om/IDidMount
-    (did-mount [_]
-      (.focus (om/get-node owner edit-key)))
-
-    om/IRenderState
-    (render-state [_ {:keys [exit-type]}]
-      (dom/div #js {:id "input-wrapper"}
-        (dom/div #js {:id id
-
-
-                      :ref edit-key
-                      :className className
-                      :style (display (not exit-type))
-                      :contentEditable "true"
-                      :onKeyDown on-key-down
-                      :onBlur (fn []
-                                (om/set-state! owner :exit-type "out")
-                                (js/setTimeout #(on-edit data edit-key owner) 100))
-                      :dangerouslySetInnerHTML #js {:__html (edit-key data)}})
-        (dom/div #js {:id "input-ok"
-                      :style (display (not (= exit-type "out")))
-                      :onClick (fn []
-                                 (om/set-state! owner :exit-type "btn")
-                                 (js/setTimeout #(on-edit data edit-key owner) 100))}
-          (dom/span #js {:id "input-ok-mark"}
-            (gstring/unescapeEntities "&#10003;")))))))
 
 (defn input-control [data owner {:keys [on-edit] :as opts}]
   (reify
     om/IRenderState
     (render-state [_ {:keys [editing]}]
       (dom/div #js {:id "input-ctrl"}
-        (println editing)
-        (println data)
         (case editing
           :name (om/build input data {:opts {:id "name-input"
                                              :className "name input single-line"
@@ -218,12 +116,11 @@
                                               :on-edit on-edit}})
           nil)))))
 
-(defn name-select [data owner {:keys [route] :as opts}]
+(defn name-select [data owner {:keys [action] :as opts}]
   (om/component
     (dom/a #js {:className "name-select"
-                :onClick #(put! (om/get-shared owner :nav-chan) [route (om/path data)])}
+                :onClick #(action data)}
       (dom/span #js {:className "name-select-title"} (:name data)))))
-
 
 (defn places-info [places owner]
   (reify
@@ -231,7 +128,7 @@
     (render [_]
       (dom/div #js {:id "places"}
         (apply dom/div #js {:className "select-list"}
-         (om/build-all name-select places {:opts {:route "place"}}))))))
+k         (om/build-all name-select places {:opts {:action (partial activate-place places)}}))))))
 
 (defn place-info [place owner {:keys [begin-edit] :as opts}]
   (reify
@@ -245,7 +142,7 @@
                        :dangerouslySetInnerHTML #js {:__html (:name place)}})
         (apply dom/div #js {:className "select-list"}
           (dom/span nil "hives: ")
-          (om/build-all name-select (vals (:hives place)) {:opts {:route "hive"}}))))))
+          (om/build-all name-select (vals (:hives place)) {:opts {:action (partial activate-hive place)}}))))))
 
 (defn hive-info [hive owner {:keys [begin-edit] :as opts}]
   (reify
@@ -281,7 +178,19 @@
                                (om/update-state! owner :active #(not %))
                                (toggle-open))}))))
 
-(defn control-panel [[route path] owner opts]
+(defn back-btn [active owner]
+  (om/component
+    (dom/div #js {:id "nav-back-btn"
+                  :className "icon-arrow-left2"
+                  :onClick #(om/update! active :active false)})))
+
+(defn add-place-btn [places owner]
+  (om/component
+    (dom/div #js {:id "nav-add-btn"
+                  :className "icon-plus"
+                  :onClick #(add-place places)})))
+
+(defn control-panel [active owner {:keys [control-fn path] :as opts}]
   (reify
     om/InitState
     (init-state [_]
@@ -290,96 +199,50 @@
 
     om/IWillReceiveProps
     (will-receive-props [_ next-props]
-      (let [history (om/get-state owner :history)]
-        (when-not (= (peek history) next-props)
-          (om/update-state! owner :history #(conj % next-props))))
-
-      (om/set-state! owner :path-str
-        (str/join "/"
-          (reverse (filter (comp not nil?)
-                     (map last (om/get-state owner :history)))))))
+      (println "received!"))
 
     om/IRenderState
-    (render-state [_ {:keys [open editing history path-str]}]
+    (render-state [_ {:keys [open editing]}]
       (dom/div #js {:className "control-panel"}
         (dom/div #js {:id "nav-control"
                       :style (display-fade-in (and open (not editing)))}
-          (dom/span #js {:id "nav-label"} (str ":" route " " path-str))
-          (dom/div #js {:id "nav-add-btn"
-                        :className "icon-plus"
-                        :style (display (= (count history) 1))
-                        :onClick (fn []
-                                        ;add new place
-                                        ;route to new place
-                                   )})
-          (dom/div #js {:id "nav-back-btn"
-                        :className "icon-arrow-left2"
-                        :style (display (> (count history) 1))
-                        :onClick (fn []
-                                   (let [new-history (pop history)]
-                                     (when (not (empty? new-history))
-                                       (put! (om/get-shared owner :nav-chan) (peek new-history))
-                                       (om/set-state! owner :history new-history))))}))
-        ;(dom/div #js {:id "divide"})
+          (dom/span #js {:id "nav-label"} path)
+          (om/build control-fn active))
         (om/build navicon data {:opts opts
                                 :state {:editing editing}})))))
 
 (defn toggle-open [owner]
   (om/update-state! owner :open not))
 
-(defn route! [owner child child-ks child-opts]
-  (om/set-state! owner :child child)
-  (om/set-state! owner :child-ks child-ks)
-  (om/set-state! owner :child-opts (or child-opts {})))
-
-(defn drawer [data owner]
+(defn drawer [active owner {:keys [child-fn control-fn path] :as opts}]
   (reify
     om/IInitState
     (init-state [_]
       {:open false
-       :editing nil
-       :route "places"
-       :child places-info
-       :child-ks [:places]
-       :child-opts {}})
-
-    om/IWillMount
-    (will-mount [_]
-      (go-loop []
-        (let [route (<! (om/get-shared owner :nav-chan))]
-          (om/set-state! owner :route (first route))
-          (case (first route)
-            "places" (route! owner places-info (second route))
-            "place"  (route! owner place-info (second route)
-                       {:opts {:begin-edit (partial begin-edit owner)}})
-            "hive"   (do
-                       (om/set-state! owner :open true)
-                       (om/update! data :active (last (second route)))
-                       (route! owner hive-info (second route)
-                         {:opts {:begin-edit (partial begin-edit owner)}}))))
-        (recur)))
+       :editing nil})
 
     om/IRenderState
-    (render-state [_ {:keys [open editing nav-chan route child child-ks child-opts]}]
+    (render-state [_ {:keys [open editing orientation]}]
       (dom/div #js {:id "drawer-wrapper"}
         (om/build control-panel
-          [route child-ks (:name (get-in data child-ks))]
-          {:opts {:toggle-open (partial toggle-open owner)}
+          active
+          {:opts {:toggle-open (partial toggle-open owner)
+                  :control-fn control-fn
+                  :path path}
            :init-state {:editing editing}
            :state {:open open
                    :editing editing}})
 
         (when editing
           (om/build input-control
-            (get-in data child-ks child-opts)
+            active
             {:state {:editing editing}
              :opts {:on-edit (partial on-edit #(end-edit owner))}}))
 
         (dom/div #js {:id "drawer"
-                      :className (str (:orientation data)
+                      :className (str orientation
                                    (if (and open (not editing)) " show" " hide"))}
-          (when (get-in data child-ks)
-           (om/build child (get-in data child-ks) child-opts)))))))
+          (om/build child-fn active {:opts {:begin-edit (partial begin-edit owner)}}))))))
 
 (defn app [data owner]
   (reify
@@ -388,14 +251,37 @@
       (dom/div #js {:className (str "flex-container " (:orientation data))}
         (dom/div #js {:className "flex-content"}
           (om/build map/l-map data {:opts {:add (partial add-hive owner data)
-                                              :activate (partial activate-hive owner data)
-                                              :delete (partial delete-hive owner data)}}))
-        (om/build drawer data)))))
+                                           :activate (partial activate-hive owner data)
+                                           :delete (partial delete-hive owner data)}}))
+
+        (let [active-place (first (filter :active (:places data)))
+              active-hive  (first (filter :active (vals (:hives active-place))))]
+          (cond
+            active-hive (om/build drawer active-hive {:state {:orientation (:orientation data)}
+                                                      :opts {:child-fn hive-info
+                                                             :control-fn back-btn
+                                                             :path ":hive"}})
+
+            active-place (om/build drawer active-place {:state {:orientation (:orientation data)}
+                                                        :opts {:child-fn place-info
+                                                               :control-fn back-btn
+                                                               :path ":place"}})
+
+            :else (om/build drawer (:places data) {:state {:orientation (:orientation data)}
+                                                   :opts {:child-fn places-info
+                                                          :control-fn add-place-btn
+                                                          :path ":places"}})))))))
 
 (defn render []
-  (handleOrientation)
-  (.addEventListener js/window "resize" handleOrientation)
+  (orientation)
+  (.addEventListener js/window "resize" orientation)
   (db-new
-    #(db-get-all (fn []
-                   (om/root app app-state {:target (.getElementById js/document "content")
-                                           :shared {:nav-chan (chan)}})))))
+    (fn []
+      (db-get-all
+        (fn [result] (swap! app-state
+                      (fn [m]
+                        (update-in m [:places]
+                          #(conj % (assoc (js->clj (.-value result) :keywordize-keys true)
+                                     :active false))))))
+        (fn []
+          (om/root app app-state {:target (.getElementById js/document "content")}))))))

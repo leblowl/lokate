@@ -88,8 +88,5 @@ goog.addDependency("history/event.js", ['goog.history.Event'], ['goog.events.Eve
 goog.addDependency("labs/useragent/device.js", ['goog.labs.userAgent.device'], ['goog.labs.userAgent.util']);
 goog.addDependency("memoize/memoize.js", ['goog.memoize'], []);
 goog.addDependency("history/history.js", ['goog.History', 'goog.History.Event', 'goog.History.EventType'], ['goog.Timer', 'goog.dom', 'goog.events.EventHandler', 'goog.events.EventTarget', 'goog.events.EventType', 'goog.history.Event', 'goog.history.EventType', 'goog.labs.userAgent.device', 'goog.memoize', 'goog.string', 'goog.userAgent']);
-goog.addDependency("crypt/crypt.js", ['goog.crypt'], ['goog.array', 'goog.asserts']);
-goog.addDependency("crypt/base64.js", ['goog.crypt.base64'], ['goog.crypt', 'goog.userAgent']);
-goog.addDependency("math/long.js", ['goog.math.Long'], []);
-goog.addDependency("string/stringformat.js", ['goog.string.format'], ['goog.string']);
 goog.addDependency("ui/idgenerator.js", ['goog.ui.IdGenerator'], []);
+goog.addDependency("string/stringformat.js", ['goog.string.format'], ['goog.string']);
