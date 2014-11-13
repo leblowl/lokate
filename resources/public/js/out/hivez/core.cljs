@@ -15,7 +15,9 @@
 (def app-state
   (atom {:orientation nil
          :active nil
-         :places []}))
+         :places []
+         :active-place nil
+         :active-hive nil}))
 
 (defn orientation []
   (swap! app-state #(assoc % :orientation
@@ -35,48 +37,36 @@
 (defn new-place [id]
   {:name ""
    :hives {}
-   :active true
    :id id})
-
-(defn add-place [places]
-  (om/transact! places (fn [places]
-                         (into [] (map #(assoc % :active false) places))))
-  (let [id (count (:places @app-state))
-        new (new-place id)]
-    (om/transact! places #(conj % new))
-    (db-add new)))
-
-(defn activate-place [places place]
-    (om/transact! places (fn [places]
-                           (into [] (map #(assoc % :active false) places))))
-    (om/update! place :active true))
 
 (defn new-hive [pos]
   {:key (pos-key pos)
    :name ""
    :origin (fdate-now)
    :pos pos
-   :notes ""
-   :active true})
+   :notes ""})
 
-(defn add-hive [owner data pos]
-  (when-let [active (:id (first (filter :active (:places @data))))]
+(defn tselect [data type-key select-path]
+  (when (= type-key :active-hive)
+    (om/update! data :active-place (into [] (drop-last 2 select-path))))
+  (om/transact! data type-key #(if-not (= % select-path) select-path nil)))
+
+(defn delete [data type-key select-path]
+  (om/transact! data (pop select-path) #(dissoc % (peek select-path)))
+  (om/update! data type-key nil))
+
+(defn add-hive [data pos]
+  (when-let [select-path (:active-place @data)]
     (let [hive (new-hive pos)]
-      (om/transact! data [:places active :hives] #(assoc % (:key hive) hive))
-      (db-add (active (:places @data))))))
+      (om/transact! data select-path #(assoc-in % [:hives (:key hive)] hive))
+     (om/update! data :active-hive (conj select-path :hives (:key hive)))
+     (db-add (get-in @data select-path)))))
 
-(defn activate-hive [place hive]
-  (om/transact! place :hives (fn [hives]
-                               (into {} (for [[k v] hives] [k (assoc v :active false)]))))
-  (om/update! hive :active true))
-
-(defn delete-hive [owner data path]
-  (if (= (last path) (:active @data))
-    (let [hive (get-in @data path)]
-      (om/transact! data (butlast path) #(dissoc % (last path)))
-      (activate-hive owner data (conj (vec (butlast path)) (first (nearest hive (get-in @data (butlast path)))))))
-    (om/transact! data (butlast path) #(dissoc % (last path))))
-  (db-delete-hive (last path)))
+(defn add-place [data]
+  (let [id (count (:places @data))]
+    (om/transact! data :places #(conj % (new-place id)))
+    (om/update! data :active-place [:places id])
+    (db-add (get-in @data (:active-place @data)))))
 
 (defn display-pos [hive]
   (let [pos (:pos hive)]
@@ -96,7 +86,7 @@
 (defn on-edit [cb data key owner]
   (om/update! data key
     (gstring/unescapeEntities (.-innerHTML (om/get-node owner key))))
-  (db-add (dissoc (first (filter :active (:places @app-state))) :active))
+  (db-add (get-in @app-state (:active-place @app-state)))
   (cb))
 
 (defn input-control [data owner {:keys [on-edit] :as opts}]
@@ -116,10 +106,11 @@
                                               :on-edit on-edit}})
           nil)))))
 
-(defn name-select [data owner {:keys [action] :as opts}]
+(defn name-select [data owner {:keys [type-key] :as opts}]
   (om/component
     (dom/a #js {:className "name-select"
-                :onClick #(action data)}
+                :onClick #(put! (om/get-shared owner :action-chan)
+                            [:select type-key (om/path data)])}
       (dom/span #js {:className "name-select-title"} (:name data)))))
 
 (defn places-info [places owner]
@@ -128,7 +119,7 @@
     (render [_]
       (dom/div #js {:id "places"}
         (apply dom/div #js {:className "select-list"}
-k         (om/build-all name-select places {:opts {:action (partial activate-place places)}}))))))
+          (om/build-all name-select places {:opts {:type-key :active-place}}))))))
 
 (defn place-info [place owner {:keys [begin-edit] :as opts}]
   (reify
@@ -142,7 +133,7 @@ k         (om/build-all name-select places {:opts {:action (partial activate-pla
                        :dangerouslySetInnerHTML #js {:__html (:name place)}})
         (apply dom/div #js {:className "select-list"}
           (dom/span nil "hives: ")
-          (om/build-all name-select (vals (:hives place)) {:opts {:action (partial activate-hive place)}}))))))
+          (om/build-all name-select (vals (:hives place)) {:opts {:type-key :active-hive}}))))))
 
 (defn hive-info [hive owner {:keys [begin-edit] :as opts}]
   (reify
@@ -166,32 +157,28 @@ k         (om/build-all name-select places {:opts {:action (partial activate-pla
 
 (defn navicon [data owner {:keys [toggle-open] :as opts}]
   (reify
-    om/IInitState
-    (init-state [_]
-      {:active false})
-
     om/IRenderState
-    (render-state [_ {:keys [active editing]}]
-      (dom/div #js {:className (str "navicon" (when active " active"))
+    (render-state [_ {:keys [open editing]}]
+      (dom/div #js {:className (str "navicon" (when open " active"))
                     :style (display-fade-in (nil? editing))
                     :onClick (fn []
-                               (om/update-state! owner :active #(not %))
                                (toggle-open))}))))
 
-(defn back-btn [active owner]
+(defn back-btn [active owner {:keys [type-key] :as opts}]
   (om/component
     (dom/div #js {:id "nav-back-btn"
                   :className "icon-arrow-left2"
-                  :onClick (fn []
-                             (om/update! active :active false))})))
+                  :onClick #(put! (om/get-shared owner :action-chan)
+                              [:select type-key (om/path active)])})))
 
-(defn add-place-btn [places owner]
+(defn add-place-btn [places owner {:keys [type-key] :as opts}]
   (om/component
     (dom/div #js {:id "nav-add-btn"
                   :className "icon-plus"
-                  :onClick #(add-place places)})))
+                  :onClick #(put! (om/get-shared owner :action-chan)
+                              [:add-place])})))
 
-(defn control-panel [active owner {:keys [control-fn path] :as opts}]
+(defn control-panel [active owner {:keys [control-fn type-key] :as opts}]
   (reify
     om/InitState
     (init-state [_]
@@ -212,15 +199,16 @@ k         (om/build-all name-select places {:opts {:action (partial activate-pla
       (dom/div #js {:className "control-panel"}
         (dom/div #js {:id "nav-control"
                       :style (display-fade-in (and open (not editing)))}
-          (dom/span #js {:id "nav-label"} (str path " " path-str))
-          (om/build control-fn active))
+          (dom/span #js {:id "nav-label"} (str (str/replace (str type-key) #"active-" "") " " path-str))
+          (om/build control-fn active {:opts opts}))
         (om/build navicon data {:opts opts
-                                :state {:editing editing}})))))
+                                :state {:open open
+                                        :editing editing}})))))
 
 (defn toggle-open [owner]
   (om/update-state! owner :open not))
 
-(defn drawer [active owner {:keys [child-fn control-fn path] :as opts}]
+(defn drawer [active owner {:keys [child-fn control-fn type-key] :as opts}]
   (reify
     om/IInitState
     (init-state [_]
@@ -234,7 +222,7 @@ k         (om/build-all name-select places {:opts {:action (partial activate-pla
           active
           {:opts {:toggle-open (partial toggle-open owner)
                   :control-fn control-fn
-                  :path path}
+                  :type-key type-key}
            :init-state {:editing editing}
            :state {:open open
                    :editing editing}})
@@ -252,31 +240,46 @@ k         (om/build-all name-select places {:opts {:action (partial activate-pla
 
 (defn app [data owner]
   (reify
+    om/IWillMount
+    (will-mount [_]
+      (go-loop []
+        (let [action (<! (om/get-shared owner :action-chan))]
+          (case (first action)
+            :select (apply tselect data (rest action))
+            :delete (apply delete data (rest action))
+            :add-hive (add-hive data (second action))
+            :add-place (add-place data)))
+        (recur)))
+
     om/IRender
     (render [_]
       (dom/div #js {:className (str "flex-container " (:orientation data))}
         (dom/div #js {:className "flex-content"}
-          (om/build map/l-map data {:opts {:add (partial add-hive owner data)
-                                           :activate (partial activate-hive owner data)
-                                           :delete (partial delete-hive owner data)}}))
+          (om/build map/l-map data))
 
-        (let [active-place (first (filter :active (:places data)))
-              active-hive  (first (filter :active (vals (:hives active-place))))]
+        (let [active-place (:active-place data)
+              active-hive  (:active-hive data)]
+          (println active-place)
+          (println active-hive)
           (cond
-            active-hive (om/build drawer active-hive {:state {:orientation (:orientation data)}
-                                                      :opts {:child-fn hive-info
-                                                             :control-fn back-btn
-                                                             :path ":hive"}})
+            active-hive (om/build drawer
+                          (get-in data active-hive) {:state {:orientation (:orientation data)
+                                                             :open true}
+                                                     :opts {:child-fn hive-info
+                                                            :control-fn back-btn
+                                                            :type-key :active-hive}})
 
-            active-place (om/build drawer active-place {:state {:orientation (:orientation data)}
-                                                        :opts {:child-fn place-info
-                                                               :control-fn back-btn
-                                                               :path ":place"}})
+            active-place (om/build drawer
+                           (get-in data active-place) {:state {:orientation (:orientation data)
+                                                               :open true}
+                                                       :opts {:child-fn place-info
+                                                              :control-fn back-btn
+                                                              :type-key :active-place}})
 
             :else (om/build drawer (:places data) {:state {:orientation (:orientation data)}
                                                    :opts {:child-fn places-info
                                                           :control-fn add-place-btn
-                                                          :path ":places"}})))))))
+                                                          :type-key :places}})))))))
 
 (defn render []
   (orientation)
@@ -289,4 +292,5 @@ k         (om/build-all name-select places {:opts {:action (partial activate-pla
                         (update-in m [:places]
                           #(conj % (js->clj (.-value result) :keywordize-keys true))))))
         (fn []
-          (om/root app app-state {:target (.getElementById js/document "content")}))))))
+          (om/root app app-state {:target (.getElementById js/document "content")
+                                  :shared {:action-chan (chan)}}))))))

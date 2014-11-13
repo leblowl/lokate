@@ -27,26 +27,27 @@
       (do (.setIcon active green-ico)
           (.panTo l-map (.getLatLng active))))))
 
-(defn mark-it! [owner map hive {:keys [activate delete] :as opts}]
+(defn mark-it! [owner map hive]
   (let [pos (:pos hive)
         marker (-> js/L
                  (.marker (clj->js pos) #js {:icon blue-ico})
                  (.addTo map))]
 
     (.on marker "click"
-      #(activate (om/path hive)))
+      #(put! (om/get-shared owner :action-chan)
+         [:select :active-hive (om/path hive)]))
 
     (.on marker "contextmenu"
-      (fn [_]
-        (delete (om/path hive))))
+      #(put! (om/get-shared owner :action-chan)
+         [:delete :active-hive (om/path hive)]))
 
     {:marker marker :pos pos :active false}))
 
-(defn add-markers [owner hives opts]
+(defn add-markers [owner hives]
   (let [map (om/get-state owner :map)]
     (om/update-state! owner :markers
       #(into % (for [[k v] hives]
-                 [k (mark-it! owner map v opts)])))))
+                 [k (mark-it! owner map v)])))))
 
 (defn add-group [owner places opts]
   (map #({:name (:name %) :group (js/L.MarkerClusterGroup.)})))
@@ -62,7 +63,7 @@
   (js/clearTimeout (om/get-state owner :evt-timeout))
   (om/set-state! owner :evt-timeout nil))
 
-(defn l-map [{:keys [places active] :as data} owner {:keys [add activate delete] :as opts}]
+(defn l-map [{:keys [places active-place active-hive] :as data} owner]
   (reify
     om/IInitState
     (init-state [_]
@@ -72,15 +73,16 @@
        :map nil})
 
     om/IWillReceiveProps
-    (will-receive-props [this {:keys [places active] :as next-props}]
+    (will-receive-props [this {:keys [places active-place active-hive] :as next-props}]
       (let [next-hives (reduce into #{} (map :hives places))
             current-hives (reduce into #{} (map :hives (:places (om/get-props owner))))
             to-add (set/difference next-hives current-hives)
             to-delete (set/difference current-hives next-hives)]
 
         (delete-markers owner to-delete)
-        (add-markers owner to-add opts)
-        (activate-marker owner (:active next-props))))
+        (add-markers owner to-add)
+        ;(activate-marker owner (:active next-props))
+        ))
 
     om/IDidMount
     (did-mount [_]
@@ -96,9 +98,11 @@
 
         (.on l-map "contextmenu"
           (fn [e]
-            (add (select-keys
-                   (js->clj (.-latlng e) :keywordize-keys true)
-                   [:lat :lng]))))
+            (put! (om/get-shared owner :action-chan)
+              [:add-hive
+               (select-keys
+                 (js->clj (.-latlng e) :keywordize-keys true)
+                 [:lat :lng])])))
 
         (if navigator.geolocation
           (.getCurrentPosition navigator.geolocation
@@ -110,7 +114,7 @@
 
 
         (om/set-state! owner :map l-map)
-        (add-markers owner (reduce into {} (map :hives places)) opts)))
+        (add-markers owner (reduce into {} (map :hives places)))))
 
     om/IRenderState
     (render-state [_ {:keys [markers]}]

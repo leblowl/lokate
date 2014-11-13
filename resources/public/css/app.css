@@ -77,12 +77,12 @@ div {
 }
 
 #drawer.portrait {
-    height: 33%;
+    height: 38%;
     width: 100%;
 }
 
 #drawer.landscape {
-    width: 33%;
+    width: 38.1%;
     height: 100%;
 }
 
@@ -286,7 +286,7 @@ div {
     z-index: 3;
     top: 0;
     right: 0;
-    width: 33%;
+    width: 38.1%;
     min-width: 233px;
     height: 45px;
     display: flex;
