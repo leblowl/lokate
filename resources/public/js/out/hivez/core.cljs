@@ -44,7 +44,7 @@
   (let [id (count (:places @app-state))
         new (new-place id)]
     (om/transact! places #(conj % new))
-    (db-add (dissoc new :active))))
+    (db-add new)))
 
 (defn activate-place [places place]
     (om/transact! places (fn [places]
@@ -56,14 +56,14 @@
    :name ""
    :origin (fdate-now)
    :pos pos
-   :notes ""})
+   :notes ""
+   :active true})
 
-;have hive only render from active to bypass having to check for nil on drawer child
 (defn add-hive [owner data pos]
-  (let [hive (new-hive pos)]
-    (om/transact! data [:places 0 :hives] #(assoc % (:key hive) hive))
-    (activate-hive owner data [:places 0 :hives (:key hive)])
-    (db-add-hive hive)))
+  (when-let [active (:id (first (filter :active (:places @data))))]
+    (let [hive (new-hive pos)]
+      (om/transact! data [:places active :hives] #(assoc % (:key hive) hive))
+      (db-add (active (:places @data))))))
 
 (defn activate-hive [place hive]
   (om/transact! place :hives (fn [hives]
@@ -96,7 +96,7 @@
 (defn on-edit [cb data key owner]
   (om/update! data key
     (gstring/unescapeEntities (.-innerHTML (om/get-node owner key))))
-  (db-add (dissoc @data :active))
+  (db-add (dissoc (first (filter :active (:places @app-state))) :active))
   (cb))
 
 (defn input-control [data owner {:keys [on-edit] :as opts}]
@@ -182,7 +182,8 @@ k         (om/build-all name-select places {:opts {:action (partial activate-pla
   (om/component
     (dom/div #js {:id "nav-back-btn"
                   :className "icon-arrow-left2"
-                  :onClick #(om/update! active :active false)})))
+                  :onClick (fn []
+                             (om/update! active :active false))})))
 
 (defn add-place-btn [places owner]
   (om/component
@@ -194,19 +195,24 @@ k         (om/build-all name-select places {:opts {:action (partial activate-pla
   (reify
     om/InitState
     (init-state [_]
-      {:history []
-       :path-str ""})
+      {:path-str ""})
 
     om/IWillReceiveProps
     (will-receive-props [_ next-props]
-      (println "received!"))
+      (om/set-state! owner :path-str
+        (str/join "/" (map #(:name (get-in @app-state %))
+                        (loop [ks (om/path next-props)
+                               result '()]
+                          (if-not (empty? ks)
+                            (recur (drop-last 2 ks) (conj result ks))
+                            result))))))
 
     om/IRenderState
-    (render-state [_ {:keys [open editing]}]
+    (render-state [_ {:keys [open editing path-str]}]
       (dom/div #js {:className "control-panel"}
         (dom/div #js {:id "nav-control"
                       :style (display-fade-in (and open (not editing)))}
-          (dom/span #js {:id "nav-label"} path)
+          (dom/span #js {:id "nav-label"} (str path " " path-str))
           (om/build control-fn active))
         (om/build navicon data {:opts opts
                                 :state {:editing editing}})))))
@@ -281,7 +287,6 @@ k         (om/build-all name-select places {:opts {:action (partial activate-pla
         (fn [result] (swap! app-state
                       (fn [m]
                         (update-in m [:places]
-                          #(conj % (assoc (js->clj (.-value result) :keywordize-keys true)
-                                     :active false))))))
+                          #(conj % (js->clj (.-value result) :keywordize-keys true))))))
         (fn []
           (om/root app app-state {:target (.getElementById js/document "content")}))))))
