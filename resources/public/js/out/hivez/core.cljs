@@ -259,8 +259,6 @@
 
         (let [active-place (:active-place data)
               active-hive  (:active-hive data)]
-          (println active-place)
-          (println active-hive)
           (cond
             active-hive (om/build drawer
                           (get-in data active-hive) {:state {:orientation (:orientation data)

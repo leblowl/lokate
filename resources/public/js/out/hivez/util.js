@@ -21,15 +21,15 @@ hivez.util.fdate_now = (function fdate_now(){var d = (new Date());var date = d.g
 * @param {...*} var_args
 */
 hivez.util.floormat = (function() { 
-var floormat__delegate = function (args){return cljs.core.apply.call(null,goog.string.format,args);
+var floormat__delegate = function (args){return cljs.core.apply.cljs$core$IFn$_invoke$arity$2(goog.string.format,args);
 };
 var floormat = function (var_args){
 var args = null;if (arguments.length > 0) {
   args = cljs.core.array_seq(Array.prototype.slice.call(arguments, 0),0);} 
 return floormat__delegate.call(this,args);};
 floormat.cljs$lang$maxFixedArity = 0;
-floormat.cljs$lang$applyTo = (function (arglist__33973){
-var args = cljs.core.seq(arglist__33973);
+floormat.cljs$lang$applyTo = (function (arglist__15347){
+var args = cljs.core.seq(arglist__15347);
 return floormat__delegate(args);
 });
 floormat.cljs$core$IFn$_invoke$arity$variadic = floormat__delegate;
@@ -39,7 +39,7 @@ return floormat;
 /**
 * Euclidean distance between 2 points
 */
-hivez.util.distance = (function distance(pos1,pos2){return Math.pow.call(null,(Math.pow.call(null,(new cljs.core.Keyword(null,"lat","lat",-580793929).cljs$core$IFn$_invoke$arity$1(pos1) - new cljs.core.Keyword(null,"lat","lat",-580793929).cljs$core$IFn$_invoke$arity$1(pos2)),(2)) + Math.pow.call(null,(new cljs.core.Keyword(null,"lng","lng",1667213918).cljs$core$IFn$_invoke$arity$1(pos1) - new cljs.core.Keyword(null,"lng","lng",1667213918).cljs$core$IFn$_invoke$arity$1(pos2)),(2))),0.5);
+hivez.util.distance = (function distance(pos1,pos2){var G__15354 = ((function (){var G__15356 = (cljs.core.constant$keyword$87.cljs$core$IFn$_invoke$arity$1(pos1) - cljs.core.constant$keyword$87.cljs$core$IFn$_invoke$arity$1(pos2));var G__15357 = (2);return (Math.pow.cljs$core$IFn$_invoke$arity$2 ? Math.pow.cljs$core$IFn$_invoke$arity$2(G__15356,G__15357) : Math.pow.call(null,G__15356,G__15357));
+})() + (function (){var G__15358 = (cljs.core.constant$keyword$88.cljs$core$IFn$_invoke$arity$1(pos1) - cljs.core.constant$keyword$88.cljs$core$IFn$_invoke$arity$1(pos2));var G__15359 = (2);return (Math.pow.cljs$core$IFn$_invoke$arity$2 ? Math.pow.cljs$core$IFn$_invoke$arity$2(G__15358,G__15359) : Math.pow.call(null,G__15358,G__15359));
+})());var G__15355 = 0.5;return (Math.pow.cljs$core$IFn$_invoke$arity$2 ? Math.pow.cljs$core$IFn$_invoke$arity$2(G__15354,G__15355) : Math.pow.call(null,G__15354,G__15355));
 });
-
-//# sourceMappingURL=util.js.map

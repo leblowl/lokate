@@ -7,13 +7,13 @@ goog.require('cljs.core');
 * data structure of the same type, then applies outer to the result.
 * Recognizes all Clojure data structures. Consumes seqs as with doall.
 */
-clojure.walk.walk = (function walk(inner,outer,form){if(cljs.core.seq_QMARK_.call(null,form))
-{return outer.call(null,cljs.core.doall.call(null,cljs.core.map.call(null,inner,form)));
+clojure.walk.walk = (function walk(inner,outer,form){if(cljs.core.seq_QMARK_(form))
+{var G__26830 = cljs.core.doall.cljs$core$IFn$_invoke$arity$1(cljs.core.map.cljs$core$IFn$_invoke$arity$2(inner,form));return (outer.cljs$core$IFn$_invoke$arity$1 ? outer.cljs$core$IFn$_invoke$arity$1(G__26830) : outer.call(null,G__26830));
 } else
-{if(cljs.core.coll_QMARK_.call(null,form))
-{return outer.call(null,cljs.core.into.call(null,cljs.core.empty.call(null,form),cljs.core.map.call(null,inner,form)));
+{if(cljs.core.coll_QMARK_(form))
+{var G__26831 = cljs.core.into.cljs$core$IFn$_invoke$arity$2(cljs.core.empty(form),cljs.core.map.cljs$core$IFn$_invoke$arity$2(inner,form));return (outer.cljs$core$IFn$_invoke$arity$1 ? outer.cljs$core$IFn$_invoke$arity$1(G__26831) : outer.call(null,G__26831));
 } else
-{return outer.call(null,form);
+{var G__26832 = form;return (outer.cljs$core$IFn$_invoke$arity$1 ? outer.cljs$core$IFn$_invoke$arity$1(G__26832) : outer.call(null,G__26832));
 
 }
 }
@@ -23,24 +23,25 @@ clojure.walk.walk = (function walk(inner,outer,form){if(cljs.core.seq_QMARK_.cal
 * each sub-form, uses f's return value in place of the original.
 * Recognizes all Clojure data structures. Consumes seqs as with doall.
 */
-clojure.walk.postwalk = (function postwalk(f,form){return clojure.walk.walk.call(null,cljs.core.partial.call(null,postwalk,f),f,form);
+clojure.walk.postwalk = (function postwalk(f,form){return clojure.walk.walk(cljs.core.partial.cljs$core$IFn$_invoke$arity$2(postwalk,f),f,form);
 });
 /**
 * Like postwalk, but does pre-order traversal.
 */
-clojure.walk.prewalk = (function prewalk(f,form){return clojure.walk.walk.call(null,cljs.core.partial.call(null,prewalk,f),cljs.core.identity,f.call(null,form));
+clojure.walk.prewalk = (function prewalk(f,form){return clojure.walk.walk(cljs.core.partial.cljs$core$IFn$_invoke$arity$2(prewalk,f),cljs.core.identity,(function (){var G__26834 = form;return (f.cljs$core$IFn$_invoke$arity$1 ? f.cljs$core$IFn$_invoke$arity$1(G__26834) : f.call(null,G__26834));
+})());
 });
 /**
 * Recursively transforms all map keys from strings to keywords.
 */
-clojure.walk.keywordize_keys = (function keywordize_keys(m){var f = (function (p__24677){var vec__24678 = p__24677;var k = cljs.core.nth.call(null,vec__24678,(0),null);var v = cljs.core.nth.call(null,vec__24678,(1),null);if(typeof k === 'string')
-{return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.keyword.call(null,k),v], null);
+clojure.walk.keywordize_keys = (function keywordize_keys(m){var f = (function (p__26837){var vec__26838 = p__26837;var k = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__26838,(0),null);var v = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__26838,(1),null);if(typeof k === 'string')
+{return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.keyword.cljs$core$IFn$_invoke$arity$1(k),v], null);
 } else
 {return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [k,v], null);
 }
-});return clojure.walk.postwalk.call(null,((function (f){
-return (function (x){if(cljs.core.map_QMARK_.call(null,x))
-{return cljs.core.into.call(null,cljs.core.PersistentArrayMap.EMPTY,cljs.core.map.call(null,f,x));
+});return clojure.walk.postwalk(((function (f){
+return (function (x){if(cljs.core.map_QMARK_(x))
+{return cljs.core.into.cljs$core$IFn$_invoke$arity$2(cljs.core.PersistentArrayMap.EMPTY,cljs.core.map.cljs$core$IFn$_invoke$arity$2(f,x));
 } else
 {return x;
 }
@@ -50,14 +51,14 @@ return (function (x){if(cljs.core.map_QMARK_.call(null,x))
 /**
 * Recursively transforms all map keys from keywords to strings.
 */
-clojure.walk.stringify_keys = (function stringify_keys(m){var f = (function (p__24681){var vec__24682 = p__24681;var k = cljs.core.nth.call(null,vec__24682,(0),null);var v = cljs.core.nth.call(null,vec__24682,(1),null);if((k instanceof cljs.core.Keyword))
-{return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.name.call(null,k),v], null);
+clojure.walk.stringify_keys = (function stringify_keys(m){var f = (function (p__26841){var vec__26842 = p__26841;var k = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__26842,(0),null);var v = cljs.core.nth.cljs$core$IFn$_invoke$arity$3(vec__26842,(1),null);if((k instanceof cljs.core.Keyword))
+{return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.name(k),v], null);
 } else
 {return new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [k,v], null);
 }
-});return clojure.walk.postwalk.call(null,((function (f){
-return (function (x){if(cljs.core.map_QMARK_.call(null,x))
-{return cljs.core.into.call(null,cljs.core.PersistentArrayMap.EMPTY,cljs.core.map.call(null,f,x));
+});return clojure.walk.postwalk(((function (f){
+return (function (x){if(cljs.core.map_QMARK_(x))
+{return cljs.core.into.cljs$core$IFn$_invoke$arity$2(cljs.core.PersistentArrayMap.EMPTY,cljs.core.map.cljs$core$IFn$_invoke$arity$2(f,x));
 } else
 {return x;
 }
@@ -69,8 +70,8 @@ return (function (x){if(cljs.core.map_QMARK_.call(null,x))
 * values.  Like clojure/replace but works on any data structure.  Does
 * replacement at the root of the tree first.
 */
-clojure.walk.prewalk_replace = (function prewalk_replace(smap,form){return clojure.walk.prewalk.call(null,(function (x){if(cljs.core.contains_QMARK_.call(null,smap,x))
-{return smap.call(null,x);
+clojure.walk.prewalk_replace = (function prewalk_replace(smap,form){return clojure.walk.prewalk((function (x){if(cljs.core.contains_QMARK_(smap,x))
+{var G__26844 = x;return (smap.cljs$core$IFn$_invoke$arity$1 ? smap.cljs$core$IFn$_invoke$arity$1(G__26844) : smap.call(null,G__26844));
 } else
 {return x;
 }
@@ -81,12 +82,10 @@ clojure.walk.prewalk_replace = (function prewalk_replace(smap,form){return cloju
 * values.  Like clojure/replace but works on any data structure.  Does
 * replacement at the leaves of the tree first.
 */
-clojure.walk.postwalk_replace = (function postwalk_replace(smap,form){return clojure.walk.postwalk.call(null,(function (x){if(cljs.core.contains_QMARK_.call(null,smap,x))
-{return smap.call(null,x);
+clojure.walk.postwalk_replace = (function postwalk_replace(smap,form){return clojure.walk.postwalk((function (x){if(cljs.core.contains_QMARK_(smap,x))
+{var G__26846 = x;return (smap.cljs$core$IFn$_invoke$arity$1 ? smap.cljs$core$IFn$_invoke$arity$1(G__26846) : smap.call(null,G__26846));
 } else
 {return x;
 }
 }),form);
 });
-
-//# sourceMappingURL=walk.js.map
