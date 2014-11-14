@@ -3,4 +3,6 @@ goog.provide('hivez.prod');
 goog.require('cljs.core');
 goog.require('hivez.navigation');
 goog.require('hivez.navigation');
-hivez.navigation.render();
+hivez.navigation.render.call(null);
+
+//# sourceMappingURL=prod.js.map

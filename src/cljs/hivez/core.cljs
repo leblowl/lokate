@@ -180,7 +180,7 @@
 
 (defn control-panel [active owner {:keys [control-fn type-key] :as opts}]
   (reify
-    om/InitState
+    om/IInitState
     (init-state [_]
       {:path-str ""})
 
@@ -201,9 +201,9 @@
                       :style (display-fade-in (and open (not editing)))}
           (dom/span #js {:id "nav-label"} (str (str/replace (str type-key) #"active-" "") " " path-str))
           (om/build control-fn active {:opts opts}))
-        (om/build navicon data {:opts opts
-                                :state {:open open
-                                        :editing editing}})))))
+        (om/build navicon active {:opts opts
+                                  :state {:open open
+                                          :editing editing}})))))
 
 (defn toggle-open [owner]
   (om/update-state! owner :open not))

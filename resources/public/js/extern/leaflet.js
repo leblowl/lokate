@@ -1,9 +1,6 @@
-
-
 /**
  *  L.Map
 **/
-
 
 L.Map;
 L.map;
@@ -703,6 +700,7 @@ geoJson.coordsToLatlngs;
 
 
 L.LatLng;
+
 L.latLng;
 
 
