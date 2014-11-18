@@ -1,7 +1,0 @@
-{"version":3,
- "file":
- "/home/lucas/Scripture/hivez/resources/public/js/out/hivez/prod.js",
- "sources":["prod.cljs"],
- "lineCount":8,
- "mappings":";AAAA;;;;AAGA,AAACA",
- "names":["hivez.navigation/render"]}
