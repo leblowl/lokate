@@ -1,0 +1,4 @@
+(require '[clojure.java.io :as io])
+(.getCanonicalPath (io/file "." "foo/bar.html"))
+(->> #{1 2 3} (map inc) (reduce conj #{}))
+(doc instance?)

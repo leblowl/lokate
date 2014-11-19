@@ -15,6 +15,9 @@
   '[adzerk.boot-cljs      :refer :all]
   '[adzerk.boot-reload    :refer :all])
 
+(task-options!
+  web [:serve 'lokate.server/handler])
+
 (deftask dev
   "Build cljs for development."
 []
@@ -24,3 +27,12 @@
             :source-map true
             :optimizations :none)
       (reload)))
+
+(deftask build-tomcat
+  "Build application uberwar file."
+[]
+(comp
+      (web)
+      (add-src)
+      (uber)
+      (war)))

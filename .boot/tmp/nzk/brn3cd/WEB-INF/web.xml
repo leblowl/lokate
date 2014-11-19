@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" metadata-complete="true" version="3.0" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+  <display-name>boot-webapp</display-name>
+  <description>boot-webapp</description>
+  <servlet>
+    <servlet-name>boot-webapp</servlet-name>
+    <servlet-class>tailrecursion.ClojureAdapterServlet</servlet-class>
+    <init-param>
+      <param-name>serve</param-name>
+      <param-value>lokate.server/handler</param-value>
+    </init-param>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>boot-webapp</servlet-name>
+    <url-pattern>/*</url-pattern>
+  </servlet-mapping>
+</web-app>
