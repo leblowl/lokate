@@ -27,3 +27,5 @@
     navigation-state
     {:target (. js/document (getElementById "static-header"))})
   (core/render))
+
+(render)

@@ -1,0 +1,53 @@
+(:use tailrecursion.boot.task.ring :as r)
+(speak)
+quit
+(load-file "src/clj/lokate/server.clj")
+(usr 'lokate.server :reload-all
+)
+(use 'lokate.server :reload-all)
+(main)
+(require 'lokate.server :reload-all)
+lokate.server
+(-main)
+(dev)
+(require 'lokate.server :reload-all)
+(run routes 10333)
+(run (site #'routes) 10222(
+(run (site #'routes) 10222)
+(require 'lokate.server :reload-all)
+(run handler 10222)
+(require 'lokate.server :reload-all)
+(run handler 10222)
+(load-file "src/clj/lokate/server.clj")
+(require 'lokate.server :reload-all)
+(run handler 10222)
+(require 'lokate.server/handler)
+quit
+(test)
+(use '[clojure.tools.namespace.repl :only (refresh)])
+(refresh)
+(test)
+quit
+(test)
+quit
+(require 'lokate.server)
+(def srv (run handler))
+(require 'lokate.server :refer all)
+(require 'lokate.server :refer :all)
+(use 'lokate.server)
+(run)
+(def src (run handler)
+)
+quit
+(-> :a str
+)
+(-> :a (str))
+server/handler
+(def a :a)
+(-> a (str))
+quit
+(-> :a (str "dude")
+)
+quit
+(-> :a (str " b") (keyword))
+quit
