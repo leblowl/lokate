@@ -81,15 +81,14 @@
 
         (delete-markers owner to-delete)
         (add-markers owner to-add)
-        (activate-marker owner (last active-hive))
-        ))
+        (activate-marker owner (last active-hive))))
 
     om/IDidMount
     (did-mount [_]
       (let [tile-url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
             tile-attr "&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors"
             l-map (-> js/L
-                    (.map "map")
+                    (.map "map" #js {:zoomControl false})
                     (.setView (om/get-state owner :center) 9))]
 
         (-> js/L

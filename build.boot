@@ -1,9 +1,9 @@
 (set-env!
         :tgt-path "target"
-        :src-paths #{"src/clj" "src/cljs"}
+        :src-paths #{"src/clj" "src/cljs" "../boot-reload/src"}
         :rsc-paths #{"resources"}
-        :dependencies '[[adzerk/boot-cljs "0.0-2371-26"]
-                        [adzerk/boot-reload    "0.1.6"]
+        :dependencies '[[adzerk/boot-cljs "0.0-2371-27"]
+                        [adzerk/boot-cljs-repl "0.1.6"]
                         [org.clojure/clojure "1.6.0"]
                         [org.clojure/clojurescript "0.0-2371"]
                         [org.clojure/core.async "0.1.346.0-17112a-alpha"]
@@ -15,6 +15,7 @@
 (require
   '[adzerk.boot-cljs       :refer :all]
   '[adzerk.boot-reload     :refer :all]
+  '[adzerk.boot-cljs-repl  :refer :all]
   '[lokate.server             :as server]
   '[ring.middleware.reload    :as reload]
   '[ring.middleware.file      :as file]
@@ -30,6 +31,7 @@
 []
 (comp (watch)
       (speak)
+      (cljs-repl)
       (cljs :unified true
             :source-map true
             :optimizations :none
