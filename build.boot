@@ -36,7 +36,7 @@
             :source-map true
             :optimizations :none
             :output-to "public/js/main.js")
-      (reload)))
+      (reload :on-jsload (symbol "lokate.navigation/render"))))
 
 (deftask dev-serve
   "Start server for development."
