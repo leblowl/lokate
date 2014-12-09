@@ -35,16 +35,16 @@
   (apply min-key #(distance (:pos hive) (:pos (second %))) (seq hives)))
 
 (defn new-place [id]
-  {:name ""
+  {:name nil
    :hives {}
    :id id})
 
 (defn new-hive [pos]
   {:key (pos-key pos)
-   :name ""
+   :name nil
    :origin (fdate-now)
    :pos pos
-   :notes ""})
+   :notes nil})
 
 (defn tselect [data type-key select-path]
   (when (= type-key :active-hive)
@@ -106,20 +106,30 @@
                                               :on-edit on-edit}})
           nil)))))
 
-(defn name-select [data owner {:keys [type-key] :as opts}]
+(defn select [selectable owner {:keys [type-key default] :as opts}]
   (om/component
-    (dom/a #js {:className "name-select"
-                :onClick #(put! (om/get-shared owner :action-chan)
-                            [:select type-key (om/path data)])}
-      (dom/span #js {:className "name-select-title"} (:name data)))))
+    (dom/li #js {:className "select-list-item"}
+      (dom/a #js {:className "select"
+                  :onClick #(put! (om/get-shared owner :action-chan)
+                              [:select type-key (om/path selectable)])}
+        (dom/span #js {:className "select-title"} (or (:name selectable) default))))))
+
+(defn select-list [selectables owner opts]
+  (om/component
+    (apply dom/ol #js {:className "select-list"}
+        (om/build-all select selectables {:opts opts}))))
+
+(defn home-view [data owner]
+  (om/component
+    (dom/div #js {:id "home"})))
 
 (defn places-info [places owner]
   (reify
     om/IRender
     (render [_]
       (dom/div #js {:id "places"}
-        (apply dom/div #js {:className "select-list"}
-          (om/build-all name-select places {:opts {:type-key :active-place}}))))))
+        (om/build select-list places {:opts {:type-key :active-place
+                                             :default "Untitled_Collection"}})))))
 
 (defn place-info [place owner {:keys [begin-edit] :as opts}]
   (reify
@@ -129,11 +139,11 @@
         (dom/span #js {:id "name-editable"
                        :className "name editable single-line"
                        :onClick #(begin-edit :name)
-                       :data-ph "Name"
+                       :data-ph "Collection Name"
                        :dangerouslySetInnerHTML #js {:__html (:name place)}})
         (apply dom/div #js {:className "select-list"}
           (dom/span nil "hives: ")
-          (om/build-all name-select (vals (:hives place)) {:opts {:type-key :active-hive}}))))))
+          (om/build-all select (vals (:hives place)) {:opts {:type-key :active-hive}}))))))
 
 (defn hive-info [hive owner {:keys [begin-edit] :as opts}]
   (reify
@@ -212,7 +222,7 @@
   (reify
     om/IInitState
     (init-state [_]
-      {:open false
+      {:open true
        :editing nil})
 
     om/IRenderState
