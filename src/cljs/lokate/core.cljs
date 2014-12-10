@@ -14,10 +14,8 @@
 
 (def app-state
   (atom {:orientation nil
-         :active nil
-         :places []
-         :active-place nil
-         :active-hive nil}))
+         :drawer {:open false}
+         :places []}))
 
 (defn init-app-state [result]
   (swap! app-state
@@ -25,7 +23,7 @@
       (update-in m [:places]
         #(conj % (js->clj (.-value result) :keywordize-keys true))))))
 
-(defn orientation []
+(defn on-resize []
   (swap! app-state #(assoc % :orientation
                            (if (> (.-height (.-screen js/window))
                                   (.-width (.-screen js/window)))
@@ -155,15 +153,6 @@
                       :data-ph "Notes..."
                       :dangerouslySetInnerHTML #js {:__html (:notes hive)}})))))
 
-(defn navicon [data owner {:keys [toggle-open] :as opts}]
-  (reify
-    om/IRenderState
-    (render-state [_ {:keys [open editing]}]
-      (dom/div #js {:className (str "navicon" (when open " active"))
-                    :style (display-fade-in (nil? editing))
-                    :onClick (fn []
-                               (toggle-open))}))))
-
 (defn back-btn [active owner {:keys [type-key] :as opts}]
   (om/component
     (dom/div #js {:id "nav-back-btn"
@@ -178,76 +167,65 @@
                   :onClick #(put! (om/get-shared owner :action-chan)
                               [:add-place])})))
 
-(defn control-panel [active owner {:keys [control-fn type-key] :as opts}]
+(defn open? [drawer]
+  (true? (:open drawer)))
+
+(defn toggle-open [drawer]
+  (om/transact! drawer :open not))
+
+(defn navicon [data owner]
+  (reify
+    om/IRender
+    (render [_]
+      (dom/div #js {:className (str "navicon" (when (open? (:drawer data)) " active"))
+                    :onClick (fn []
+                               (toggle-open (:drawer data)))}))))
+
+(defn control-panel [data owner]
   (reify
     om/IInitState
     (init-state [_]
-      {:path-str ""})
+      {:path-str "hello universe!"})
 
     om/IRenderState
-    (render-state [_ {:keys [open editing path-str]}]
-      (dom/div #js {:className "control-panel"}
-        (dom/div #js {:id "nav-control"
-                      :style (display-fade-in (and open (not editing)))}
-          (dom/span #js {:id "nav-label"} (str (str/replace (str type-key) #"active-" "") " " path-str))
-          (om/build control-fn active {:opts opts}))
-        (om/build navicon active {:opts opts
-                                  :state {:open open
-                                          :editing editing}})))))
+    (render-state [_ {:keys [path-str]}]
+      (dom/div #js {:className "navigation-container"}
+        (dom/div #js {:className "banner-container"}
+          (dom/span #js {:className "banner-icon"}
+            (gstring/unescapeEntities "&#11041;"))
+          (dom/span #js {:className "banner-title"}
+            "lokate"))
+        (dom/div #js {:className "control-panel"}
+          (dom/div #js {:id "nav-control"
+                        :style (display-fade-in (open? (:drawer data)))}
+            (dom/span #js {:id "nav-label"} path-str))
+          (om/build navicon data))))))
 
-(defn toggle-open [owner]
-  (om/update-state! owner :open not))
-
-(defn drawer [active owner {:keys [child-fn control-fn type-key] :as opts}]
+(defn drawer [data owner]
   (reify
-    om/IInitState
-    (init-state [_]
-      {:open true
-       :editing nil})
-
-    om/IRenderState
-    (render-state [_ {:keys [open editing orientation]}]
+    om/IRender
+    (render [_]
       (dom/div #js {:id "drawer-wrapper"}
-        (om/build control-panel
-          active
-          {:opts {:toggle-open (partial toggle-open owner)
-                  :control-fn control-fn
-                  :type-key type-key}
-           :init-state {:editing editing}
-           :state {:open open
-                   :editing editing}})
-
-        (when editing
-          (om/build input-control
-            active
-            {:state {:editing editing}
-             :opts {:on-edit (partial on-edit #(end-edit owner))}}))
-
         (dom/div #js {:id "drawer"
-                      :className (str orientation
-                                   (if (and open (not editing)) " show" " hide"))}
-          (om/build child-fn active {:opts {:begin-edit (partial begin-edit owner)}}))))))
+                      :className (str (:orientation data)
+                                   (if (open? (:drawer data)) " show" " hide"))})))))
 
 (defn app [data owner]
   (reify
     om/IRender
     (render [_]
       (dom/div #js {:id "app"}
-        (dom/div #js {:className "navigation-container"}
-          (dom/div #js {:className "banner-container"}
-            (dom/span #js {:className "banner-icon"}
-              (gstring/unescapeEntities "&#11041;"))
-            (dom/span #js {:className "banner-title"}
-              "lokate")))
+        (om/build control-panel data)
         (dom/div #js {:className (str "flex-container " (:orientation data))}
           (dom/div #js {:className "flex-content"}
-            (om/build map/l-map data)))))))
+            (om/build map/l-map data))
+          (om/build drawer data))))))
 
 (defn root []
   (om/root app app-state {:target (.getElementById js/document "root")
                           :shared {:action-chan (chan)}}))
 
 (defn render []
-  (orientation)
-  (.addEventListener js/window "resize" orientation)
+  (on-resize)
+  (.addEventListener js/window "resize" on-resize)
   (db-new #(db-get-all init-app-state root)))
