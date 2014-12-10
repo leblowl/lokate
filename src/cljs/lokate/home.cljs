@@ -5,16 +5,16 @@
 
 (def home-state
   (atom {:home-selects [{:name "Collections"
-                         :href "/Collections"}
+                         :href "#/Collections"}
                         {:name "Resources"
-                         :href "/Resources"}
+                         :href "#/Resources"}
                         {:name "Tasks"
-                         :href "/Tasks"}]}))
+                         :href "#/Tasks"}]}))
 
-(defn home-view [selects owner]
+(defn home-view [data owner]
   (om/component
     (dom/div #js {:id "home"}
-      (om/build gear/select-list selects))))
+      (om/build gear/select-list (:home-selects data)))))
 
 
 (defn render []

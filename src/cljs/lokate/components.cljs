@@ -39,7 +39,7 @@
   (om/component
     (dom/li #js {:className "select-list-item"}
       (dom/a #js {:className "select"
-                  :href (or (:href selectable) (path-fn (om/path selectable)))}
+                  :href (or (:href selectable) (when path-fn (path-fn (om/path selectable))))}
         (dom/span #js {:className "select-title"} (or (:name selectable) name-default))))))
 
 (defn select-list [selectables owner opts]

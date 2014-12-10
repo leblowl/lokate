@@ -8,8 +8,8 @@
   (:gen-class))
 
 (defroutes routes
-  (route/resources "/" {:root "public"})
   (GET "/" [] (io/resource "index.html"))
+  (route/resources "/" {:root "public"})
   (route/not-found "Page not found."))
 
 (defn run [handler & [port]]

@@ -210,8 +210,11 @@
                       :className (str (:orientation data)
                                    (if (open? (:drawer data)) " show" " hide"))})))))
 
-(defn app [data owner]
+(defn app [data owner {:keys [on-mount]}]
   (reify
+    om/IDidMount
+    (did-mount [_]
+      (on-mount))
     om/IRender
     (render [_]
       (dom/div #js {:id "app"}
@@ -221,11 +224,11 @@
             (om/build map/l-map data))
           (om/build drawer data))))))
 
-(defn root []
+(defn root [on-mount]
   (om/root app app-state {:target (.getElementById js/document "root")
-                          :shared {:action-chan (chan)}}))
+                          :opts {:on-mount on-mount}}))
 
-(defn render []
+(defn render [on-mount]
   (on-resize)
   (.addEventListener js/window "resize" on-resize)
-  (db-new #(db-get-all init-app-state root)))
+  (db-new #(db-get-all init-app-state (partial root on-mount))))

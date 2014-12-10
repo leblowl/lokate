@@ -18,34 +18,24 @@
 (defn on-navigate [event]
   (linda/dispatch! (if (nil? (.-token event)) "/" (.-token event))))
 
-(defn navigation-view [app owner]
-  (reify
-    om/IWillMount
-    (will-mount [this]
-      (linda/defroute "/" []
-        (home/render))
+(linda/defroute "/" []
+  (home/render))
 
-      (linda/defroute "/Collections" [])
+(linda/defroute "/Collections" [])
 
-      (linda/defroute "/Resources" [])
+(linda/defroute "/Resources" [])
 
-      (linda/defroute "/Tasks" [])
+(linda/defroute "/Tasks" [])
 
-      (linda/defroute "*" []
-        (set! (.-location js/window) "/")))
-
-    om/IRender
-    (render [this]
-      (dom/div #js {:className "navigation-container"}
-        (dom/div #js {:className "banner-container"}
-          (dom/span #js {:className "banner-icon"}
-            (gstring/unescapeEntities "&#11041;"))
-          (dom/span #js {:className "banner-title"}
-            "lokate"))))))
+(linda/defroute "*" []
+  (set! (.-location js/window) "/"))
 
 (defn enable-nav []
   (doto history
     (events/listen EventType/NAVIGATE on-navigate)
     (.setEnabled true)))
 
-(core/render)
+(defn render []
+  (core/render enable-nav))
+
+(render)
