@@ -12,23 +12,6 @@
 
 (enable-console-print!)
 
-(def app-state
-  (atom {:orientation nil
-         :drawer {:open false}
-         :places []}))
-
-(defn init-app-state [result]
-  (swap! app-state
-    (fn [m]
-      (update-in m [:places]
-        #(conj % (js->clj (.-value result) :keywordize-keys true))))))
-
-(defn on-resize []
-  (swap! app-state #(assoc % :orientation
-                           (if (> (.-height (.-screen js/window))
-                                  (.-width (.-screen js/window)))
-                             "portrait"
-                             "landscape"))))
 
 (defn pos-key [lat-lng]
   (keyword (str
@@ -79,7 +62,7 @@
 (defn on-edit [cb data key owner]
   (om/update! data key
     (gstring/unescapeEntities (.-innerHTML (om/get-node owner key))))
-  (db-add (get-in @app-state (:active-place @app-state)))
+;  (db-add (get-in @app-state (:active-place @app-state)))
   (cb))
 
 (defn input-control [data owner {:keys [on-edit] :as opts}]
@@ -201,11 +184,6 @@
             (om/build map/l-map data))
           (om/build drawer data))))))
 
-(defn root [on-mount]
+(defn render [app-state on-mount]
   (om/root app app-state {:target (.getElementById js/document "root")
                           :opts {:on-mount on-mount}}))
-
-(defn render [on-mount]
-  (on-resize)
-  (.addEventListener js/window "resize" on-resize)
-  (db-new #(db-get-all init-app-state (partial root on-mount))))

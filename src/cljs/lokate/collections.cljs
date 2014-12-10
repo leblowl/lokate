@@ -17,17 +17,18 @@
     ;(db-add (get-in @data (:active-place @data)))
     ))
 
-(defn add-place-btn [places owner {:keys [type-key] :as opts}]
+(defn add-collection-btn [collections owner]
   (om/component
-    (dom/div #js {:id "nav-add-btn"
-                  :className "icon-plus"
-                  :onClick #(put! (om/get-shared owner :action-chan)
-                              [:add-place])})))
+    (dom/a #js {:href "/collections/new"}
+      (dom/div #js {:id "nav-add-btn"
+                   :className "icon-plus"}))))
 
-(defn places-info [places owner]
+(defn collections-view [collections owner]
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:id "places"}
-        (om/build parts/select-list places {:opts {:type-key :active-place
-                                             :default "Untitled_Collection"}})))))
+      (dom/div #js {:id "collections"}
+        (om/build parts/select-list collections {:opts {:default "Untitled_Collection"}})))))
+
+(defn render [app-state]
+  (om/root collections-view (:places app-state) {:target (.getElementById js/document "drawer")}))

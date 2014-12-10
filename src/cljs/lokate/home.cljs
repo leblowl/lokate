@@ -1,20 +1,20 @@
 (ns lokate.home
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [lokate.components :as gear]))
+            [lokate.components :as parts]))
 
 (def home-state
   (atom {:home-selects [{:name "Collections"
-                         :href "#/Collections"}
+                         :href "#/collections"}
                         {:name "Resources"
-                         :href "#/Resources"}
+                         :href "#/resources"}
                         {:name "Tasks"
-                         :href "#/Tasks"}]}))
+                         :href "#/tasks"}]}))
 
 (defn home-view [data owner]
   (om/component
     (dom/div #js {:id "home"}
-      (om/build gear/select-list (:home-selects data)))))
+      (om/build parts/select-list (:home-selects data)))))
 
 
 (defn render []
