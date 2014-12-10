@@ -32,8 +32,10 @@
 
 (defn enable-nav []
   (doto history
+    (events/unlisten EventType/NAVIGATE on-navigate)
     (events/listen EventType/NAVIGATE on-navigate)
-    (.setEnabled true)))
+    (.setEnabled true))
+  (linda/dispatch! "/"))
 
 (defn render []
   (core/render enable-nav))

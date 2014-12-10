@@ -38,11 +38,6 @@
 (defn nearest [hive hives]
   (apply min-key #(distance (:pos hive) (:pos (second %))) (seq hives)))
 
-(defn new-place [id]
-  {:name nil
-   :hives {}
-   :id id})
-
 (defn new-hive [pos]
   {:key (pos-key pos)
    :name nil
@@ -65,12 +60,6 @@
       (om/transact! data select-path #(assoc-in % [:hives (:key hive)] hive))
      (om/update! data :active-hive (conj select-path :hives (:key hive)))
      (db-add (get-in @data select-path)))))
-
-(defn add-place [data]
-  (let [id (count (:places @data))]
-    (om/transact! data :places #(conj % (new-place id)))
-    (om/update! data :active-place [:places id])
-    (db-add (get-in @data (:active-place @data)))))
 
 (defn display-pos [hive]
   (let [pos (:pos hive)]
@@ -110,13 +99,7 @@
                                               :on-edit on-edit}})
           nil)))))
 
-(defn places-info [places owner]
-  (reify
-    om/IRender
-    (render [_]
-      (dom/div #js {:id "places"}
-        (om/build select-list places {:opts {:type-key :active-place
-                                             :default "Untitled_Collection"}})))))
+
 
 (defn place-info [place owner {:keys [begin-edit] :as opts}]
   (reify
@@ -160,12 +143,6 @@
                   :onClick #(put! (om/get-shared owner :action-chan)
                               [:select type-key (om/path active)])})))
 
-(defn add-place-btn [places owner {:keys [type-key] :as opts}]
-  (om/component
-    (dom/div #js {:id "nav-add-btn"
-                  :className "icon-plus"
-                  :onClick #(put! (om/get-shared owner :action-chan)
-                              [:add-place])})))
 
 (defn open? [drawer]
   (true? (:open drawer)))
