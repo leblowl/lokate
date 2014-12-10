@@ -10,7 +10,8 @@
             [lokate.db :refer [db-new db-add db-delete db-get-all]]
             [lokate.core :as core]
             [lokate.home :as home]
-            [lokate.collections :as collections])
+            [lokate.collections :as collections]
+            [lokate.collection :as collection])
   (:import goog.History))
 
 (def history (History.))
@@ -41,6 +42,11 @@
 
 (linda/defroute "/collections" []
   (collections/render app-state))
+
+(linda/defroute #"/collection/(\d+)" [id]
+  (if (<= id (count (:places @app-state)))
+    (collection/render app-state id)
+    (linda/dispatch! "/")))
 
 (linda/defroute "/resources" [])
 

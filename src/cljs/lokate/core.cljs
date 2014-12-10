@@ -82,23 +82,6 @@
                                               :on-edit on-edit}})
           nil)))))
 
-
-
-(defn place-info [place owner {:keys [begin-edit] :as opts}]
-  (reify
-    om/IRender
-    (render [_]
-      (dom/div #js {:className "place-info"}
-        (dom/span #js {:id "name-editable"
-                       :className "name editable single-line"
-                       :onClick #(begin-edit :name)
-                       :data-ph "Collection Name"
-                       :dangerouslySetInnerHTML #js {:__html (:name place)}})
-        (apply dom/div #js {:className "select-list"}
-          (dom/span nil "hives: ")
-;          (om/build-all select (vals (:hives place)) {:opts {:type-key :active-hive}})
-          )))))
-
 (defn hive-info [hive owner {:keys [begin-edit] :as opts}]
   (reify
     om/IRender
@@ -157,8 +140,7 @@
             "lokate"))
         (dom/div #js {:className "control-panel"}
           (dom/div #js {:id "nav-control"
-                        :style (display-fade-in (open? (:drawer data)))}
-            (dom/span #js {:id "nav-label"} path-str))
+                        :style (display-fade-in (open? (:drawer data)))})
           (om/build navicon data))))))
 
 (defn drawer [data owner]

@@ -5,21 +5,9 @@
             [om.dom :as dom :include-macros true]
             [lokate.components :as parts]))
 
-(defn new-place [id]
-  {:name nil
-   :hives {}
-   :id id})
-
-(defn add-place [data]
-  (let [id (count (:places @data))]
-    (om/transact! data :places #(conj % (new-place id)))
-    (om/update! data :active-place [:places id])
-    ;(db-add (get-in @data (:active-place @data)))
-    ))
-
 (defn add-collection-btn [collections owner]
   (om/component
-    (dom/a #js {:href "/collections/new"}
+    (dom/a #js {:href (str "#/collection/" (count collections))}
       (dom/div #js {:id "nav-add-btn"
                    :className "icon-plus"}))))
 
@@ -31,4 +19,5 @@
         (om/build parts/select-list collections {:opts {:default "Untitled_Collection"}})))))
 
 (defn render [app-state]
+  (om/root add-collection-btn (:places app-state) {:target (.getElementById js/document "nav-control")})
   (om/root collections-view (:places app-state) {:target (.getElementById js/document "drawer")}))
