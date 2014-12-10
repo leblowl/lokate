@@ -6,7 +6,7 @@
             [goog.string :as gstring]
             [clojure.string :as str]
             [lokate.map :as map]
-            [lokate.input :refer [input]]
+            [lokate.components :refer [input select-list]]
             [lokate.util :refer [display display-fade-in fdate-now floormat distance]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]))
 
@@ -18,6 +18,12 @@
          :places []
          :active-place nil
          :active-hive nil}))
+
+(defn init-app-state [result]
+  (swap! app-state
+    (fn [m]
+      (update-in m [:places]
+        #(conj % (js->clj (.-value result) :keywordize-keys true))))))
 
 (defn orientation []
   (swap! app-state #(assoc % :orientation
@@ -106,23 +112,6 @@
                                               :on-edit on-edit}})
           nil)))))
 
-(defn select [selectable owner {:keys [type-key default] :as opts}]
-  (om/component
-    (dom/li #js {:className "select-list-item"}
-      (dom/a #js {:className "select"
-                  :onClick #(put! (om/get-shared owner :action-chan)
-                              [:select type-key (om/path selectable)])}
-        (dom/span #js {:className "select-title"} (or (:name selectable) default))))))
-
-(defn select-list [selectables owner opts]
-  (om/component
-    (apply dom/ol #js {:className "select-list"}
-        (om/build-all select selectables {:opts opts}))))
-
-(defn home-view [data owner]
-  (om/component
-    (dom/div #js {:id "home"})))
-
 (defn places-info [places owner]
   (reify
     om/IRender
@@ -143,7 +132,8 @@
                        :dangerouslySetInnerHTML #js {:__html (:name place)}})
         (apply dom/div #js {:className "select-list"}
           (dom/span nil "hives: ")
-          (om/build-all select (vals (:hives place)) {:opts {:type-key :active-hive}}))))))
+;          (om/build-all select (vals (:hives place)) {:opts {:type-key :active-hive}})
+          )))))
 
 (defn hive-info [hive owner {:keys [begin-edit] :as opts}]
   (reify
@@ -194,16 +184,6 @@
     (init-state [_]
       {:path-str ""})
 
-    om/IWillReceiveProps
-    (will-receive-props [_ next-props]
-      (om/set-state! owner :path-str
-        (str/join "/" (map #(:name (get-in @app-state %))
-                        (loop [ks (om/path next-props)
-                               result '()]
-                          (if-not (empty? ks)
-                            (recur (drop-last 2 ks) (conj result ks))
-                            result))))))
-
     om/IRenderState
     (render-state [_ {:keys [open editing path-str]}]
       (dom/div #js {:className "control-panel"}
@@ -250,55 +230,24 @@
 
 (defn app [data owner]
   (reify
-    om/IWillMount
-    (will-mount [_]
-      (go-loop []
-        (let [action (<! (om/get-shared owner :action-chan))]
-          (case (first action)
-            :select (apply tselect data (rest action))
-            :delete (apply delete data (rest action))
-            :add-hive (add-hive data (second action))
-            :add-place (add-place data)))
-        (recur)))
-
     om/IRender
     (render [_]
-      (dom/div #js {:className (str "flex-container " (:orientation data))}
-        (dom/div #js {:className "flex-content"}
-          (om/build map/l-map data))
+      (dom/div #js {:id "app"}
+        (dom/div #js {:className "navigation-container"}
+          (dom/div #js {:className "banner-container"}
+            (dom/span #js {:className "banner-icon"}
+              (gstring/unescapeEntities "&#11041;"))
+            (dom/span #js {:className "banner-title"}
+              "lokate")))
+        (dom/div #js {:className (str "flex-container " (:orientation data))}
+          (dom/div #js {:className "flex-content"}
+            (om/build map/l-map data)))))))
 
-        (let [active-place (:active-place data)
-              active-hive  (:active-hive data)]
-          (cond
-            active-hive (om/build drawer
-                          (get-in data active-hive) {:state {:orientation (:orientation data)
-                                                             :open true}
-                                                     :opts {:child-fn hive-info
-                                                            :control-fn back-btn
-                                                            :type-key :active-hive}})
-
-            active-place (om/build drawer
-                           (get-in data active-place) {:state {:orientation (:orientation data)
-                                                               :open true}
-                                                       :opts {:child-fn place-info
-                                                              :control-fn back-btn
-                                                              :type-key :active-place}})
-
-            :else (om/build drawer (:places data) {:state {:orientation (:orientation data)}
-                                                   :opts {:child-fn places-info
-                                                          :control-fn add-place-btn
-                                                          :type-key :places}})))))))
+(defn root []
+  (om/root app app-state {:target (.getElementById js/document "root")
+                          :shared {:action-chan (chan)}}))
 
 (defn render []
   (orientation)
   (.addEventListener js/window "resize" orientation)
-  (db-new
-    (fn []
-      (db-get-all
-        (fn [result] (swap! app-state
-                      (fn [m]
-                        (update-in m [:places]
-                          #(conj % (js->clj (.-value result) :keywordize-keys true))))))
-        (fn []
-          (om/root app app-state {:target (.getElementById js/document "content")
-                                  :shared {:action-chan (chan)}}))))))
+  (db-new #(db-get-all init-app-state root)))

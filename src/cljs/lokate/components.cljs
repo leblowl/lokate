@@ -1,4 +1,4 @@
-(ns lokate.input
+(ns lokate.components
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [goog.string :as gstring]
@@ -34,3 +34,15 @@
                                  (js/setTimeout #(on-edit data edit-key owner) 100))}
           (dom/span #js {:id "input-ok-mark"}
             (gstring/unescapeEntities "&#10003;")))))))
+
+(defn select [selectable owner {:keys [path-fn name-default] :as opts}]
+  (om/component
+    (dom/li #js {:className "select-list-item"}
+      (dom/a #js {:className "select"
+                  :href (or (:href selectable) (path-fn (om/path selectable)))}
+        (dom/span #js {:className "select-title"} (or (:name selectable) name-default))))))
+
+(defn select-list [selectables owner opts]
+  (om/component
+    (apply dom/ol #js {:className "select-list"}
+        (om/build-all select selectables {:opts opts}))))
