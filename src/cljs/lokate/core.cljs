@@ -139,9 +139,9 @@
           (dom/span #js {:className "banner-title"}
             "lokate"))
         (dom/div #js {:className "control-panel"}
+          (om/build back-btn data)
           (dom/div #js {:id "nav-control"
                         :style (display-fade-in (open? (:drawer data)))})
-          (om/build back-btn data)
           (om/build navicon data))))))
 
 (defn drawer [data owner]
