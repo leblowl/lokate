@@ -168,5 +168,5 @@
           (om/build drawer data))))))
 
 (defn render [app-state nav-chan]
-  (om/root app app-state {:target (.getElementById js/document "root")
+  (om/root app app-state {:target (.getElementById js/document "content-root")
                           :shared {:nav nav-chan}}))
