@@ -106,8 +106,8 @@
   (om/component
     (dom/div #js {:id "nav-back-btn"
                   :className "icon-arrow-left2"
-                  :onClick #(put! (om/get-shared owner :action-chan)
-                              [:select type-key (om/path active)])})))
+                  :style (display (not= (-> js/window .-location .-hash) ""))
+                  :onClick #(-> js/window .-history .back)})))
 
 
 (defn open? [drawer]
@@ -141,6 +141,7 @@
         (dom/div #js {:className "control-panel"}
           (dom/div #js {:id "nav-control"
                         :style (display-fade-in (open? (:drawer data)))})
+          (om/build back-btn data)
           (om/build navicon data))))))
 
 (defn drawer [data owner]
@@ -152,11 +153,11 @@
                       :className (str (:orientation data)
                                    (if (open? (:drawer data)) " show" " hide"))})))))
 
-(defn app [data owner {:keys [on-mount]}]
+(defn app [data owner]
   (reify
     om/IDidMount
     (did-mount [_]
-      (on-mount))
+      (put! (om/get-shared owner :nav) [:route "/"]))
     om/IRender
     (render [_]
       (dom/div #js {:id "app"}
@@ -166,6 +167,6 @@
             (om/build map/l-map data))
           (om/build drawer data))))))
 
-(defn render [app-state on-mount]
+(defn render [app-state nav-chan]
   (om/root app app-state {:target (.getElementById js/document "root")
-                          :opts {:on-mount on-mount}}))
+                          :shared {:nav nav-chan}}))

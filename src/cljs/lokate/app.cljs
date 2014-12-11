@@ -1,4 +1,5 @@
 (ns lokate.app
+  (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]])
   (:require [goog.events :as events]
             [goog.string :as gstring]
             [goog.history.EventType :as EventType]
@@ -11,14 +12,14 @@
             [lokate.core :as core]
             [lokate.home :as home]
             [lokate.collections :as collections]
-            [lokate.collection :as collection])
-  (:import goog.History))
+            [lokate.collection :as collection]))
 
-(def history (History.))
 (def app-state
   (atom {:orientation nil
-         :drawer {:open false}
-         :places []}))
+         :drawer {:open false
+                  :history []}}))
+
+(def nav-chan (chan))
 
 (defn init-app-state [result]
   (swap! app-state
@@ -38,7 +39,7 @@
   (linda/dispatch! (if (nil? (.-token event)) "/" (.-token event))))
 
 (linda/defroute "/" []
-  (home/render))
+  (home/render nav-chan))
 
 (linda/defroute "/collections" []
   (collections/render app-state))
@@ -58,18 +59,29 @@
 (defn as-route [hash]
   (str/replace-first hash #"#" ""))
 
+(defn dispatch-route [route]
+  (swap! app-state update-in [:drawer :history] conj route)
+  (linda/dispatch! route))
+
+(defn dispatch-return []
+  (let [return-to (last (:history (:drawer @app-state)))]
+    (swap! app-state update-in [:drawer :history] pop)
+    (linda/dispatch! return-to)))
+
 (defn enable-nav []
-  (doto history
-    (events/unlisten EventType/NAVIGATE on-navigate)
-    (events/listen EventType/NAVIGATE on-navigate)
-    (.setEnabled true))
-  (linda/dispatch! (as-route (.-hash (.-location js/window)))))
+  (go-loop []
+    (let [cmd (<! nav-chan)]
+      (case (first cmd)
+        :route  (dispatch-route (second cmd))
+        :return (dispatch-return)))
+    (recur)))
 
 (defn go! []
   (on-resize)
   (.addEventListener js/window "resize" on-resize)
+  (enable-nav)
   (db-new
     #(db-get-all init-app-state
-       (partial core/render app-state enable-nav))))
+       (partial core/render app-state nav-chan))))
 
 (go!)

@@ -1,5 +1,6 @@
 (ns lokate.components
-  (:require [om.core :as om :include-macros true]
+  (:require [cljs.core.async :refer [put!]]
+            [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [goog.string :as gstring]
             [lokate.util :refer [display]]))
@@ -35,11 +36,11 @@
           (dom/span #js {:id "input-ok-mark"}
             (gstring/unescapeEntities "&#10003;")))))))
 
-(defn select [selectable owner {:keys [path-fn name-default] :as opts}]
+(defn select [selectable owner {:keys [name-default] :as opts}]
   (om/component
     (dom/li #js {:className "select-list-item"}
       (dom/a #js {:className "select"
-                  :href (or (:href selectable) (when path-fn (path-fn (om/path selectable))))}
+                  :onClick #(put! (om/get-shared owner :nav) [:route (:path selectable)])}
         (dom/span #js {:className "select-title"} (or (:name selectable) name-default))))))
 
 (defn select-list [selectables owner opts]

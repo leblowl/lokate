@@ -5,17 +5,18 @@
 
 (def home-state
   (atom {:home-selects [{:name "Collections"
-                         :href "#/collections"}
+                         :path "/collections"}
                         {:name "Resources"
-                         :href "#/resources"}
+                         :path "/resources"}
                         {:name "Tasks"
-                         :href "#/tasks"}]}))
+                         :path "/tasks"}]}))
 
 (defn home-view [data owner]
   (om/component
     (dom/div #js {:id "home"}
       (om/build parts/select-list (:home-selects data)))))
 
-
-(defn render []
-  (om/root home-view home-state {:target (.getElementById js/document "drawer")}))
+(defn render [nav-chan]
+  (om/detach-root (.getElementById js/document "nav-control"))
+  (om/root home-view home-state {:target (.getElementById js/document "drawer")
+                                 :shared {:nav nav-chan}}))
