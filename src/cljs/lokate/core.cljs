@@ -103,12 +103,12 @@
                       :dangerouslySetInnerHTML #js {:__html (:notes hive)}})))))
 
 (defn back-btn [data owner {:keys [type-key] :as opts}]
+  (println (:history (:drawer data)))
   (om/component
     (dom/div #js {:id "nav-back-btn"
                   :className "icon-arrow-left2"
-                  :style (display (not (= 1 (count (:history (:drawer data))))))
+                  :style (display (not (<= (count (:history (:drawer data))) 1)))
                   :onClick #(put! (om/get-shared owner :nav) [:return])})))
-
 
 (defn open? [drawer]
   (true? (:open drawer)))

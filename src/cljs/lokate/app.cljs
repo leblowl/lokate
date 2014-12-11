@@ -14,10 +14,13 @@
             [lokate.collections :as collections]
             [lokate.collection :as collection]))
 
+(enable-console-print!)
+
 (def app-state
   (atom {:orientation nil
          :drawer {:open false
-                  :history []}}))
+                  :history []}
+         :places []}))
 
 (def nav-chan (chan))
 
@@ -34,6 +37,16 @@
                              "portrait"
                              "landscape"))))
 
+(defn new-collection [id]
+  {:name nil
+   :hives {}
+   :id id})
+
+(defn add-collection [app-state]
+  (let [id (count (:places @app-state))]
+    (swap! app-state update-in [:places] conj (new-collection id))
+    ;(db-add (get-in @data (:active-place @data)))
+    id))
 
 (defn on-navigate [event]
   (linda/dispatch! (if (nil? (.-token event)) "/" (.-token event))))
@@ -42,25 +55,28 @@
   (home/render nav-chan))
 
 (linda/defroute "/collections" []
-  (collections/render app-state))
+  (collections/render app-state nav-chan))
 
-(linda/defroute #"/collection/(\d+)" [id]
-  (if (<= id (count (:places @app-state)))
-    (collection/render app-state id)
-    (linda/dispatch! "/")))
+(linda/defroute "/collections/new" []
+  (linda/dispatch! (str "/collections/"
+                     (add-collection app-state))))
+
+(linda/defroute #"/collections/(\d+)" [id]
+  (collection/render app-state id))
 
 (linda/defroute "/resources" [])
 
 (linda/defroute "/tasks" [])
 
 (linda/defroute "*" []
-  (set! (.-location js/window) "/"))
+  (println "Err No Matching Route"))
 
 (defn as-route [hash]
   (str/replace-first hash #"#" ""))
 
 (defn dispatch-route [route]
-  (swap! app-state update-in [:drawer :history] conj route)
+  (swap! app-state update-in [:drawer :history]
+    #(if (not= (last %) route) (conj % route) %))
   (linda/dispatch! route))
 
 (defn dispatch-return []

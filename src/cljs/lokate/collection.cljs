@@ -5,18 +5,6 @@
             [om.dom :as dom :include-macros true]
             [lokate.components :as parts]))
 
-(defn new-place [id]
-  {:name nil
-   :hives {}
-   :id id})
-
-(defn add-place [app-state]
-  (let [id (count (:places @app-state))]
-    (swap! app-state :places #(conj % (new-place id)))
-    ;(db-add (get-in @data (:active-place @data)))
-    ))
-
-
 (defn collection-info [collection owner {:keys [begin-edit] :as opts}]
   (reify
     om/IRender
@@ -30,6 +18,6 @@
         (om/build parts/select-list (:hives collection))))))
 
 (defn render [app-state id]
-  (when (= (count (:places app-state)) id)
-    (add-place app-state))
-  (om/root collection-info (get (:places app-state) id) {:target (.getElementById js/document "drawer")}))
+  (om/detach-root (.getElementById js/document "nav-control"))
+  (om/root collection-info (get (:places app-state) id)
+    {:target (.getElementById js/document "drawer")}))

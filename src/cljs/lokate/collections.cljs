@@ -7,17 +7,24 @@
 
 (defn add-collection-btn [collections owner]
   (om/component
-    (dom/a #js {:href (str "#/collection/" (count collections))}
-      (dom/div #js {:id "nav-add-btn"
-                   :className "icon-plus"}))))
+    (dom/div #js {:id "nav-add-btn"
+                  :className "icon-plus"
+                  :onClick #(put! (om/get-shared owner :nav) [:route "/collections/new"])})))
 
 (defn collections-view [collections owner]
+  (println collections)
   (reify
     om/IRender
     (render [_]
       (dom/div #js {:id "collections"}
-        (om/build parts/select-list collections {:opts {:default "Untitled_Collection"}})))))
+        (om/build parts/select-list
+          collections {:opts {:name-default "Untitled_Collection"
+                              :path-fn #(str "/collections/" (:id %))}})))))
 
-(defn render [app-state]
-  (om/root add-collection-btn (:places app-state) {:target (.getElementById js/document "nav-control")})
-  (om/root collections-view (:places app-state) {:target (.getElementById js/document "drawer")}))
+(defn render [app-state nav-chan]
+  (om/root add-collection-btn (:places @app-state)
+    {:target (.getElementById js/document "nav-control")
+     :shared {:nav nav-chan}})
+  (om/root collections-view (:places @app-state)
+    {:target (.getElementById js/document "drawer")
+     :shared {:nav nav-chan}}))
