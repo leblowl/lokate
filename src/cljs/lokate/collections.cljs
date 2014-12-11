@@ -12,7 +12,6 @@
                   :onClick #(put! (om/get-shared owner :nav) [:route "/collections/new"])})))
 
 (defn collections-view [collections owner]
-  (println collections)
   (reify
     om/IRender
     (render [_]

@@ -9,12 +9,13 @@
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className "place-info"}
-        (dom/span #js {:id "name-editable"
-                       :className "name editable single-line"
-                       :onClick #(begin-edit :name)
-                       :data-ph "Collection Name"
-                       :dangerouslySetInnerHTML #js {:__html (:name collection)}})
+      (dom/div #js {:className "collection-info"}
+        (dom/div #js {:id "name-editable"
+                      :className "editable"
+                      :onClick #(begin-edit :name)}
+          (dom/span #js {:className "editable-title"
+                         :data-ph "Collection Name"
+                         :dangerouslySetInnerHTML #js {:__html (:name collection)}}))
         (om/build parts/select-list (:hives collection))))))
 
 (defn render [app-state id]
