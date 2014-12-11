@@ -102,12 +102,12 @@
                       :data-ph "Notes..."
                       :dangerouslySetInnerHTML #js {:__html (:notes hive)}})))))
 
-(defn back-btn [active owner {:keys [type-key] :as opts}]
+(defn back-btn [data owner {:keys [type-key] :as opts}]
   (om/component
     (dom/div #js {:id "nav-back-btn"
                   :className "icon-arrow-left2"
-                  :style (display (not= (-> js/window .-location .-hash) ""))
-                  :onClick #(-> js/window .-history .back)})))
+                  :style (display (not (= 1 (count (:history (:drawer data))))))
+                  :onClick #(put! (om/get-shared owner :nav) [:return])})))
 
 
 (defn open? [drawer]

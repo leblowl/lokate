@@ -64,8 +64,8 @@
   (linda/dispatch! route))
 
 (defn dispatch-return []
+  (swap! app-state update-in [:drawer :history] pop)
   (let [return-to (last (:history (:drawer @app-state)))]
-    (swap! app-state update-in [:drawer :history] pop)
     (linda/dispatch! return-to)))
 
 (defn enable-nav []
