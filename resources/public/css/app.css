@@ -246,6 +246,10 @@ a {
     overflow-x: hidden;
 }
 
+.collection-info .select-list {
+    border-top: 1px solid rgb(34, 34, 34);
+}
+
 .select-list::-webkit-scrollbar {
     display: none;
 }
