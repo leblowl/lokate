@@ -8,9 +8,16 @@
     background-color: #444;
 }
 
+.banner-container {
+    height: 45px;
+    display: flex;
+    align-items: center;
+}
+
 .banner-icon {
     padding-left: 6px;
     padding-right: 4px;
+    padding-bottom: 4px;
     font-size: 175%;
     color: #ddffcc;
 }
