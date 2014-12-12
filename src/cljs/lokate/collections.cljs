@@ -5,25 +5,24 @@
             [om.dom :as dom :include-macros true]
             [lokate.components :as parts]))
 
-(defn add-collection-btn [collections owner]
+(defn add-collection-btn
+  [collections owner]
   (om/component
     (dom/div #js {:id "nav-add-btn"
                   :className "icon-plus"
-                  :onClick #(put! (om/get-shared owner :nav) [:route "/collections/new"])})))
+                  :onClick #(put! (om/get-shared owner :nav) [:route :collections:new])})))
 
-(defn collections-view [collections owner]
+(defn collections-controls
+  [{:keys [collections] :as data} owner]
+  (om/component
+    (om/build add-collection-btn collections)))
+
+(defn collections-view
+  [{:keys [collections] :as data} owner]
   (reify
     om/IRender
     (render [_]
       (dom/div #js {:id "collections"}
         (om/build parts/select-list
           collections {:opts {:name-default "Untitled_Collection"
-                              :path-fn #(str "/collections/" (:id %))}})))))
-
-(defn render [app-state nav-chan]
-  (om/root add-collection-btn (:places @app-state)
-    {:target (.getElementById js/document "nav-control")
-     :shared {:nav nav-chan}})
-  (om/root collections-view (:places @app-state)
-    {:target (.getElementById js/document "drawer")
-     :shared {:nav nav-chan}}))
+                              :path-fn (fn [_] [:route :collection {:id (:id _)}])}})))))

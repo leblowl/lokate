@@ -3,20 +3,17 @@
             [om.dom :as dom :include-macros true]
             [lokate.components :as parts]))
 
-(def home-state
-  (atom {:home-selects [{:name "Collections"
-                         :path "/collections"}
-                        {:name "Resources"
-                         :path "/resources"}
-                        {:name "Tasks"
-                         :path "/tasks"}]}))
-
 (defn home-view [data owner]
-  (om/component
-    (dom/div #js {:id "home"}
-      (om/build parts/select-list (:home-selects data)))))
-
-(defn render [nav-chan]
-  (om/detach-root (.getElementById js/document "nav-control"))
-  (om/root home-view home-state {:target (.getElementById js/document "drawer")
-                                 :shared {:nav nav-chan}}))
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:home-selects [{:name "Collections"
+                       :path [:route :collections]}
+                      {:name "Resources"
+                       :path [:route :resources]}
+                      {:name "Tasks"
+                       :path [:route :tasks]}]})
+    om/IRenderState
+    (render-state [_ {:keys [home-selects]}]
+     (dom/div #js {:id "home"}
+       (om/build parts/select-list home-selects)))))

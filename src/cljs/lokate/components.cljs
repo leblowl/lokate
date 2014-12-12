@@ -26,13 +26,15 @@
                       :onKeyDown on-key-down
                       :onBlur (fn []
                                 (om/set-state! owner :exit-type "out")
-                                (js/setTimeout #(on-edit data edit-key owner) 100))
+                                (js/setTimeout
+                                  #(on-edit (.-innerHTML (om/get-node owner edit-key))) 100))
                       :dangerouslySetInnerHTML #js {:__html (edit-key data)}})
         (dom/div #js {:id "input-ok"
                       :style (display (not (= exit-type "out")))
                       :onClick (fn []
                                  (om/set-state! owner :exit-type "btn")
-                                 (js/setTimeout #(on-edit data edit-key owner) 100))}
+                                 (js/setTimeout
+                                   #(on-edit (.-innerHTML (om/get-node owner edit-key))) 100))}
           (dom/span #js {:id "input-ok-mark"}
             (gstring/unescapeEntities "&#10003;")))))))
 
@@ -40,8 +42,8 @@
   (om/component
     (dom/li #js {:className "select-list-item"}
       (dom/a #js {:className "select"
-                  :onClick #(put! (om/get-shared owner :nav) [:route (or (:path selectable)
-                                                                       (path-fn selectable))])}
+                  :onClick #(put! (om/get-shared owner :nav) (or (:path selectable)
+                                                               (path-fn selectable)))}
         (dom/span #js {:className "select-title"} (or (:name selectable) name-default))))))
 
 (defn select-list [selectables owner opts]

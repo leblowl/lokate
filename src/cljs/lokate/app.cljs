@@ -1,26 +1,23 @@
 (ns lokate.app
   (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]])
-  (:require [goog.events :as events]
-            [goog.string :as gstring]
-            [goog.history.EventType :as EventType]
-            [clojure.string :as str]
-            [cljs.core.async :refer [put! <! >! chan timeout]]
+  (:require [cljs.core.async :refer [put! <! >! chan timeout]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [secretary.core :as linda :include-macros true]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]
+            [lokate.util :refer [distance]]
             [lokate.core :as core]
+            [lokate.map :as map]
             [lokate.home :as home]
             [lokate.collections :as collections]
             [lokate.collection :as collection]))
-
-(enable-console-print!)
 
 (def app-state
   (atom {:orientation nil
          :drawer {:open false
                   :history []}
-         :places []}))
+         :collections []
+         :route-name nil
+         :route-opts {}}))
 
 (def nav-chan (chan))
 
@@ -42,62 +39,80 @@
    :hives {}
    :id id})
 
-(defn add-collection [app-state]
-  (let [id (count (:places @app-state))]
-    (swap! app-state update-in [:places] conj (new-collection id))
+(defn add-collection
+  [data]
+  (let [id (count (:collections @data))]
+    (om/transact! data [:collections] #(conj % (new-collection id)))
     ;(db-add (get-in @data (:active-place @data)))
     id))
 
-(defn on-navigate [event]
-  (linda/dispatch! (if (nil? (.-token event)) "/" (.-token event))))
+(defn nearest
+  [hive hives]
+  (apply min-key #(distance (:pos hive) (:pos (second %))) (seq hives)))
 
-(linda/defroute "/" []
-  (home/render nav-chan))
+(defn delete
+  [data type-key select-path]
+  (om/transact! data (pop select-path) #(dissoc % (peek select-path)))
+  (om/update! data type-key nil))
 
-(linda/defroute "/collections" []
-  (collections/render app-state nav-chan))
+(defn dispatch!
+  [data route-views route-opts]
+  (om/update! data :route-views route-views)
+  (om/update! data :route-opts route-opts))
 
-(linda/defroute "/collections/new" []
-  (linda/dispatch! (str "/collections/"
-                     (add-collection app-state))))
+(defn route!
+  [data [route-name route-opts]]
+  (let [dispatch! (partial dispatch! data)]
+    (case route-name
+      :home        (dispatch! {:drawer home/home-view} route-opts)
+      :collections (dispatch! {:controls collections/collections-controls
+                               :drawer collections/collections-view} route-opts)
+      :collections:new (dispatch! {:drawer collection/collection-view} {:id (add-collection data)})
+      :collection  (dispatch! {:drawer collection/collection-view} route-opts))))
 
-(linda/defroute #"/collections/(\d+)" [id]
-  (collection/render app-state id))
-
-(linda/defroute "/resources" [])
-
-(linda/defroute "/tasks" [])
-
-(linda/defroute "*" []
-  (println "Err No Matching Route"))
-
-(defn as-route [hash]
-  (str/replace-first hash #"#" ""))
-
-(defn dispatch-route [route]
+(defn dispatch-route [data route]
+  (route! data route)
   (swap! app-state update-in [:drawer :history]
-    #(if (not= (last %) route) (conj % route) %))
-  (linda/dispatch! route))
+    #(if (not= (last %) route) (conj % route) %)))
 
-(defn dispatch-return []
+(defn dispatch-return [data]
   (swap! app-state update-in [:drawer :history] pop)
   (let [return-to (last (:history (:drawer @app-state)))]
-    (linda/dispatch! return-to)))
+    (route! data return-to)))
 
-(defn enable-nav []
-  (go-loop []
-    (let [cmd (<! nav-chan)]
-      (case (first cmd)
-        :route  (dispatch-route (second cmd))
-        :return (dispatch-return)))
-    (recur)))
+(defn app [data owner]
+  (reify
+    om/IWillMount
+    (will-mount [_]
+      (let [nav (om/get-shared owner :nav)]
+        (go-loop []
+          (let [cmd (<! nav)]
+            (case (first cmd)
+              :route  (dispatch-route data (rest cmd))
+              :return (dispatch-return data)))
+          (recur))))
+
+    om/IDidMount
+    (did-mount [_]
+      (put! (om/get-shared owner :nav) [:route :home]))
+
+    om/IRender
+    (render [_]
+      (dom/div #js {:id "app"}
+        (om/build core/control-panel data)
+        (dom/div #js {:className (str "flex-container " (:orientation data))}
+          (dom/div #js {:className "flex-content"}
+            (om/build map/l-map data))
+          (om/build core/drawer data))))))
+
+(defn render []
+  (om/root app app-state {:target (.getElementById js/document "root")
+                          :shared {:nav nav-chan}}))
 
 (defn go! []
-  (on-resize)
   (.addEventListener js/window "resize" on-resize)
-  (enable-nav)
+  (on-resize)
   (db-new
-    #(db-get-all init-app-state
-       (partial core/render app-state nav-chan))))
+    #(db-get-all init-app-state render)))
 
 (go!)

@@ -8,7 +8,7 @@ body { -webkit-animation: androidBugfix infinite 1s; }
     src: url('/fonts/DejaVuSans.ttf'); format('truetype');
 }
 
-html, body, #content-root, #app {
+html, body, #root, #app {
     width: 100%;
     height: 100%;
     font-family: 'Open Sans', 'DejaVuSans', sans-serif;
@@ -33,7 +33,6 @@ a {
     background-color: rgba(33,33,33,0.9);
     z-index: 5;
 }
-
 
 #content {
     position: absolute;
@@ -157,8 +156,9 @@ a {
 
 #name-input {
     height: 40px;
-    width: calc(100% - 50px);
+    width: calc(100% - 55px);
     padding-left: .5em;
+    padding-right: .5em;
     line-height: 40px;
     background-color: rgba(33,33,33,0.9);
 }
