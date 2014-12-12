@@ -4,6 +4,7 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [goog.string :as gstring]
+            [lokate.util :refer [blankf]]
             [lokate.components :as parts]))
 
 (defn edit [data owner {:keys [edit-key on-edit] :as opts}]
@@ -16,7 +17,7 @@
                                          :on-key-down (fn [e] (if (= (.-keyCode e) 13) false))}}))))
 
 (defn on-edit [data edit-key res]
-  (om/update! data edit-key (gstring/unescapeEntities res))
+  (om/update! data edit-key (blankf (gstring/unescapeEntities res)))
   ;(db-add (get-in @app-state (:active-place @app-state)))
   (om/detach-root (.getElementById js/document "overlay-root")))
 

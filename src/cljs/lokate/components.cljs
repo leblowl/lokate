@@ -3,7 +3,6 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [goog.string :as gstring]
-            [clojure.string :as string]
             [lokate.util :refer [display]]))
 
 (defn input [data owner {:keys [id className edit-key on-edit on-key-down] :as opts}]
@@ -26,15 +25,11 @@
           (dom/span #js {:id "input-ok-mark"}
             (gstring/unescapeEntities "&#10003;")))))))
 
-(defn blankf [str]
-  (when (not (string/blank? str))
-    str))
-
 (defn select [selectable owner {:keys [name-default path-fn] :as opts}]
   (om/component
     (dom/li #js {:className "select-list-item"}
       (dom/a #js {:className "select"
-                  :onClick #(put! (om/get-shared owner :nav) (or (blankf (:path selectable))
+                  :onClick #(put! (om/get-shared owner :nav) (or (:path selectable)
                                                                (path-fn selectable)))}
         (dom/span #js {:className "select-title"} (or (:name selectable) name-default))))))
 

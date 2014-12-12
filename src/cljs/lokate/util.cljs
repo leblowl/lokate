@@ -1,5 +1,7 @@
 (ns lokate.util
-  (:require [goog.string :as gstring]))
+  (:require
+   [clojure.string :as string]
+   [goog.string :as gstring]))
 
 (defn display [show]
   (if show
@@ -29,3 +31,7 @@
  (Math/pow (+ (Math/pow (- (:lat pos1) (:lat pos2)) 2)
               (Math/pow (- (:lng pos1) (:lng pos2)) 2))
    0.5))
+
+(defn blankf [s]
+  (when (not (string/blank? s))
+    s))
