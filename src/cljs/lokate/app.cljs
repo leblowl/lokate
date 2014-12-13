@@ -24,7 +24,7 @@
 (defn init-app-state [result]
   (swap! app-state
     (fn [m]
-      (update-in m [:places]
+      (update-in m [:collections]
         #(conj % (js->clj (.-value result) :keywordize-keys true))))))
 
 (defn on-resize []
@@ -41,9 +41,10 @@
 
 (defn add-collection
   [data]
-  (let [id (count (:collections @data))]
-    (om/transact! data [:collections] #(conj % (new-collection id)))
-    ;(db-add (get-in @data (:active-place @data)))
+  (let [id (count (:collections @data))
+        to-add (new-collection id)]
+    (om/transact! data [:collections] #(conj % to-add))
+    (db-add to-add)
     id))
 
 (defn nearest

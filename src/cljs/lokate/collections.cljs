@@ -25,4 +25,5 @@
       (dom/div #js {:id "collections"}
         (om/build parts/select-list
           collections {:opts {:name-default "Untitled_Collection"
-                              :path-fn (fn [_] [:route :collection {:id (:id _)}])}})))))
+                              :path-fn (fn [_] [:route :collection {:id (:id _)}])
+                              :props {:onContextMenu #(false)}}})))))
