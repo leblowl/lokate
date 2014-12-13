@@ -7,6 +7,16 @@
             [lokate.util :refer [blankf]]
             [lokate.components :as parts]))
 
+(defn collection-controls
+  [data owner]
+  (om/component
+    (dom/div #js {:id "collection-controls"}
+      (dom/div #js {:id "add-point-btn"
+                    :className "btn icon-pin"
+                    :onClick #(put! (om/get-shared owner :nav) [:route :point:new])})
+      (dom/div #js {:id "add-sector-btn"
+                    :className "btn icon-googleplus"}))))
+
 (defn edit [data owner {:keys [edit-key on-edit] :as opts}]
   (om/component
     (dom/div #js {:id "overlay"}

@@ -329,8 +329,19 @@ a {
 	font-style: normal;
 }
 
+@font-face {
+	font-family: 'icomoon2';
+	src:url('/fonts/icomoon/icomoon2.eot?cmf1ob');
+	src:url('/fonts/icomoon/icomoon2.eot?#iefixcmf1ob') format('embedded-opentype'),
+		url('/fonts/icomoon/icomoon2.woff?cmf1ob') format('woff'),
+		url('/fonts/icomoon/icomoon2.ttf?cmf1ob') format('truetype'),
+		url('/fonts/icomoon/icomoon.2svg?cmf1ob#icomoon') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+
 [class^="icon-"], [class*=" icon-"] {
-	font-family: 'icomoon';
+	font-family: 'icomoon', 'icomoon2';
 	speak: none;
 	font-style: normal;
 	font-weight: normal;
@@ -356,6 +367,19 @@ a {
 	content: "\e604";
 }
 
+.icon-googleplus:before {
+	content: "\e605";
+}
+.icon-pin:before {
+	content: "\e606";
+}
+.icon-pin-alt:before {
+	content: "\e607";
+}
+.icon-location:before {
+	content: "\e608";
+}
+
 #nav-control {
     height: 45px;
     flex: 1 1 auto;
@@ -378,14 +402,18 @@ a {
     white-space: nowrap;
 }
 
-#nav-add-btn {
+#collection-controls {
+    display: flex;
+}
+
+.btn {
     width: 20px;
     font-size: 1.3em;
     margin-left: .3em;
-    color: white;
+    color: #888;
 }
 
-#nav-add-btn:hover {
+.btn:hover {
     cursor: pointer;
     color: rgb(33, 255, 150);
 }

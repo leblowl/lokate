@@ -9,7 +9,7 @@
   [collections owner]
   (om/component
     (dom/div #js {:id "nav-add-btn"
-                  :className "icon-plus"
+                  :className "btn icon-plus"
                   :onClick #(put! (om/get-shared owner :nav) [:route :collections:new])})))
 
 (defn collections-controls

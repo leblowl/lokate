@@ -67,8 +67,9 @@
       :home        (dispatch! {:drawer home/home-view} route-opts)
       :collections (dispatch! {:controls collections/collections-controls
                                :drawer collections/collections-view} route-opts)
-      :collections:new (dispatch! {:drawer collection/collection-view} {:id (add-collection data)})
-      :collection  (dispatch! {:drawer collection/collection-view} route-opts))))
+      :collections:new (route! data [:collection {:id (add-collection data)}])
+      :collection  (dispatch! {:controls collection/collection-controls
+                               :drawer collection/collection-view} route-opts))))
 
 (defn dispatch-route [data route]
   (route! data route)
