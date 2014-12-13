@@ -45,7 +45,7 @@
         (dom/span #js {:className "img icon-pin"})
         " or "
         (dom/span #js {:className "gplus-img img icon-googleplus"})
-        " to add points and sectors to your collection!"))))
+        " to add a point or sector to your collection!"))))
 
 (defn collection-view
   [data owner {:keys [id] :as opts}]
