@@ -1,18 +1,10 @@
 # Lokate
 
-FIXME
+Lokate is a little app for tracking location-based resources, originally developed for tracking bee hives for Bee Friendly Honey.
 
-## Prerequisites
+# Build
 
-You will need [Leiningen][1] 1.7.0 or above installed.
-
-[1]: https://github.com/technomancy/leiningen
-
-## Running
-
-To start a web server for the application, run:
-
-    lein ring server
+Lokate uses the boot build tool (https://github.com/boot-clj/boot). With this installed, in the project directory, you can run ```boot dev``` to get a localhost dev server setup or run ```boot prod``` to package the app as a standalone jar. Always a work in progress, enjoy :)
 
 ## License
 
