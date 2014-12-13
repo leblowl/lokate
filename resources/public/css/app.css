@@ -146,7 +146,8 @@ a {
     display: flex;
     align-items: center;
     font-size: 1.3em;
-    margin: .3em;
+    margin-top: .3em;
+    margin-bottom: .3em;
     padding-left: .5em;
     padding-right: .5em;
     border-radius: 3px;
@@ -246,8 +247,17 @@ a {
     overflow-x: hidden;
 }
 
-.collection-info .select-list {
+.collection-content {
+    width: 100%;
+    height: 100%;
     border-top: 1px solid rgb(34, 34, 34);
+    display: flex;
+}
+
+.collection-tip {
+    margin: auto;
+    width: 60%;
+    height: 30%;
 }
 
 .select-list::-webkit-scrollbar {
@@ -274,7 +284,7 @@ a {
     font-size: 1.3em;
 }
 
-.place-info {
+.collection-info {
     width: 100%;
     height: 100%;
     padding: .5em;
@@ -411,6 +421,17 @@ a {
     font-size: 1.3em;
     margin-left: .3em;
     color: #888;
+}
+
+.img {
+    width: 20px;
+    font-size: 1.3em;
+    color: #888;
+}
+
+.gplus-img {
+    margin-left: 3px;
+    margin-right: 3px;
 }
 
 .btn:hover {

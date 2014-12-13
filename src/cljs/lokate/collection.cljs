@@ -36,6 +36,17 @@
                       :opts {:edit-key :name
                              :on-edit (partial on-edit data :name)}}))
 
+(defn collection-tip
+  [data owner]
+  (om/component
+    (dom/div #js {:className "collection-tip"}
+      (dom/div #js {:className "collection-tip-msg"}
+        "Click "
+        (dom/span #js {:className "img icon-pin"})
+        " or "
+        (dom/span #js {:className "gplus-img img icon-googleplus"})
+        " to add points and sectors to your collection!"))))
+
 (defn collection-view
   [data owner {:keys [id] :as opts}]
   (reify
@@ -49,4 +60,7 @@
             (dom/span #js {:className "editable-title"
                            :data-ph "Collection Name"
                            :dangerouslySetInnerHTML #js {:__html (:name collection)}}))
-          (om/build parts/select-list (:hives collection)))))))
+          (dom/div #js {:className "collection-content"}
+            (if (empty? (:contents collection))
+              (om/build collection-tip collection)
+              (om/build parts/select-list (:hives collection)))))))))
