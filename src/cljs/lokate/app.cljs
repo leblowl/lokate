@@ -70,7 +70,8 @@
                                :drawer collections/collections-view} route-opts)
       :collections:new (route! data [:collection {:id (add-collection data)}])
       :collection  (dispatch! {:controls collection/collection-controls
-                               :drawer collection/collection-view} route-opts))))
+                               :drawer collection/collection-view} route-opts)
+      :point:new (om/update! data [:drawer :open] false))))
 
 (defn dispatch-route [data route]
   (route! data route)

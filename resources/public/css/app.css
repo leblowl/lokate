@@ -49,7 +49,7 @@ a {
 .flex-container {
     position: relative;
     width: 100%;
-    height: 100%;
+    height: calc(100% - 45px);
     margin: 0;
     padding: 0;
 }
