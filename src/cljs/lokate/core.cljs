@@ -8,15 +8,6 @@
 
 (enable-console-print!)
 
-(defn back-btn
-  [data owner {:keys [type-key] :as opts}]
-  (println (:history (:drawer data)))
-  (om/component
-    (dom/div #js {:id "nav-back-btn"
-                  :className "icon-arrow-left2"
-                  :style (display (not (<= (count (:history (:drawer data))) 1)))
-                  :onClick #(put! (om/get-shared owner :nav) [:return])})))
-
 (defn open?
   [drawer]
   (true? (:open drawer)))
@@ -24,6 +15,15 @@
 (defn toggle-open
   [drawer]
   (om/transact! drawer :open not))
+
+(defn back-btn
+  [data owner {:keys [type-key] :as opts}]
+  (println (:history (:drawer data)))
+  (om/component
+    (dom/div #js {:id "nav-back-btn"
+                  :className "icon-arrow-left2"
+                  :style (display (> (count (:history (:drawer data))) 1))
+                  :onClick #(put! (om/get-shared owner :nav) [:return])})))
 
 (defn navicon
   [data owner]
@@ -41,11 +41,14 @@
         (dom/span #js {:className "banner-title"}
           "lokate"))
       (dom/div #js {:className "control-panel"}
-        (om/build back-btn data)
-        (dom/div #js {:id "nav-control"
+        (dom/div #js {:id "drawer-control"
                       :style (display-fade-in (open? (:drawer data)))}
-          (when-let [sub-view (:controls route-views)]
-            (om/build sub-view data {:opts route-opts})))
+          (when (open? (:drawer data))
+            (om/build back-btn data))
+          (dom/div #js {:id "drawer-sub-control"}
+            (when-let [sub-view (:controls route-views)]
+              (when (open? (:drawer data))
+                (om/build sub-view data {:opts route-opts})))))
         (om/build navicon data)))))
 
 (defn drawer
