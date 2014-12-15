@@ -27,19 +27,19 @@
       (do (.setIcon active green-ico)
           (.panTo l-map (.getLatLng active))))))
 
-(defn mark-it! [owner map hive]
-  (let [pos (:pos hive)
+(defn mark-it! [owner map point]
+  (let [pos (:pos point)
         marker (-> js/L
                  (.marker (clj->js pos) #js {:icon blue-ico})
                  (.addTo map))]
 
     (.on marker "click"
-      #(put! (om/get-shared owner :action-chan)
-         [:select :active-hive (om/path hive)]))
+      #(put! (om/get-shared owner :nav)
+         [:route :point {:id (:id point)}]))
 
     (.on marker "contextmenu"
-      #(put! (om/get-shared owner :action-chan)
-         [:delete :active-hive (om/path hive)]))
+      #(put! (om/get-shared owner :nav)
+         [:route :point {:id (:id point)}]))
 
     {:marker marker :pos pos :active false}))
 
@@ -97,11 +97,13 @@
 
         (.on l-map "contextmenu"
           (fn [e]
-            (put! (om/get-shared owner :action-chan)
-              [:add-hive
-               (select-keys
-                 (js->clj (.-latlng e) :keywordize-keys true)
-                 [:lat :lng])])))
+            (println (:route-name data))
+            (when (= (:route-name data) :ready:point:new)
+              (put! (om/get-shared owner :nav)
+                [:route :point:new
+                 {:pos (select-keys
+                         (js->clj (.-latlng e) :keywordize-keys true)
+                         [:lat :lng])}]))))
 
         (if navigator.geolocation
           (.getCurrentPosition navigator.geolocation

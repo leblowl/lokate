@@ -12,45 +12,34 @@
              "lat=" (:lat lat-lng)
              "lng=" (:lng lat-lng))))
 
-(defn new-hive [pos]
-  {:key (pos-key pos)
-   :name nil
-   :origin (fdate-now)
-   :pos pos
-   :notes nil})
-
-(defn add-hive [data pos]
-  (when-let [select-path (:active-place @data)]
-    (let [hive (new-hive pos)]
-      (om/transact! data select-path #(assoc-in % [:hives (:key hive)] hive))
-     (om/update! data :active-hive (conj select-path :hives (:key hive)))
-     (db-add (get-in @data select-path)))))
 
 (defn display-pos [hive]
   (let [pos (:pos hive)]
-    (str
-      "Lat: " (floormat "%.2f" (:lat pos))
-      " Lng: " (floormat "%.2f" (:lng pos)))))
+    (if pos
+      (str
+        "Lat: " (floormat "%.2f" (:lat pos))
+        " Lng: " (floormat "%.2f" (:lng pos)))
+      "Lat: ? Lng: ?")))
 
 (defn display-origin [hive]
   (str "Originated: " (:origin hive)))
 
-(defn hive-info [hive owner {:keys [begin-edit] :as opts}]
-  (reify
-    om/IRender
-    (render [_]
+(defn point-view
+  [data owner {:keys [collection-id id] :as opts}]
+  (om/component
+    (let [point (get-in data [:collections collection-id id])]
       (dom/div #js {:id "info"}
         (dom/span #js {:id "name-editable"
-                       :className "name editable single-line"
-                       :onClick #(begin-edit :name)
+                       :className "name ethief tditable single-line"
+                       :onClick #(.log js/console "hey")
                        :data-ph "Name"
-                       :dangerouslySetInnerHTML #js {:__html (:name hive)}})
+                       :dangerouslySetInnerHTML #js {:__html (:name point)}})
         (dom/div #js {:className "origin"}
-          (display-origin hive))
+          (display-origin point))
         (dom/div #js {:className "location"}
-          (display-pos hive))
+          (display-pos point))
         (dom/div #js {:id "notes-editable"
                       :className "notes editable"
-                      :onClick #(begin-edit :notes)
+                      :onClick #(.log js/console "yo")
                       :data-ph "Notes..."
-                      :dangerouslySetInnerHTML #js {:__html (:notes hive)}})))))
+                      :dangerouslySetInnerHTML #js {:__html (:notes point)}})))))

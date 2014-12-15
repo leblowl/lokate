@@ -4,12 +4,13 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]
-            [lokate.util :refer [distance]]
+            [lokate.util :refer [distance fdate-now]]
             [lokate.core :as core]
             [lokate.map :as map]
             [lokate.home :as home]
             [lokate.collections :as collections]
-            [lokate.collection :as collection]))
+            [lokate.collection :as collection]
+            [lokate.point :as point]))
 
 (def app-state
   (atom {:orientation nil
@@ -17,7 +18,8 @@
                   :history []}
          :collections []
          :route-name nil
-         :route-opts {}}))
+         :route-opts {}
+         :route-views {}}))
 
 (def nav-chan (chan))
 
@@ -36,7 +38,15 @@
 
 (defn new-collection [id]
   {:name nil
-   :hives {}
+   :points []
+   :id id})
+
+(defn new-point [id]
+  {:name nil
+   :origin (fdate-now)
+   :pos []
+   :resources []
+   :notes nil
    :id id})
 
 (defn add-collection
@@ -45,6 +55,15 @@
         to-add (new-collection id)]
     (om/transact! data [:collections] #(conj % to-add))
     (db-add to-add)
+    id))
+
+(defn add-point
+  [data collection-id]
+  (let [ks [:collections collection-id :points]
+        id (count (get-in @data ks))
+        point (new-point id)]
+    (om/transact! data ks #(conj % point))
+    (db-add (get-in @data [:collections collection-id]))
     id))
 
 (defn nearest
@@ -57,21 +76,24 @@
   (om/update! data type-key nil))
 
 (defn dispatch!
-  [data route-views route-opts]
-  (om/update! data :route-views route-views)
-  (om/update! data :route-opts route-opts))
+  [data route-name route-opts route-views]
+  (om/update! data :route-name route-name)
+  (om/update! data :route-opts route-opts)
+  (om/update! data :route-views route-views))
 
 (defn route!
   [data [route-name route-opts]]
-  (let [dispatch! (partial dispatch! data)]
+  (let [dispatch! (partial dispatch! data route-name route-opts)]
     (case route-name
-      :home        (dispatch! {:drawer home/home-view} route-opts)
+      :home        (dispatch! {:drawer home/home-view})
       :collections (dispatch! {:controls collections/collections-controls
-                               :drawer collections/collections-view} route-opts)
+                               :drawer collections/collections-view})
       :collections:new (route! data [:collection {:id (add-collection data)}])
       :collection  (dispatch! {:controls collection/collection-controls
-                               :drawer collection/collection-view} route-opts)
-      :point:new (om/update! data [:drawer :open] false))))
+                               :drawer collection/collection-view})
+      :point:new (route! data [:point {:collection-id (:collection-id route-opts)
+                                       :id (add-point data (:collection-id route-opts))}])
+      :point (dispatch! {:drawer point/point-view}))))
 
 (defn dispatch-route [data route]
   (route! data route)

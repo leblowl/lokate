@@ -5,16 +5,17 @@
             [om.dom :as dom :include-macros true]
             [goog.string :as gstring]
             [lokate.db :refer [db-add]]
-            [lokate.util :refer [blankf]]
+            [lokate.util :refer [blankf fdate-now]]
             [lokate.components :as parts]))
 
 (defn collection-controls
-  [data owner]
+  [data owner {:keys [id] :as opts}]
   (om/component
     (dom/div #js {:id "collection-controls"}
       (dom/div #js {:id "add-point-btn"
                     :className "btn icon-pin"
-                    :onClick #(put! (om/get-shared owner :nav) [:route :point:new])})
+                    :onClick #(put! (om/get-shared owner :nav)
+                                [:route :point:new {:collection-id id}])})
       (dom/div #js {:id "add-sector-btn"
                     :className "btn icon-googleplus"}))))
 
@@ -62,6 +63,6 @@
                            :data-ph "Collection Name"
                            :dangerouslySetInnerHTML #js {:__html (:name collection)}}))
           (dom/div #js {:className "collection-content"}
-            (if (empty? (:contents collection))
+            (if (empty? (:points collection))
               (om/build collection-tip collection)
-              (om/build parts/select-list (:hives collection)))))))))
+              (om/build parts/select-list (:points collection) {:opts {:name-default "Untitled_Point"}}))))))))
