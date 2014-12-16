@@ -4,9 +4,10 @@
             [cljs.core.async :refer [put! <! >! chan timeout]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
+            [clojure.set :as set]
+            [clojure.string :as string]
             [goog.string :as gstring]
             [goog.string.format]
-            [clojure.set :as set]
             [lokate.db :as db :refer [db-add]]))
 
 (defn pos-key [lat-lng]
@@ -14,42 +15,64 @@
              "lat=" (.lat lat-lng)
              "lng=" (.lng lat-lng))))
 
-(def blue-ico (.spriteIcon js/L))
-(def green-ico (.spriteIcon js/L "green"))
+(-> js/L .-AwesomeMarkers .-Icon .-prototype .-options .-prefix (set! "ion"))
+(def green-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "ion-ios-circle-outline"
+                                                     :markerColor "green"
+                                                     :iconColor "#fff"})))
+(def yellow-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "ion-ios-circle-outline"
+                                                      :markerColor "orange"})))
+(def red-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "ion-ios-circle-outline"
+                                                   :markerColor "red"})))
+(defn reset-ico [icon]
+  (-> icon .-options .-icon (set! "ion-ios-circle-outine"))
+  icon)
 
-(defn activate-marker [owner key]
+(defn activate-ico [icon]
+  (-> icon .-options .-icon (set! "ion-ios-circle-filled"))
+  icon)
+
+(defn activate-marker
+  [owner key]
   (let [l-map (om/get-state owner :map)
         markers (om/get-state owner :markers)
         active (om/get-state owner [:markers key :marker])]
-
     (dorun
-      (map #(.setIcon (:marker %) (.spriteIcon js/L)) (vals markers)))
+      (map #(.setIcon (:marker %) (activate-ico (:icon %))) (vals markers)))
     (when active
       (do (.setIcon active green-ico)
           (.panTo l-map (.getLatLng active))))))
 
-(defn mark-it! [owner map point]
+(defn path-to-route
+  [path]
+  (str "/" (string/join "/" (map #(if (keyword? %) (name %) (str %)) path))))
+
+(defn mark-it!
+  [data owner map point]
   (let [pos (:pos point)
+        icon green-ico
         marker (-> js/L
-                 (.marker (clj->js pos) #js {:icon blue-ico})
+                 (.marker (clj->js pos) #js {:icon icon})
                  (.addTo map))]
 
     (.on marker "click"
-      #(put! (om/get-shared owner :nav)
-         [:route :point {:id (:id point)}]))
+      #((do
+          (.log js/console (path-to-route (om/path point)))
+          (om/update! data [:drawer :open] true)
+          (put! (om/get-shared owner :nav)
+            [:route (path-to-route (om/path point))]))))
 
     (.on marker "contextmenu"
       #(put! (om/get-shared owner :nav)
          [:route :point {:id (:id point)}]))
 
-    {:marker marker :pos pos :active false}))
+    {:marker marker :icon icon :pos pos :id (:id point)}))
 
-(defn add-markers [owner units]
+(defn add-markers [data owner units]
   (let [map (om/get-state owner :map)]
     (om/update-state! owner :markers
       #(into % (for [unit units]
                  (when-not (empty? (:pos unit))
-                   (mark-it! owner map unit)))))))
+                   (mark-it! data owner map unit)))))))
 
 (defn add-group [owner places opts]
   (map #({:name (:name %) :group (js/L.MarkerClusterGroup.)})))
@@ -82,7 +105,7 @@
             to-delete (set/difference current-units next-units)]
 
         ;(delete-markers owner to-delete)
-        (add-markers owner to-add)
+        (add-markers data owner to-add)
         ;(activate-marker owner (last active-hive))
         ))
 
@@ -120,7 +143,7 @@
 
 
         (om/set-state! owner :map l-map)
-        (add-markers owner (reduce into [] (map :points collections)))))
+        (add-markers data owner (reduce into [] (map :points collections)))))
 
     om/IRenderState
     (render-state [_ {:keys [markers]}]

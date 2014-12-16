@@ -520,3 +520,8 @@ a {
     border-top: 0.5em double rgba(33, 150, 255, 0.9);
     border-bottom: 0.2em solid rgba(33, 150, 255, 0.9);
 }
+
+.awesome-marker i {
+    font-size: 2em;
+    margin-top: 5px;
+}
