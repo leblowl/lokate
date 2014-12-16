@@ -24,7 +24,7 @@
 (def red-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "ion-ios-circle-outline"
                                                    :markerColor "red"})))
 (defn reset-ico [icon]
-  (-> icon .-options .-icon (set! "ion-ios-circle-outine"))
+  (-> icon .-options .-icon (set! "ion-ios-circle-outline"))
   icon)
 
 (defn activate-ico [icon]
@@ -32,15 +32,15 @@
   icon)
 
 (defn activate-marker
-  [owner key]
+  [owner id]
   (let [l-map (om/get-state owner :map)
         markers (om/get-state owner :markers)
-        active (om/get-state owner [:markers key :marker])]
+        active (om/get-state owner [:markers id])]
     (dorun
-      (map #(.setIcon (:marker %) (activate-ico (:icon %))) (vals markers)))
+      (map #(.setIcon (:marker %) (reset-ico (:icon %))) markers))
     (when active
-      (do (.setIcon active green-ico)
-          (.panTo l-map (.getLatLng active))))))
+      (do (.setIcon (:marker active) (activate-ico (:icon active)))
+          (.panTo l-map (.getLatLng (:marker active)))))))
 
 (defn path-to-route
   [path]
@@ -55,11 +55,11 @@
                  (.addTo map))]
 
     (.on marker "click"
-      #((do
-          (.log js/console (path-to-route (om/path point)))
-          (om/update! data [:drawer :open] true)
-          (put! (om/get-shared owner :nav)
-            [:route (path-to-route (om/path point))]))))
+      (fn []
+        (.log js/console (path-to-route (om/path point)))
+        (om/update! data [:drawer :open] true)
+        (put! (om/get-shared owner :nav)
+          [:route (path-to-route (om/path point))])))
 
     (.on marker "contextmenu"
       #(put! (om/get-shared owner :nav)
@@ -98,7 +98,7 @@
        :map nil})
 
     om/IWillReceiveProps
-    (will-receive-props [this {:keys [collections active-place active-hive] :as next-props}]
+    (will-receive-props [this {:keys [collections] :as next-props}]
       (let [next-units (reduce into #{} (map :points collections))
             current-units (reduce into #{} (map :points (:collections (om/get-props owner))))
             to-add (set/difference next-units current-units)
@@ -106,8 +106,9 @@
 
         ;(delete-markers owner to-delete)
         (add-markers data owner to-add)
-        ;(activate-marker owner (last active-hive))
-        ))
+        (when (re-matches #"/collections/(\d+)/points/(\d+)" (:route-name next-props))
+          (let [point-id (get-in next-props [:route-opts :point-id])]
+            (activate-marker owner point-id)))))
 
     om/IDidMount
     (did-mount [_]
