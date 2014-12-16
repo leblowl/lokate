@@ -125,24 +125,6 @@ a {
     transform: translate3d(0, 0, 0);
 }
 
-#info {
-    width: 100%;
-    height: 100%;
-    padding: .5em;
-    display: flex;
-    flex-direction: column;
-}
-
-#info .origin {
-    width: 100%;
-    padding: 4px;
-}
-
-#info .location {
-    width: 100%;
-    padding: 4px;
-}
-
 #name-editable {
     height: 33px;
     display: flex;
@@ -322,6 +304,15 @@ a {
 
 .location-tip-msg {
     margin-left: 4px;
+}
+
+.location {
+    position: relative;
+    right: 2px;
+}
+
+.location-lat-lng {
+    padding-left: 3px;
 }
 
 [contentEditable="true"]:focus {

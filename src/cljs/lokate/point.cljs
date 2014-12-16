@@ -42,7 +42,9 @@
                 (dom/span #js {:className "location-tip-msg"}
                   "Right click or long press on the map to add a location to your unit!")))
             (dom/div #js {:className "location"}
-              (display-pos (:pos point)))))))))
+              (dom/span #js {:className "img icon-pin status"
+                             :style #js {:color "green"}})
+              (dom/span #js {:className "location-lat-lng"} (display-pos (:pos point))))))))))
 
 (defn notes-save []
   (dom/div #js {:id "notes-editable"

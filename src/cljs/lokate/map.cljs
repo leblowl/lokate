@@ -17,12 +17,12 @@
 
 (-> js/L .-AwesomeMarkers .-Icon .-prototype .-options .-prefix (set! "ion"))
 (def green-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "ion-ios-circle-outline"
-                                                     :markerColor "green"
-                                                     :iconColor "#fff"})))
+                                                     :markerColor "lightgreen"
+                                                     :iconColor "#212121"})))
 (def yellow-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "ion-ios-circle-outline"
-                                                      :markerColor "orange"})))
+                                                      :markerColor "beige"})))
 (def red-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "ion-ios-circle-outline"
-                                                   :markerColor "red"})))
+                                                   :markerColor "lightred"})))
 (defn reset-ico [icon]
   (-> icon .-options .-icon (set! "ion-ios-circle-outline"))
   icon)
