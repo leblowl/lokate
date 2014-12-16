@@ -15,12 +15,12 @@
 
 (def app-state
   (atom {:orientation nil
-         :drawer {:open false
-                  :history []}
+         :drawer {:open false}
          :collections []
          :route-name nil
          :route-opts {}
-         :route-views {}}))
+         :route-views {}
+         :return-to nil}))
 
 (def nav-chan (chan))
 
@@ -77,21 +77,18 @@
   (om/update! data type-key nil))
 
 (defn route!
-  ([data route-name route-views]
-     (route! data route-name route-views nil))
-  ([data route-name route-views route-opts]
+  ([data route-name route-views return-to]
+     (route! data route-name route-views return-to nil))
+  ([data route-name route-views return-to route-opts]
      (.log js/console (str "history: " (:history (:drawer @data))))
      (.log js/console (str "route: " route-name))
      (om/update! data [:route-name] route-name)
      (om/update! data [:route-views] route-views)
      (om/update! data [:route-opts] route-opts)
-     (om/transact! data [:drawer :history]
-       #(if (not= (last %) route-name) (conj % route-name) %))))
+     (om/update! data [:return-to] return-to)))
 
 (defn return! [data]
-  (om/transact! data [:drawer :history] pop)
-  (let [return-to (last (:history (:drawer @data)))]
-    (linda/dispatch! return-to)))
+  (linda/dispatch! (:return-to @data)))
 
 (defn app [data owner]
   (reify
@@ -101,14 +98,16 @@
         []
         (route! data
           "/home"
-          {:drawer home/home-view}))
+          {:drawer home/home-view}
+          nil))
 
       (linda/defroute "/collections"
         []
         (route! data
           "/collections"
           {:controls collections/collections-controls
-           :drawer collections/collections-view}))
+           :drawer collections/collections-view}
+          "/home"))
 
       (linda/defroute "/collections/new"
         []
@@ -120,6 +119,7 @@
           (str "/collections/" collection-id)
           {:controls collection/collection-controls
            :drawer collection/collection-view}
+          "/collections"
           {:id (int collection-id)}))
 
       (linda/defroute #"/collections/(\d+)/points/new"
@@ -133,6 +133,7 @@
           (str "/collections/" collection-id
             "/points/" point-id)
           {:drawer point/point-view}
+          (str "/collections/" collection-id)
           {:collection-id (int collection-id)
            :point-id (int point-id)}))
 

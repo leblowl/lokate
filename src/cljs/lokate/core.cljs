@@ -21,7 +21,7 @@
   (om/component
     (dom/div #js {:id "nav-back-btn"
                   :className "icon-arrow-left2"
-                  :style (display (> (count (:history (:drawer data))) 1))
+                  :style (display (:return-to data))
                   :onClick #(put! (om/get-shared owner :nav) [:return])})))
 
 (defn navicon
