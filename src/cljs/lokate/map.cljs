@@ -31,13 +31,15 @@
   (-> icon .-options .-icon (set! "ion-ios-circle-filled"))
   icon)
 
+(defn reset-markers [owner]
+  (let [markers (om/get-state owner :markers)]
+    (dorun
+      (map #(.setIcon (:marker %) (reset-ico (:icon %))) markers))))
+
 (defn activate-marker
   [owner id]
   (let [l-map (om/get-state owner :map)
-        markers (om/get-state owner :markers)
         active (om/get-state owner [:markers id])]
-    (dorun
-      (map #(.setIcon (:marker %) (reset-ico (:icon %))) markers))
     (when active
       (do (.setIcon (:marker active) (activate-ico (:icon active)))
           (.panTo l-map (.getLatLng (:marker active)))))))
@@ -56,7 +58,6 @@
 
     (.on marker "click"
       (fn []
-        (.log js/console (path-to-route (om/path point)))
         (om/update! data [:drawer :open] true)
         (put! (om/get-shared owner :nav)
           [:route (path-to-route (om/path point))])))
@@ -106,6 +107,7 @@
 
         ;(delete-markers owner to-delete)
         (add-markers data owner to-add)
+        (reset-markers owner)
         (when (re-matches #"/collections/(\d+)/points/(\d+)" (:route-name next-props))
           (let [point-id (get-in next-props [:route-opts :point-id])]
             (activate-marker owner point-id)))))
