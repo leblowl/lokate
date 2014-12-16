@@ -12,6 +12,12 @@
              "lat=" (:lat lat-lng)
              "lng=" (:lng lat-lng))))
 
+(defn status-color [status]
+  (case status
+    "green"  "#bbf970"
+    "yellow" "#ffc991"
+    "red"    "#ff8e7f"))
+
 (defn display-pos [pos]
   (str
     "Lat: " (floormat "%.2f" (:lat pos))
@@ -43,7 +49,7 @@
                   "Right click or long press on the map to add a location to your unit!")))
             (dom/div #js {:className "location"}
               (dom/span #js {:className "img icon-pin status"
-                             :style #js {:color "green"}})
+                             :style #js {:color (status-color "green")}})
               (dom/span #js {:className "location-lat-lng"} (display-pos (:pos point))))))))))
 
 (defn notes-save []
