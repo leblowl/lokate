@@ -3,6 +3,7 @@
   (:require [cljs.core.async :refer [put! <! >! chan timeout]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
+            [secretary.core :as linda :include-macros true]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]
             [lokate.util :refer [distance fdate-now]]
             [lokate.core :as core]
@@ -75,51 +76,76 @@
   (om/transact! data (pop select-path) #(dissoc % (peek select-path)))
   (om/update! data type-key nil))
 
-(defn dispatch!
-  [data route-name route-opts route-views]
-  (om/update! data :route-name route-name)
-  (om/update! data :route-opts route-opts)
-  (om/update! data :route-views route-views))
-
 (defn route!
-  [data [route-name route-opts]]
-  (let [dispatch! (partial dispatch! data route-name route-opts)]
-    (case route-name
-      :home        (dispatch! {:drawer home/home-view})
-      :collections (dispatch! {:controls collections/collections-controls
-                               :drawer collections/collections-view})
-      :collections:new (route! data [:collection {:id (add-collection data)}])
-      :collection  (dispatch! {:controls collection/collection-controls
-                               :drawer collection/collection-view})
-      :point:new (route! data [:point {:collection-id (:collection-id route-opts)
-                                       :id (add-point data (:collection-id route-opts))}])
-      :point (dispatch! {:drawer point/point-view}))))
+  ([data route-name route-views]
+     (route! data route-name route-views nil))
+  ([data route-name route-views route-opts]
+     (om/update! data [:route-name] route-name)
+     (om/update! data [:route-views] route-views)
+     (om/update! data [:route-opts] route-opts)
+     (om/transact! data [:drawer :history]
+       #(if (not= (last %) route-name) (conj % route-name) %))))
 
-(defn dispatch-route [data route]
-  (route! data route)
-  (swap! app-state update-in [:drawer :history]
-    #(if (not= (last %) route) (conj % route) %)))
-
-(defn dispatch-return [data]
-  (swap! app-state update-in [:drawer :history] pop)
-  (let [return-to (last (:history (:drawer @app-state)))]
-    (route! data return-to)))
+(defn return! [data]
+  (om/transact! data [:drawer :history] pop)
+  (let [return-to (last (:history (:drawer @data)))]
+    (linda/dispatch! return-to)))
 
 (defn app [data owner]
   (reify
     om/IWillMount
     (will-mount [_]
+      (linda/defroute "/home"
+        []
+        (route! data
+          "/home"
+          {:drawer home/home-view}))
+
+      (linda/defroute "/collections"
+        []
+        (route! data
+          "/collections"
+          {:controls collections/collections-controls
+           :drawer collections/collections-view}))
+
+      (linda/defroute "/collections/new"
+        []
+        (linda/dispatch! (str "/collections/" (add-collection data))))
+
+      (linda/defroute #"/collections/(\d+)"
+        [collection-id]
+        (route! data
+          (str "/collections/" collection-id)
+          {:controls collection/collection-controls
+           :drawer collection/collection-view}
+          {:id (int collection-id)}))
+
+      (linda/defroute #"/collections/(\d+)/points/new"
+        [collection-id]
+        (linda/dispatch! (str "/collections/" collection-id
+                           "/points/" (add-point data (int collection-id)))))
+
+      (linda/defroute #"/collections/(\d+)/points/(\d+)"
+        [collection-id point-id]
+        (route! data
+          (str "/collections/" collection-id
+            "/points/" point-id)
+          {:drawer point/point-view}))
+
+      (linda/defroute "*" []
+        (.log js/console "Route not found... >.< !"))
+
       (let [nav (om/get-shared owner :nav)]
         (go-loop []
           (let [cmd (<! nav)]
             (case (first cmd)
-              :route  (dispatch-route data (rest cmd))
-              :return (dispatch-return data)))
+              :route (linda/dispatch! (second cmd))
+              :return (return! data)))
           (recur))))
 
     om/IDidMount
     (did-mount [_]
-      (put! (om/get-shared owner :nav) [:route :home]))
+      (put! (om/get-shared owner :nav) [:route "/home"]))
 
     om/IRender
     (render [_]

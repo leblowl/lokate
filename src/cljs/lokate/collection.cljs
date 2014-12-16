@@ -15,7 +15,7 @@
       (dom/div #js {:id "add-point-btn"
                     :className "btn icon-pin"
                     :onClick #(put! (om/get-shared owner :nav)
-                                [:route :point:new {:collection-id id}])})
+                                [:route (str "/collections/" id "/points/new")])})
       (dom/div #js {:id "add-sector-btn"
                     :className "btn icon-googleplus"}))))
 

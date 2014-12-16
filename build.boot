@@ -8,6 +8,7 @@
                         [org.clojure/clojurescript "0.0-2371"]
                         [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                         [om "0.8.0-beta3"]
+                        [secretary "1.2.1"]
                         [ring "1.3.1"]
                         [compojure "1.2.1"]
                         [http-kit "2.1.19"]])

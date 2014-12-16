@@ -8,11 +8,11 @@
     om/IInitState
     (init-state [_]
       {:home-selects [{:name "Collections"
-                       :path [:route :collections]}
+                       :path [:route "/collections"]}
                       {:name "Resources"
-                       :path [:route :resources]}
+                       :path [:route "/resources"]}
                       {:name "Tasks"
-                       :path [:route :tasks]}]})
+                       :path [:route "/tasks"]}]})
     om/IRenderState
     (render-state [_ {:keys [home-selects]}]
      (dom/div #js {:id "home"}

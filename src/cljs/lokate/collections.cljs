@@ -10,7 +10,7 @@
   (om/component
     (dom/div #js {:id "nav-add-btn"
                   :className "btn icon-plus"
-                  :onClick #(put! (om/get-shared owner :nav) [:route :collections:new])})))
+                  :onClick #(put! (om/get-shared owner :nav) [:route "/collections/new"])})))
 
 (defn collections-controls
   [{:keys [collections] :as data} owner]
@@ -25,5 +25,5 @@
       (dom/div #js {:id "collections"}
         (om/build parts/select-list
           collections {:opts {:name-default "Untitled_Collection"
-                              :path-fn (fn [_] [:route :collection {:id (:id _)}])
+                              :path-fn (fn [_] [:route (str "/collections/" (:id _))])
                               :props {:onContextMenu #(false)}}})))))
