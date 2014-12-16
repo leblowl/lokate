@@ -51,11 +51,3 @@
               (dom/span #js {:className "img icon-pin status"
                              :style #js {:color (status-color "green")}})
               (dom/span #js {:className "location-lat-lng"} (display-pos (:pos point))))))))))
-
-(defn notes-save []
-  (dom/div #js {:id "notes-editable"
-                :className "notes editable"
-                :onClick #(.log js/console "yo")
-                :data-ph "Notes..."
-                :dangerouslySetInnerHTML #js {:__html (:notes ;point
-                                                       )}}))
