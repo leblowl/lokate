@@ -28,7 +28,7 @@
   [data owner {:keys [collection-id id] :as opts}]
   (om/component
     (let [point (get-in data [:collections collection-id id])]
-      (dom/div #js {:id "info"}
+      (dom/div #js {:id "collection-info"}
         (dom/span #js {:id "name-editable"
                        :className "name ethief tditable single-line"
                        :onClick #(.log js/console "hey")
