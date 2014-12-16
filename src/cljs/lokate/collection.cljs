@@ -28,7 +28,7 @@
         (dom/span #js {:className "img icon-pin"})
         " or "
         (dom/span #js {:className "gplus-img img icon-googleplus"})
-        " to add a point or sector to your collection!"))))
+        " to add a unit or unit sector to your collection!"))))
 
 (defn collection-view
   [data owner {:keys [id] :as opts}]
@@ -46,7 +46,7 @@
           (dom/div #js {:className "info-content"}
             (if (empty? (:points collection))
               (om/build collection-tip collection)
-              (om/build parts/select-list (:points collection) {:opts {:name-default "Untitled_Point"
+              (om/build parts/select-list (:points collection) {:opts {:name-default "Untitled_Unit"
                                                                        :path-fn (fn [_] [:route (str "/collections/" id
                                                                                                  "/points/"(:id _))])
                                                                        :props {:onContextMenu #(false)}}}))))))))

@@ -32,7 +32,7 @@
                       :className "editable"
                       :onClick #(begin-edit point)}
           (dom/span #js {:className "editable-title"
-                         :data-ph "Point Name"
+                         :data-ph "Unit Name"
                          :dangerouslySetInnerHTML #js {:__html (:name point)}}))
         (dom/div #js {:id "point-content"
                       :className "info-content"}
