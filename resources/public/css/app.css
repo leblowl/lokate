@@ -302,6 +302,10 @@ a {
     flex-direction: column;
 }
 
+#point-content {
+    padding: .5em;
+}
+
 [contentEditable="true"]:focus {
     cursor: text;
     box-shadow: inset 0px 0px 0pt 1pt rgb(33, 255, 150);

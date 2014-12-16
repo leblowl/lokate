@@ -34,7 +34,8 @@
           (dom/span #js {:className "editable-title"
                          :data-ph "Point Name"
                          :dangerouslySetInnerHTML #js {:__html (:name point)}}))
-        (dom/div #js {:className "info-content"}
+        (dom/div #js {:id "point-content"
+                      :className "info-content"}
           (dom/div #js {:className "origin"}
             (display-origin point))
           (dom/div #js {:className "location"}
