@@ -130,7 +130,9 @@
         (route! data
           (str "/collections/" collection-id
             "/points/" point-id)
-          {:drawer point/point-view}))
+          {:drawer point/point-view}
+          {:collection-id (int collection-id)
+           :point-id (int point-id)}))
 
       (linda/defroute "*" []
         (.log js/console "Route not found... >.< !"))

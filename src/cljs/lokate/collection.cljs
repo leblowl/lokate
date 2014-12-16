@@ -6,7 +6,7 @@
             [goog.string :as gstring]
             [lokate.db :refer [db-add]]
             [lokate.util :refer [blankf fdate-now]]
-            [lokate.components :as parts]))
+            [lokate.components :as parts :refer [begin-edit]]))
 
 (defn collection-controls
   [data owner {:keys [id] :as opts}]
@@ -18,25 +18,6 @@
                                 [:route (str "/collections/" id "/points/new")])})
       (dom/div #js {:id "add-sector-btn"
                     :className "btn icon-googleplus"}))))
-
-(defn edit [data owner {:keys [edit-key on-edit] :as opts}]
-  (om/component
-    (dom/div #js {:id "overlay"}
-      (om/build parts/input data {:opts {:id "name-input"
-                                         :className "name input single-line"
-                                         :edit-key edit-key
-                                         :on-edit on-edit
-                                         :on-key-down (fn [e] (if (= (.-keyCode e) 13) false))}}))))
-
-(defn on-edit [data edit-key res]
-  (om/update! data edit-key (blankf (gstring/unescapeEntities res)))
-  (db-add @data)
-  (om/detach-root (.getElementById js/document "overlay-root")))
-
-(defn begin-edit [data]
-  (om/root edit data {:target (.getElementById js/document "overlay-root")
-                      :opts {:edit-key :name
-                             :on-edit (partial on-edit data :name)}}))
 
 (defn collection-tip
   [data owner]

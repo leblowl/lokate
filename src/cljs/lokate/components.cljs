@@ -3,7 +3,8 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [goog.string :as gstring]
-            [lokate.util :refer [display]]))
+            [lokate.util :refer [display blankf]]
+            [lokate.db :refer [db-add]]))
 
 (defn input [data owner {:keys [id className edit-key on-edit on-key-down] :as opts}]
   (reify
@@ -40,3 +41,22 @@
   (om/component
     (apply dom/ol #js {:className "select-list"}
         (om/build-all select selectables {:opts opts}))))
+
+(defn edit [data owner {:keys [edit-key on-edit] :as opts}]
+  (om/component
+    (dom/div #js {:id "overlay"}
+      (om/build input data {:opts {:id "name-input"
+                                   :className "name input single-line"
+                                   :edit-key edit-key
+                                   :on-edit on-edit
+                                   :on-key-down (fn [e] (if (= (.-keyCode e) 13) false))}}))))
+
+(defn on-edit [data edit-key res]
+  (om/update! data edit-key (blankf (gstring/unescapeEntities res)))
+  (db-add @data)
+  (om/detach-root (.getElementById js/document "overlay-root")))
+
+(defn begin-edit [data]
+  (om/root edit data {:target (.getElementById js/document "overlay-root")
+                      :opts {:edit-key :name
+                             :on-edit (partial on-edit data :name)}}))
