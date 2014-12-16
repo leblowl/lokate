@@ -51,12 +51,12 @@
                                    :on-edit on-edit
                                    :on-key-down (fn [e] (if (= (.-keyCode e) 13) false))}}))))
 
-(defn on-edit [data edit-key res]
+(defn on-edit [app-data data edit-key id res]
   (om/update! data edit-key (blankf (gstring/unescapeEntities res)))
-  (db-add @data)
+  (db-add (get-in @app-data [:collections id]))
   (om/detach-root (.getElementById js/document "overlay-root")))
 
-(defn begin-edit [data]
+(defn begin-edit [app-data data id]
   (om/root edit data {:target (.getElementById js/document "overlay-root")
                       :opts {:edit-key :name
-                             :on-edit (partial on-edit data :name)}}))
+                             :on-edit (partial on-edit app-data data :name id)}}))

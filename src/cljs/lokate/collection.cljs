@@ -39,7 +39,7 @@
         (dom/div #js {:className "info"}
           (dom/div #js {:id "name-editable"
                         :className "editable"
-                        :onClick #(begin-edit collection)}
+                        :onClick #(begin-edit data collection id)}
             (dom/span #js {:className "editable-title"
                            :data-ph "Collection Name"
                            :dangerouslySetInnerHTML #js {:__html (:name collection)}}))

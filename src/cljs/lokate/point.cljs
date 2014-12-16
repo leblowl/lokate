@@ -12,13 +12,10 @@
              "lat=" (:lat lat-lng)
              "lng=" (:lng lat-lng))))
 
-(defn display-pos [point]
-  (let [pos (:pos point)]
-    (if-not (empty? pos)
-      (str
-        "Lat: " (floormat "%.2f" (:lat pos))
-        " Lng: " (floormat "%.2f" (:lng pos)))
-      "Lat: ? Lng: ?")))
+(defn display-pos [pos]
+  (str
+    "Lat: " (floormat "%.2f" (:lat pos))
+    " Lng: " (floormat "%.2f" (:lng pos))))
 
 (defn display-origin [point]
   (str "Originated: " (:origin point)))
@@ -30,7 +27,7 @@
       (dom/div #js {:className "info"}
         (dom/div #js {:id "name-editable"
                       :className "editable"
-                      :onClick #(begin-edit point)}
+                      :onClick #(begin-edit data point collection-id)}
           (dom/span #js {:className "editable-title"
                          :data-ph "Unit Name"
                          :dangerouslySetInnerHTML #js {:__html (:name point)}}))
@@ -39,7 +36,10 @@
           (dom/div #js {:className "origin"}
             (display-origin point))
           (dom/div #js {:className "location"}
-            (display-pos point)))))))
+            (if (empty? (:pos point))
+              (dom/span #js {:className "location-tip"}
+                "Right click or long press on the map to add a location for your unit!")
+              (display-pos (:pos point)))))))))
 
 (defn notes-save []
   (dom/div #js {:id "notes-editable"
