@@ -35,10 +35,13 @@
                       :className "info-content"}
           (dom/div #js {:className "origin"}
             (display-origin point))
-          (dom/div #js {:className "location"}
-            (if (empty? (:pos point))
-              (dom/span #js {:className "location-tip"}
-                "Right click or long press on the map to add a location to your unit!")
+          (if (empty? (:pos point))
+            (dom/div #js {:className "location-tip-wrapper"}
+              (dom/div #js {:className "location-tip"}
+                (dom/span #js {:className "img icon-pin"})
+                (dom/span #js {:className "location-tip-msg"}
+                  "Right click or long press on the map to add a location to your unit!")))
+            (dom/div #js {:className "location"}
               (display-pos (:pos point)))))))))
 
 (defn notes-save []
