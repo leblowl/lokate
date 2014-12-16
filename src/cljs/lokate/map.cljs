@@ -33,6 +33,7 @@
 
 (defn reset-markers [owner]
   (let [markers (om/get-state owner :markers)]
+    (.log js/console (pr-str markers))
     (dorun
       (map #(.setIcon (:marker %) (reset-ico (:icon %))) markers))))
 
@@ -69,11 +70,11 @@
     {:marker marker :icon icon :pos pos :id (:id point)}))
 
 (defn add-markers [data owner units]
-  (let [map (om/get-state owner :map)]
+  (let [map (om/get-state owner :map)
+        units (filter (comp not empty? :pos) units)]
     (om/update-state! owner :markers
       #(into % (for [unit units]
-                 (when-not (empty? (:pos unit))
-                   (mark-it! data owner map unit)))))))
+                 (mark-it! data owner map unit))))))
 
 (defn add-group [owner places opts]
   (map #({:name (:name %) :group (js/L.MarkerClusterGroup.)})))
