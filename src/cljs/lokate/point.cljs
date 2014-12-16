@@ -38,7 +38,7 @@
           (dom/div #js {:className "location"}
             (if (empty? (:pos point))
               (dom/span #js {:className "location-tip"}
-                "Right click or long press on the map to add a location for your unit!")
+                "Right click or long press on the map to add a location to your unit!")
               (display-pos (:pos point)))))))))
 
 (defn notes-save []
