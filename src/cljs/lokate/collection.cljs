@@ -55,14 +55,14 @@
     om/IRender
     (render [_]
       (let [collection (get (:collections data) id)]
-        (dom/div #js {:className "collection-info"}
+        (dom/div #js {:className "info"}
           (dom/div #js {:id "name-editable"
                         :className "editable"
                         :onClick #(begin-edit collection)}
             (dom/span #js {:className "editable-title"
                            :data-ph "Collection Name"
                            :dangerouslySetInnerHTML #js {:__html (:name collection)}}))
-          (dom/div #js {:className "collection-content"}
+          (dom/div #js {:className "info-content"}
             (if (empty? (:points collection))
               (om/build collection-tip collection)
               (om/build parts/select-list (:points collection) {:opts {:name-default "Untitled_Point"
