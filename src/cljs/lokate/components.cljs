@@ -28,7 +28,6 @@
 
 (defn select [selectable owner {:keys [props name-default path-fn] :as opts}]
   (om/component
-    (.log js/console (pr-str selectable))
     (dom/li #js {:className "select-list-item"}
       (dom/a (clj->js
               (merge {:className "select"

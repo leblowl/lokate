@@ -80,6 +80,8 @@
   ([data route-name route-views]
      (route! data route-name route-views nil))
   ([data route-name route-views route-opts]
+     (.log js/console (str "history: " (:history (:drawer @data))))
+     (.log js/console (str "route: " route-name))
      (om/update! data [:route-name] route-name)
      (om/update! data [:route-views] route-views)
      (om/update! data [:route-opts] route-opts)

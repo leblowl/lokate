@@ -18,7 +18,6 @@
 
 (defn back-btn
   [data owner {:keys [type-key] :as opts}]
-  (println (:history (:drawer data)))
   (om/component
     (dom/div #js {:id "nav-back-btn"
                   :className "icon-arrow-left2"
