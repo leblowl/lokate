@@ -132,7 +132,8 @@
         (route! data
           (str "/collections/" collection-id
             "/points/" point-id)
-          {:drawer point/point-view}
+          {:controls point/point-controls
+           :drawer point/point-view}
           (str "/collections/" collection-id)
           {:collection-id (int collection-id)
            :point-id (int point-id)}))

@@ -7,11 +7,6 @@
             [lokate.util :refer [display display-fade-in fdate-now floormat distance]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]))
 
-(defn pos-key [lat-lng]
-  (keyword (str
-             "lat=" (:lat lat-lng)
-             "lng=" (:lng lat-lng))))
-
 (defn status-color [status]
   (case status
     "green"  "#bbf970"
@@ -25,6 +20,16 @@
 
 (defn display-origin [point]
   (str "Originated: " (:origin point)))
+
+(defn point-controls
+  [data owner {:keys [collection-id point-id] :as opts}]
+  (om/component
+    (let [point (get-in data [:collections collection-id :points point-id])]
+      (when (-> point :pos (comp not empty?))
+        (dom/div #js {:id "check-in-btn"
+                      :className "btn icon-in-alt"
+                      :onClick #(put! (om/get-shared owner :nav)
+                                  [:route (str "/collections/" collection-id "/points/" point-id)])})))))
 
 (defn point-view
   [data owner {:keys [collection-id point-id] :as opts}]

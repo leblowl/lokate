@@ -472,6 +472,10 @@ a {
     color: rgb(33, 255, 150);
 }
 
+#check-in-btn {
+    margin-right: .3em;
+}
+
 #nav-back-btn {
     width: 20px;
     font-size: 1.3em;
