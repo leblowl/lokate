@@ -33,7 +33,6 @@
 
 (defn reset-markers [owner]
   (let [markers (om/get-state owner :markers)]
-    (.log js/console (pr-str markers))
     (dorun
       (map #(.setIcon (:marker %) (reset-ico (:icon %))) markers))))
 
@@ -70,8 +69,7 @@
     {:marker marker :icon icon :pos pos :id (:id point)}))
 
 (defn add-markers [data owner units]
-  (let [map (om/get-state owner :map)
-        units (filter (comp not empty? :pos) units)]
+  (let [map (om/get-state owner :map)]
     (om/update-state! owner :markers
       #(into % (for [unit units]
                  (mark-it! data owner map unit))))))
@@ -79,12 +77,18 @@
 (defn add-group [owner places opts]
   (map #({:name (:name %) :group (js/L.MarkerClusterGroup.)})))
 
+(defn in?
+  "true if seq contains elm"
+  [seq elm]
+  (some #(= elm %) seq))
+
 (defn delete-markers [owner units]
   (let [l-map (om/get-state owner :map)]
     (dorun
-     (map #(.removeLayer l-map (om/get-state owner [:markers % :marker]))
-       (map :id units))))
-  (om/update-state! owner :markers #(apply dissoc % (map first units))))
+      (map #(.removeLayer l-map (om/get-state owner [:markers % :marker]))
+        (map :id units))))
+  (om/update-state! owner :markers
+    #(into [] (filter (comp not (partial in? (map :id units)) :id) %))))
 
 (defn cancel-action [owner]
   (js/clearTimeout (om/get-state owner :evt-timeout))
@@ -101,12 +105,16 @@
 
     om/IWillReceiveProps
     (will-receive-props [this {:keys [collections] :as next-props}]
-      (let [next-units (reduce into #{} (map :points collections))
-            current-units (reduce into #{} (map :points (:collections (om/get-props owner))))
+      (let [next-units (set/select (comp not empty? :pos)
+                         (reduce into #{}
+                           (map :points collections)))
+            current-units (set/select (comp not empty? :pos)
+                            (reduce into #{}
+                              (map :points (:collections (om/get-props owner)))))
             to-add (set/difference next-units current-units)
             to-delete (set/difference current-units next-units)]
 
-        ;(delete-markers owner to-delete)
+        (delete-markers owner to-delete)
         (add-markers data owner to-add)
         (reset-markers owner)
         (when (re-matches #"/collections/(\d+)/points/(\d+)" (:route-name next-props))
