@@ -14,12 +14,13 @@
             [lokate.point :as point]
             [lokate.resources :as resources]))
 
-(declare home resources)
+(declare home resources resource)
 
 (def app-state
   (atom {:orientation nil
          :drawer {:open false}
          :collections []
+         :resources []
          :route-name nil
          :route-opts {}
          :route-views {}
@@ -27,10 +28,10 @@
 
 (def nav-chan (chan))
 
-(defn init-app-state [result]
+(defn init-app-state [key result]
   (swap! app-state
     (fn [m]
-      (update-in m [:collections]
+      (update-in m [key]
         #(conj % (js->clj (.-value result) :keywordize-keys true))))))
 
 (defn on-resize []
@@ -58,7 +59,7 @@
   (let [id (count (:collections @data))
         to-add (new-collection id)]
     (om/transact! data [:collections] #(conj % to-add))
-    (db-add to-add)
+    (db-add "collection" to-add)
     id))
 
 (defn add-point
@@ -67,7 +68,7 @@
         id (count (get-in @data ks))
         point (new-point id)]
     (om/transact! data ks #(conj % point))
-    (db-add (get-in @data [:collections collection-id]))
+    (db-add "collection" (get-in @data [:collections collection-id]))
     id))
 
 (defn nearest
@@ -98,6 +99,7 @@
     om/IWillMount
     (will-mount [_]
       ; use secretary's named routes feature for those calling nav chan!
+      ; do named routes support regex???
       (linda/defroute home "/home"
         []
         (route! data
@@ -149,6 +151,12 @@
            :drawer resources/resources-view}
           (home)))
 
+      (linda/defroute resource "/resources/:id" [id]
+        (route! data
+          (resource {:id id})
+          {}
+          (resources)))
+
       (linda/defroute "*" []
         (.log js/console "Route not found... >.< !"))
 
@@ -181,6 +189,8 @@
   (.addEventListener js/window "resize" on-resize)
   (on-resize)
   (db-new
-    #(db-get-all init-app-state render)))
+    (fn []
+      (db-get-all "collection" (partial init-app-state :collections)
+        #(db-get-all "resource" (partial init-app-state :resources) render)))))
 
 (go!)

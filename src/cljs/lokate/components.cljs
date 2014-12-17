@@ -26,14 +26,13 @@
           (dom/span #js {:id "input-ok-mark"}
             (gstring/unescapeEntities "&#10003;")))))))
 
-(defn select [selectable owner {:keys [props name-default path-fn] :as opts}]
+(defn select [selectable owner {:keys [name-default path-fn] :as opts}]
   (om/component
     (dom/li #js {:className "select-list-item"}
-      (dom/a (clj->js
-              (merge {:className "select"
-                      :onClick #(put! (om/get-shared owner :nav)
-                                  (or (:path selectable)
-                                    (path-fn selectable)))} props))
+      (dom/a #js {:className "select"
+                  :onClick #(put! (om/get-shared owner :nav)
+                              (or (:path selectable)
+                                (path-fn selectable)))}
         (dom/span #js {:className "select-title"} (or (:name selectable) name-default))))))
 
 (defn select-list [selectables owner opts]
