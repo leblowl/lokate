@@ -20,7 +20,7 @@
   [data owner {:keys [type-key] :as opts}]
   (om/component
     (dom/div #js {:id "nav-back-btn"
-                  :className "icon-arrow-left2"
+                  :className "icon-arrow-left"
                   :style (display (:return-to data))
                   :onClick #(put! (om/get-shared owner :nav) [:return])})))
 
