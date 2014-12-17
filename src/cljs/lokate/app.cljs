@@ -11,7 +11,10 @@
             [lokate.home :as home]
             [lokate.collections :as collections]
             [lokate.collection :as collection]
-            [lokate.point :as point]))
+            [lokate.point :as point]
+            [lokate.resources :as resources]))
+
+(declare home resources)
 
 (def app-state
   (atom {:orientation nil
@@ -94,7 +97,8 @@
   (reify
     om/IWillMount
     (will-mount [_]
-      (linda/defroute "/home"
+      ; use secretary's named routes feature for those calling nav chan!
+      (linda/defroute home "/home"
         []
         (route! data
           "/home"
@@ -137,6 +141,13 @@
           (str "/collections/" collection-id)
           {:collection-id (int collection-id)
            :point-id (int point-id)}))
+
+      (linda/defroute resources "/resources" []
+        (route! data
+          (resources)
+          {:controls resources/resources-controls
+           :drawer resources/resources-view}
+          (home)))
 
       (linda/defroute "*" []
         (.log js/console "Route not found... >.< !"))

@@ -375,7 +375,21 @@ a {
 }
 
 [class^="icon-"], [class*=" icon-"] {
-	font-family: 'icomoon', 'icomoon2';
+	font-family: 'icomoon', 'Ionicons';
+	speak: none;
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	text-transform: none;
+	line-height: 1;
+
+	/* Better Font Rendering =========== */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+	font-family: 'icomoon';
 	speak: none;
 	font-style: normal;
 	font-weight: normal;
@@ -412,6 +426,21 @@ a {
 .icon-plus:before {
 	content: "\e609";
 }
+.icon-resize-enlarge:before {
+	content: "\e60b";
+}
+.icon-resize-shrink:before {
+	content: "\e60c";
+}
+.icon-flow-tree:before {
+	content: "\e60d";
+}
+.icon-flow-line:before {
+	content: "\e60e";
+}
+.icon-flow-parallel:before {
+	content: "\e60f";
+}
 .icon-arrow-right-circle:before {
 	content: "\e603";
 }
@@ -420,6 +449,23 @@ a {
 }
 .icon-arrow-right:before {
 	content: "\e604";
+}
+.icon-ellipsis:before {
+	content: "\e610";
+}
+.icon-dots:before {
+	content: "\e611";
+}
+.icon-dot:before {
+	content: "\e612";
+}
+
+.icon-box-outline:before {
+    content: "\f372";
+}
+
+.icon-box-filled:before {
+    content: "\f371";
 }
 
 #drawer-control {
@@ -446,6 +492,12 @@ a {
 
 #collection-controls {
     display: flex;
+    margin-right: .3em;
+}
+
+#resources-controls {
+    display: flex;
+    flex-direction: row;
     margin-right: .3em;
 }
 
