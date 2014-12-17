@@ -581,3 +581,51 @@ a {
     font-size: 2em;
     margin-top: 5px;
 }
+
+.name-input {
+    width: 70%;
+    height: 70%;
+    max-width: 555px;
+    max-height: 150px;
+    background: #191919;
+    color: white;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    padding: .5em;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.name-input-title {
+    font-size: 1.3em;
+}
+.name-input-wrap {
+    display: flex;
+    height: 60%;
+}
+
+.name-input-input {
+    width: 100%;
+    margin: auto;
+    border: none;
+    background: inherit;
+    border-bottom: 1px solid #333;
+    padding-left: .3em;
+    padding-right: .3em;
+}
+
+input:focus {
+    outline: none;
+}
+
+.name-input-ok {
+    margin: auto;
+    margin-left: .8em;
+    margin-right: .5em;
+    /*color: lightgreen;*/
+}
