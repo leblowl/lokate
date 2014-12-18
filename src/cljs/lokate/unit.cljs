@@ -1,10 +1,10 @@
-(ns lokate.point
+(ns lokate.unit
   (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]])
   (:require [cljs.core.async :refer [put! <! >! chan timeout]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [lokate.components :refer [select-list edit begin-edit]]
-            [lokate.util :refer [display display-fade-in fdate-now floormat distance]]
+            [lokate.components :refer [select-list render-overlay modal-input]]
+            [lokate.util :refer [fdate-now floormat distance]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]))
 
 (defn status-color [status]
@@ -21,7 +21,12 @@
 (defn display-origin [point]
   (str "Originated: " (:origin point)))
 
-(defn point-controls
+(defn update-unit [point-id data res]
+  (om/update! data [point-id :name] res)
+  (db-new #(db-add "collection" @data))
+  (om/detach-root (.getElementById js/document "overlay-root")))
+
+(defn unit-controls
   [data owner {:keys [collection-id point-id] :as opts}]
   (om/component
     (let [point (get-in data [:collections collection-id :points point-id])]
@@ -31,22 +36,27 @@
                       :onClick #(put! (om/get-shared owner :nav)
                                   [:route (str "/collections/" collection-id "/points/" point-id)])})))))
 
-(defn point-view
+(defn unit-view
   [data owner {:keys [collection-id point-id] :as opts}]
   (om/component
-    (let [point (get-in data [:collections collection-id :points point-id])]
+    (let [collection (get-in data [:collections collection-id])
+          unit (get-in collection [:units point-id])]
       (dom/div #js {:className "info"}
         (dom/div #js {:id "name-editable"
                       :className "editable"
-                      :onClick #(begin-edit data point collection-id)}
+                      :onClick #(render-overlay
+                                    modal-input collection {:title "Collection name"
+                                                            :placeholder "Untitled collection"
+                                                            :value (:name collection)
+                                                            :on-edit (partial update-unit point-id)})}
           (dom/span #js {:className "editable-title"
                          :data-ph "Unit Name"
-                         :dangerouslySetInnerHTML #js {:__html (:name point)}}))
+                         :dangerouslySetInnerHTML #js {:__html (:name unit)}}))
         (dom/div #js {:id "point-content"
                       :className "info-content"}
           (dom/div #js {:className "origin"}
-            (display-origin point))
-          (if (empty? (:pos point))
+            (display-origin unit))
+          (if (empty? (:pos unit))
             (dom/div #js {:className "location-tip-wrapper"}
               (dom/div #js {:className "location-tip"}
                 (dom/span #js {:className "img icon-pin"})
@@ -55,4 +65,4 @@
             (dom/div #js {:className "location"}
               (dom/span #js {:className "img icon-pin status"
                              :style #js {:color (status-color "green")}})
-              (dom/span #js {:className "location-lat-lng"} (display-pos (:pos point))))))))))
+              (dom/span #js {:className "location-lat-lng"} (display-pos (:pos unit))))))))))

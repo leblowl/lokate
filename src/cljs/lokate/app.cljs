@@ -11,10 +11,10 @@
             [lokate.map :as map]
             [lokate.home :as home]
             [lokate.collections :as collections]
-            [lokate.point :as point]
+            [lokate.unit :as unit]
             [lokate.resources :as resources]))
 
-(declare home collections collection resources resource)
+(declare home collections collection point resources resource)
 
 (def app-state
   (atom {:orientation nil
@@ -43,10 +43,10 @@
 
 (defn new-collection []
   {:name nil
-   :points []
+   :units {}
    :id (str (uuid/make-random-uuid))})
 
-(defn new-point [id]
+(defn new-unit []
   {:name nil
    :origin (fdate-now)
    :pos []
@@ -61,14 +61,13 @@
     (db-add "collection" to-add)
     (:id to-add)))
 
-(defn add-point
+(defn add-unit
   [data collection-id]
-  (let [ks [:collections collection-id :points]
-        id (count (get-in @data ks))
-        point (new-point id)]
-    (om/transact! data ks #(conj % point))
+  (let [to-add (new-unit)]
+    (om/update! data
+      [:collections collection-id :units (:id to-add)] to-add)
     (db-add "collection" (get-in @data [:collections collection-id]))
-    id))
+    (:id to-add)))
 
 (defn nearest
   [hive hives]
@@ -97,7 +96,6 @@
   (reify
     om/IWillMount
     (will-mount [_]
-      ; use secretary's named routes feature for those calling nav chan!
       ; do named routes support regex???
       (linda/defroute home "/home"
         []
@@ -127,21 +125,21 @@
           (collections)
           {:id collection-id}))
 
-      (linda/defroute #"/collections/(\d+)/points/new"
+      (linda/defroute add-new-point "/collections/:collection-id/points/new"
         [collection-id]
-        (linda/dispatch! (str "/collections/" collection-id
-                           "/points/" (add-point data (int collection-id)))))
+        (linda/dispatch! (point {:collection-id collection-id
+                                 :point-id (add-unit data collection-id)})))
 
-      (linda/defroute #"/collections/(\d+)/points/(\d+)"
+      (linda/defroute point "/collections/:collection-id/points/:point-id"
         [collection-id point-id]
         (route! data
-          (str "/collections/" collection-id
-            "/points/" point-id)
-          {:controls point/point-controls
-           :drawer point/point-view}
-          (str "/collections/" collection-id)
-          {:collection-id (int collection-id)
-           :point-id (int point-id)}))
+          (point {:collection-id collection-id
+                  :point-id point-id})
+          {:controls unit/unit-controls
+           :drawer unit/unit-view}
+          (collection {:collection-id collection-id})
+          {:collection-id collection-id
+           :point-id point-id}))
 
       (linda/defroute resources "/resources" []
         (route! data

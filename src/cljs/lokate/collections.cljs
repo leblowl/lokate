@@ -75,7 +75,7 @@
             (if (empty? (:points collection))
               (om/build collection-tip collection)
               (om/build
-                select-list (:points collection)
+                select-list (vals (:points collection))
                 {:opts {:name-default "Untitled_Unit"
                         :path-fn (fn [_] [:route (str "/collections/" id
                                                   "/points/" (:id _))])
