@@ -12,17 +12,20 @@
   {:name name
    :id id})
 
-(defn on-edit [data owner]
+(defn update-resource [data res]
+  (om/update! data [:name] res)
+  (db-new #(db-add "resource" @data))
+  (om/detach-root (.getElementById js/document "overlay-root")))
+
+(defn add-resource [data res]
   (let [id (count (:resources @data))
-        to-add (-> (om/get-node owner "input")
-                 (.-value)
-                 (new-resource id))]
+        to-add (new-resource res id)]
     (om/transact! data [:resources] #(conj % to-add))
     (db-new #(db-add "resource" to-add)))
   (om/detach-root (.getElementById js/document "overlay-root")))
 
-(defn name-input
-  [data owner]
+(defn modal-input
+  [data owner {:keys [title placeholder value on-edit] :as opts}]
   (reify
     om/IDidMount
     (did-mount [_]
@@ -30,15 +33,17 @@
     om/IRender
     (render [_]
      (dom/div #js {:className "name-input"}
-       (dom/span #js {:className "name-input-title"}
-         "Resource name")
+       (dom/span #js {:className "name-input-title"} title)
        (dom/div #js {:className "name-input-wrap"}
          (dom/input #js {:className "name-input-input"
                          :ref "input"
                          :type "text"
-                         :placeholder "New resource"})
+                         :placeholder placeholder
+                         :value value
+                         ;default empty onChange allows you to enter input, all that's needed here
+                         :onChange #()})
          (dom/div #js {:className "name-input-ok btn icon-checkmark"
-                       :onClick #(on-edit data owner)}))))))
+                       :onClick #(on-edit data (.-value (om/get-node owner "input")))}))))))
 
 (defn overlay
   [data owner {:keys [child child-opts] :as opts}]
@@ -46,23 +51,46 @@
     (dom/div #js {:id "overlay"}
       (om/build child data {:opts child-opts}))))
 
-(defn display-input [data]
+(defn render-overlay [child data child-opts]
   (om/root overlay data {:target (.getElementById js/document "overlay-root")
-                         :opts {:child name-input}}))
+                         :opts {:child child
+                                :child-opts child-opts}}))
 
 (defn resources-controls
-  [data owner]
+  [data owner {:keys [id] :as opts}]
   (om/component
     (dom/div #js {:id "resources-controls"}
       (dom/div #js {:id "add-resource-btn"
                     :className "btn icon-flow-line"
-                    :onClick #(display-input data)})
+                    :onClick #(render-overlay
+                                modal-input data {:title "Resource name"
+                                                  :placeholder "Untitled resource"
+                                                  :on-edit add-resource})})
       (dom/div #js {:id "add-resource-cluster-btn"
                     :className "btn icon-flow-tree"}))))
 
 (defn resources-view
   [data owner]
   (om/component
-    (.log js/console (pr-str (:resources data)))
     (dom/div #js {:className "resources"}
-      (om/build select-list (:resources data) {:opts {:path-fn (fn [_] [:route (str "/resources/" (:id _))])}}))))
+      (om/build select-list (:resources data)
+        {:opts {:path-fn (fn [_] [:route (str "/resources/" (:id _))])}}))))
+
+(defn resource-view
+  [data owner {:keys [id] :as opts}]
+  (om/component
+    (let [resource (get-in data [:resources id])]
+      (.log js/console id)
+      (.log js/console (get-in data [:resources id]))
+      (dom/div #js {:className "info"}
+        (dom/div #js {:id "name-editable"
+                      :className "editable"
+                      :onClick #(render-overlay
+                                  modal-input (get-in data [:resources id]) {:title "Resource name"
+                                                                             :placeholder "Untitled resource"
+                                                                             :value (:name resource)
+                                                                             :on-edit update-resource})}
+          (dom/span #js {:className "editable-title"
+                         :data-ph "Untitled Resource"
+                         :dangerouslySetInnerHTML #js {:__html (:name resource)}}))
+        (dom/div #js {:className "info-content"})))))

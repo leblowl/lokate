@@ -154,8 +154,9 @@
       (linda/defroute resource "/resources/:id" [id]
         (route! data
           (resource {:id id})
-          {}
-          (resources)))
+          {:drawer resources/resource-view}
+          (resources)
+          {:id (int id)}))
 
       (linda/defroute "*" []
         (.log js/console "Route not found... >.< !"))
