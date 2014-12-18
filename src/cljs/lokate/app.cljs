@@ -20,7 +20,7 @@
   (atom {:orientation nil
          :drawer {:open false}
          :collections []
-         :resources []
+         :resources {}
          :route-name nil
          :route-opts {}
          :route-views {}
@@ -31,8 +31,8 @@
 (defn init-app-state [key result]
   (swap! app-state
     (fn [m]
-      (update-in m [key]
-        #(conj % (js->clj (.-value result) :keywordize-keys true))))))
+      (assoc-in m [key (.-key result)]
+        (js->clj (.-value result) :keywordize-keys true)))))
 
 (defn on-resize []
   (swap! app-state #(assoc % :orientation
@@ -156,7 +156,7 @@
           (resource {:id id})
           {:drawer resources/resource-view}
           (resources)
-          {:id (int id)}))
+          {:id id}))
 
       (linda/defroute "*" []
         (.log js/console "Route not found... >.< !"))

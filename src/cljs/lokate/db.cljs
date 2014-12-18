@@ -11,8 +11,8 @@
     (set! (.-onupgradeneeded request) (fn [e]
                                         (reset! db (.. e -target -result))
                                         (set! (.. e -target -transaction -onerror) db-error)
-                                        (.createObjectStore @db "collection" #js {:keyPath "id" :autoIncrement true})
-                                        (.createObjectStore @db "resource" #js {:keyPath "id" :autoIncrement true})))
+                                        (.createObjectStore @db "collection" #js {:keyPath "id"})
+                                        (.createObjectStore @db "resource" #js {:keyPath "id"})))
     (set! (.-onsuccess request) (fn [e]
                                   (reset! db (.. e -target -result))
                                   (cb)))

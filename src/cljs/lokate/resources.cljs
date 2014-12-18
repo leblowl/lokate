@@ -6,11 +6,12 @@
             [goog.string :as gstring]
             [lokate.util :refer [blankf]]
             [lokate.components :refer [select-list]]
-            [lokate.db :refer [db-new db-add db-delete db-get-all]]))
+            [lokate.db :refer [db-new db-add db-delete db-get-all]]
+            [cljs-uuid-utils :as uuid]))
 
-(defn new-resource [name id]
+(defn new-resource [name]
   {:name name
-   :id id})
+   :id (keyword (str (uuid/make-random-uuid)))})
 
 (defn update-resource [data res]
   (om/update! data [:name] res)
@@ -18,9 +19,8 @@
   (om/detach-root (.getElementById js/document "overlay-root")))
 
 (defn add-resource [data res]
-  (let [id (count (:resources @data))
-        to-add (new-resource res id)]
-    (om/transact! data [:resources] #(conj % to-add))
+  (let [to-add (new-resource res)]
+    (om/transact! data [:resources (:id to-add)] to-add)
     (db-new #(db-add "resource" to-add)))
   (om/detach-root (.getElementById js/document "overlay-root")))
 
@@ -73,15 +73,13 @@
   [data owner]
   (om/component
     (dom/div #js {:className "resources"}
-      (om/build select-list (:resources data)
+      (om/build select-list (vals (:resources data))
         {:opts {:path-fn (fn [_] [:route (str "/resources/" (:id _))])}}))))
 
 (defn resource-view
   [data owner {:keys [id] :as opts}]
   (om/component
     (let [resource (get-in data [:resources id])]
-      (.log js/console id)
-      (.log js/console (get-in data [:resources id]))
       (dom/div #js {:className "info"}
         (dom/div #js {:id "name-editable"
                       :className "editable"
