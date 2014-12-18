@@ -40,7 +40,6 @@
 (defn resources-view
   [data owner]
   (om/component
-    (.log js/console (pr-str (:resources data)))
     (dom/div #js {:className "resources"}
       (om/build select-list (vals (:resources data))
         {:opts {:path-fn (fn [_]

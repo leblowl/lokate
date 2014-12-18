@@ -4,13 +4,13 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [secretary.core :as linda :include-macros true]
+            [cljs-uuid-utils :as uuid]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]
             [lokate.util :refer [distance fdate-now]]
             [lokate.core :as core]
             [lokate.map :as map]
             [lokate.home :as home]
             [lokate.collections :as collections]
-            [lokate.collection :as collection]
             [lokate.point :as point]
             [lokate.resources :as resources]))
 
@@ -41,10 +41,10 @@
                              "portrait"
                              "landscape"))))
 
-(defn new-collection [id]
+(defn new-collection []
   {:name nil
    :points []
-   :id id})
+   :id (str (uuid/make-random-uuid))})
 
 (defn new-point [id]
   {:name nil
@@ -52,15 +52,14 @@
    :pos []
    :resources []
    :notes nil
-   :id id})
+   :id (str (uuid/make-random-uuid))})
 
 (defn add-collection
   [data]
-  (let [id (count (:collections @data))
-        to-add (new-collection id)]
-    (om/transact! data [:collections] #(conj % to-add))
+  (let [to-add (new-collection)]
+    (om/update! data [:collections (:id to-add)] to-add)
     (db-add "collection" to-add)
-    id))
+    (:id to-add)))
 
 (defn add-point
   [data collection-id]
@@ -115,12 +114,16 @@
            :drawer collections/collections-view}
           (home)))
 
+      (linda/defroute "/collections/new"
+        []
+        (linda/dispatch! (str "/collections/" (add-collection data))))
+
       (linda/defroute collection "/collections/:collection-id"
         [collection-id]
         (route! data
           (collection {:collection-id collection-id})
-          {:controls collection/collection-controls
-           :drawer collection/collection-view}
+          {:controls collections/collection-controls
+           :drawer collections/collection-view}
           (collections)
           {:id collection-id}))
 
