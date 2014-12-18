@@ -46,7 +46,9 @@
           (dom/div #js {:className "info-content"}
             (if (empty? (:points collection))
               (om/build collection-tip collection)
-              (om/build parts/select-list (:points collection) {:opts {:name-default "Untitled_Unit"
-                                                                       :path-fn (fn [_] [:route (str "/collections/" id
-                                                                                                 "/points/" (:id _))])
-                                                                       :props {:onContextMenu #(false)}}}))))))))
+              (om/build
+                parts/select-list (:points collection)
+                {:opts {:name-default "Untitled_Unit"
+                        :path-fn (fn [_] [:route (str "/collections/" id
+                                                  "/points/" (:id _))])
+                        :props {:onContextMenu #(false)}}}))))))))

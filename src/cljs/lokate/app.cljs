@@ -14,12 +14,12 @@
             [lokate.point :as point]
             [lokate.resources :as resources]))
 
-(declare home resources resource)
+(declare home collections collection resources resource)
 
 (def app-state
   (atom {:orientation nil
          :drawer {:open false}
-         :collections []
+         :collections {}
          :resources {}
          :route-name nil
          :route-opts {}
@@ -107,26 +107,22 @@
           {:drawer home/home-view}
           nil))
 
-      (linda/defroute "/collections"
+      (linda/defroute collections "/collections"
         []
         (route! data
-          "/collections"
+          (collections)
           {:controls collections/collections-controls
            :drawer collections/collections-view}
-          "/home"))
+          (home)))
 
-      (linda/defroute "/collections/new"
-        []
-        (linda/dispatch! (str "/collections/" (add-collection data))))
-
-      (linda/defroute #"/collections/(\d+)"
+      (linda/defroute collection "/collections/:collection-id"
         [collection-id]
         (route! data
-          (str "/collections/" collection-id)
+          (collection {:collection-id collection-id})
           {:controls collection/collection-controls
            :drawer collection/collection-view}
-          "/collections"
-          {:id (int collection-id)}))
+          (collections)
+          {:id collection-id}))
 
       (linda/defroute #"/collections/(\d+)/points/new"
         [collection-id]

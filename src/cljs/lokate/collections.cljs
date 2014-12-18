@@ -1,9 +1,8 @@
 (ns lokate.collections
-  (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]])
-  (:require [cljs.core.async :refer [put! <! >! chan timeout]]
+  (:require [cljs.core.async :refer [put!]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [lokate.components :as parts]))
+            [lokate.components :refer [select-list]]))
 
 (defn add-collection-btn
   [collections owner]
@@ -23,6 +22,6 @@
     om/IRender
     (render [_]
       (dom/div #js {:id "collections"}
-        (om/build parts/select-list
-          collections {:opts {:name-default "Untitled_Collection"
-                              :path-fn (fn [_] [:route (str "/collections/" (:id _))])}})))))
+        (om/build select-list
+          (vals collections) {:opts {:name-default "Untitled_Collection"
+                                     :path-fn (fn [_] [:route (str "/collections/" (:id _))])}})))))

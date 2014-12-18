@@ -58,3 +58,35 @@
   (om/root edit data {:target (.getElementById js/document "overlay-root")
                       :opts {:edit-key :name
                              :on-edit (partial on-edit app-data data :name id)}}))
+
+(defn modal-input
+  [data owner {:keys [title placeholder value on-edit] :as opts}]
+  (reify
+    om/IDidMount
+    (did-mount [_]
+      (.select (om/get-node owner "input")))
+    om/IRender
+    (render [_]
+     (dom/div #js {:className "name-input"}
+       (dom/span #js {:className "name-input-title"} title)
+       (dom/div #js {:className "name-input-wrap"}
+         (dom/input #js {:className "name-input-input"
+                         :ref "input"
+                         :type "text"
+                         :placeholder placeholder
+                         :value value
+                         ;default empty onChange allows you to enter input, all that's needed here
+                         :onChange #()})
+         (dom/div #js {:className "name-input-ok btn icon-checkmark"
+                       :onClick #(on-edit data (.-value (om/get-node owner "input")))}))))))
+
+(defn overlay
+  [data owner {:keys [child child-opts] :as opts}]
+  (om/component
+    (dom/div #js {:id "overlay"}
+      (om/build child data {:opts child-opts}))))
+
+(defn render-overlay [child data child-opts]
+  (om/root overlay data {:target (.getElementById js/document "overlay-root")
+                         :opts {:child child
+                                :child-opts child-opts}}))
