@@ -36,10 +36,9 @@
   icon)
 
 (defn reset-markers [owner]
-  (.log js/console (str "rest " (pr-str (om/get-state owner :markers))))
   (let [markers (om/get-state owner :markers)]
     (dorun
-      (map #(.setIcon (:marker %) (reset-ico (:icon %))) markers))))
+      (map #(.setIcon (:marker %) (reset-ico (:icon %))) (vals markers)))))
 
 (defn activate-marker
   [owner id]
@@ -123,11 +122,9 @@
 
         (delete-markers owner (keys to-delete))
         (add-markers data owner to-add)
-        ;(reset-markers owner)
-        (when (= :unit (-> next-props :route :domkm.silk/name))
-          (let [u-id (-> next-props :route :opts :u-id)]
-            ;(activate-marker owner u-id)
-            ))))
+        (reset-markers owner)
+        (when-let [u-id (-> next-props :route :opts :u-id)]
+          (activate-marker owner u-id))))
 
     om/IDidMount
     (did-mount [_]
