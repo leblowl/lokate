@@ -5,15 +5,19 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [clojure.set :as set]
+            [clojure.data :refer [diff]]
             [clojure.string :as string]
             [goog.string :as gstring]
             [goog.string.format]
-            [lokate.db :as db :refer [db-add]]))
+            [lokate.db :as db :refer [db-add]]
+            [lokate.routing :refer [get-route]]))
 
-(defn pos-key [lat-lng]
-  (keyword (str
-             "lat=" (.lat lat-lng)
-             "lng=" (.lng lat-lng))))
+(defn mmap [f m]
+  (into {} (for [[k v] m]
+             [k (f v)])))
+
+(defn mfilter [f m]
+  (select-keys m (for [[k v] m :when (f v)] k)))
 
 (-> js/L .-AwesomeMarkers .-Icon .-prototype .-options .-prefix (set! "ion"))
 (def green-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "ion-ios-circle-outline"
@@ -32,6 +36,7 @@
   icon)
 
 (defn reset-markers [owner]
+  (.log js/console (str "rest " (pr-str (om/get-state owner :markers))))
   (let [markers (om/get-state owner :markers)]
     (dorun
       (map #(.setIcon (:marker %) (reset-ico (:icon %))) markers))))
@@ -46,11 +51,14 @@
 
 (defn path-to-route
   [path]
-  (str "/" (string/join "/" (map #(if (keyword? %) (name %) (str %)) path))))
+  (->
+    (into {} (for [[k v] (partition 2 path)] [k v]))
+    (set/rename-keys {:collections :c-id :units :u-id})
+    ((partial get-route :unit))))
 
 (defn mark-it!
-  [data owner map point]
-  (let [pos (:pos point)
+  [data owner map unit]
+  (let [pos (:pos unit)
         icon green-ico
         marker (-> js/L
                  (.marker (clj->js pos) #js {:icon icon})
@@ -60,39 +68,39 @@
       (fn []
         (om/update! data [:drawer :open] true)
         (put! (om/get-shared owner :nav)
-          [:route (path-to-route (om/path point))])))
+          (path-to-route (om/path unit)))))
 
     (.on marker "contextmenu"
       #(put! (om/get-shared owner :nav)
-         [:route :point {:id (:id point)}]))
+         [:route :point {:id (:id unit)}]))
 
-    {:marker marker :icon icon :pos pos :id (:id point)}))
+    (assoc unit :marker marker :icon icon)))
 
 (defn add-markers [data owner units]
   (let [map (om/get-state owner :map)]
     (om/update-state! owner :markers
-      #(into % (for [unit units]
-                 (mark-it! data owner map unit))))))
+      #(merge % (mmap (partial mark-it! data owner map) units)))))
 
 (defn add-group [owner places opts]
   (map #({:name (:name %) :group (js/L.MarkerClusterGroup.)})))
 
-(defn in?
-  "true if seq contains elm"
-  [seq elm]
-  (some #(= elm %) seq))
-
-(defn delete-markers [owner units]
+(defn delete-markers [owner keys]
   (let [l-map (om/get-state owner :map)]
     (dorun
-      (map #(.removeLayer l-map (om/get-state owner [:markers % :marker]))
-        (map :id units))))
+      (map #(->>
+              (om/get-state owner [:markers % :marker])
+              (.removeLayer l-map))
+        keys)))
   (om/update-state! owner :markers
-    #(into [] (filter (comp not (partial in? (map :id units)) :id) %))))
+    #(apply dissoc % keys)))
 
 (defn cancel-action [owner]
   (js/clearTimeout (om/get-state owner :evt-timeout))
   (om/set-state! owner :evt-timeout nil))
+
+(defn get-units [collections]
+  (reduce into {}
+    (map :units (vals collections))))
 
 (defn l-map [{:keys [collections] :as data} owner]
   (reify
@@ -100,26 +108,26 @@
     (init-state [_]
       {:center #js [0 0]
        :evt-timeout nil
-       :markers []
+       :markers {}
        :map nil})
 
     om/IWillReceiveProps
     (will-receive-props [this {:keys [collections] :as next-props}]
-      (let [next-units (set/select (comp not empty? :pos)
-                         (reduce into #{}
-                           (map :points collections)))
-            current-units (set/select (comp not empty? :pos)
-                            (reduce into #{}
-                              (map :points (:collections (om/get-props owner)))))
+      (let [next-units    (set (mfilter :pos
+                                 (get-units collections)))
+            current-units (set (mfilter :pos
+                                 (get-units (:collections (om/get-props owner)))))
             to-add (set/difference next-units current-units)
             to-delete (set/difference current-units next-units)]
 
-        (delete-markers owner to-delete)
+
+        (delete-markers owner (keys to-delete))
         (add-markers data owner to-add)
-        (reset-markers owner)
-        (when (re-matches #"/collections/(\d+)/points/(\d+)" (:route-name next-props))
-          (let [point-id (get-in next-props [:route-opts :point-id])]
-            (activate-marker owner point-id)))))
+        ;(reset-markers owner)
+        (when (= :unit (-> next-props :route :domkm.silk/name))
+          (let [u-id (-> next-props :route :opts :u-id)]
+            ;(activate-marker owner u-id)
+            ))))
 
     om/IDidMount
     (did-mount [_]
@@ -136,14 +144,14 @@
         (.on l-map "contextmenu"
           (fn [e]
             ;; Convert this into an api call to /edit @ app.cljs
-            (let [collection-id (get-in @data [:route-opts :collection-id])
-                  point-id (get-in @data [:route-opts :point-id])]
-             (when (re-matches #"/collections/(\d+)/points/(\d+)" (:route-name @data))
-               (om/update! data [:collections collection-id :points point-id :pos]
+            (let [c-id (-> @data :route :opts :c-id)
+                  u-id (-> @data :route :opts :u-id)]
+              (when (= :unit (-> @data :route :domkm.silk/name))
+               (om/update! data [:collections c-id :units u-id :pos]
                  (select-keys
                    (js->clj (.-latlng e) :keywordize-keys true)
                    [:lat :lng]))
-               (db-add (get-in @data [:collections collection-id]))))))
+               (db-add "collection" (get-in @data [:collections c-id]))))))
 
         (if navigator.geolocation
           (.getCurrentPosition navigator.geolocation
@@ -155,7 +163,8 @@
 
 
         (om/set-state! owner :map l-map)
-        (add-markers data owner (reduce into [] (map :points collections)))))
+        (add-markers data owner (mfilter :pos
+                                  (get-units collections)))))
 
     om/IRenderState
     (render-state [_ {:keys [markers]}]

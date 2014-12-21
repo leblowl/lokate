@@ -3,9 +3,10 @@
   (:require [cljs.core.async :refer [put! <! >! chan timeout]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [secretary.core :as linda :include-macros true]
+            [clojure.set :refer [rename-keys]]
             [cljs-uuid-utils :as uuid]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]
+            [lokate.routing :refer [routes get-route route!]]
             [lokate.util :refer [distance fdate-now]]
             [lokate.core :as core]
             [lokate.map :as map]
@@ -14,7 +15,9 @@
             [lokate.unit :as unit]
             [lokate.resources :as resources]))
 
-(declare home collections collection point resources resource)
+(enable-console-print!)
+
+(def handle)
 
 (def app-state
   (atom {:orientation nil
@@ -31,7 +34,7 @@
 (defn init-app-state [key result]
   (swap! app-state
     (fn [m]
-      (assoc-in m [key (.-key result)]
+      (assoc-in m [key (keyword (.-key result))]
         (js->clj (.-value result) :keywordize-keys true)))))
 
 (defn on-resize []
@@ -49,7 +52,7 @@
 (defn new-unit []
   {:name nil
    :origin (fdate-now)
-   :pos []
+   :pos nil
    :resources []
    :notes nil
    :id (str (uuid/make-random-uuid))})
@@ -57,17 +60,17 @@
 (defn add-collection
   [data]
   (let [to-add (new-collection)]
-    (om/update! data [:collections (:id to-add)] to-add)
+    (om/update! data [:collections (keyword (:id to-add))] to-add)
     (db-add "collection" to-add)
-    (:id to-add)))
+    (keyword (:id to-add))))
 
 (defn add-unit
   [data collection-id]
   (let [to-add (new-unit)]
     (om/update! data
-      [:collections collection-id :units (:id to-add)] to-add)
+      [:collections collection-id :units (keyword (:id to-add))] to-add)
     (db-add "collection" (get-in @data [:collections collection-id]))
-    (:id to-add)))
+    (keyword (:id to-add))))
 
 (defn nearest
   [hive hives]
@@ -78,97 +81,85 @@
   (om/transact! data (pop select-path) #(dissoc % (peek select-path)))
   (om/update! data type-key nil))
 
-(defn route!
-  ([data route-name route-views return-to]
-     (route! data route-name route-views return-to nil))
-  ([data route-name route-views return-to route-opts]
-     (.log js/console (str "history: " (:history (:drawer @data))))
-     (.log js/console (str "route: " route-name))
-     (om/update! data [:route-name] route-name)
-     (om/update! data [:route-views] route-views)
-     (om/update! data [:route-opts] route-opts)
-     (om/update! data [:return-to] return-to)))
+(defn dispatchR
+  ([data route views]
+     (dispatchR data route views nil))
+  ([data route views return-to]
+     (dispatchR data route views return-to nil))
+  ([data route views return-to opts]
+     (om/update! data [:route]
+       (merge route {:views views
+                     :opts opts
+                     :return-to return-to}))))
 
-(defn return! [data]
-  (linda/dispatch! (:return-to @data)))
+(def handlers
+  {:home           (fn [data route]
+                     (dispatchR data route
+                       {:drawer home/home-view}))
+
+   :collections    (fn [data route]
+                     (dispatchR data route
+                       {:controls collections/collections-controls
+                        :drawer collections/collections-view}
+                       (get-route :home)))
+
+   :collection-new (fn [data route]
+                     (route!
+                       (get-route :collection {:c-id (add-collection data)})
+                       (partial handle data)))
+
+   :collection     (fn [data route]
+                     (dispatchR data route
+                       {:controls collections/collection-controls
+                        :drawer collections/collection-view}
+                       (get-route :collections)
+                       (select-keys route [:c-id])))
+
+   :unit-new       (fn [data route]
+                     (let [c-id (:c-id route)]
+                       (route!
+                         (get-route :unit {:c-id c-id
+                                           :u-id (add-unit data c-id)})
+                         (partial handle data))))
+
+   :unit           (fn [data route]
+                     (dispatchR data route
+                       {:controls unit/unit-controls
+                        :drawer unit/unit-view}
+                       (get-route :collection (select-keys route [:c-id]))
+                       (select-keys route [:c-id :u-id])))
+
+   :resources      (fn [data route]
+                     (dispatchR data route
+                       {:controls resources/resources-controls
+                        :drawer resources/resources-view}
+                       (get-route :home)
+                       (select-keys route [:c-id :u-id])))
+
+   :resource       (fn [data route]
+                     (dispatchR data route
+                       {:drawer resources/resource-view}
+                       (get-route :resources)
+                       (select-keys route [:r-id])))})
+
+(defn handle [data x]
+  (if-let [handler (get handlers (:domkm.silk/name x))]
+    (handler data x)
+    (println "No matching handler found for route " (:domkm.silk/name x) "... >.< !")))
 
 (defn app [data owner]
   (reify
     om/IWillMount
     (will-mount [_]
-      ; do named routes support regex???
-      (linda/defroute home "/home"
-        []
-        (route! data
-          "/home"
-          {:drawer home/home-view}
-          nil))
-
-      (linda/defroute collections "/collections"
-        []
-        (route! data
-          (collections)
-          {:controls collections/collections-controls
-           :drawer collections/collections-view}
-          (home)))
-
-      (linda/defroute "/collections/new"
-        []
-        (linda/dispatch! (str "/collections/" (add-collection data))))
-
-      (linda/defroute collection "/collections/:collection-id"
-        [collection-id]
-        (route! data
-          (collection {:collection-id collection-id})
-          {:controls collections/collection-controls
-           :drawer collections/collection-view}
-          (collections)
-          {:id collection-id}))
-
-      (linda/defroute add-new-point "/collections/:collection-id/points/new"
-        [collection-id]
-        (linda/dispatch! (point {:collection-id collection-id
-                                 :point-id (add-unit data collection-id)})))
-
-      (linda/defroute point "/collections/:collection-id/points/:point-id"
-        [collection-id point-id]
-        (route! data
-          (point {:collection-id collection-id
-                  :point-id point-id})
-          {:controls unit/unit-controls
-           :drawer unit/unit-view}
-          (collection {:collection-id collection-id})
-          {:collection-id collection-id
-           :point-id point-id}))
-
-      (linda/defroute resources "/resources" []
-        (route! data
-          (resources)
-          {:controls resources/resources-controls
-           :drawer resources/resources-view}
-          (home)))
-
-      (linda/defroute resource "/resources/:id" [id]
-        (route! data
-          (resource {:id id})
-          {:drawer resources/resource-view}
-          (resources)
-          {:id id}))
-
-      (linda/defroute "*" []
-        (.log js/console "Route not found... >.< !"))
-
       (let [nav (om/get-shared owner :nav)]
         (go-loop []
-          (let [cmd (<! nav)]
-            (case (first cmd)
-              :route (linda/dispatch! (second cmd))
-              :return (return! data)))
+          (let [route (<! nav)]
+            (route! route (partial handle data)))
           (recur))))
 
     om/IDidMount
     (did-mount [_]
-      (put! (om/get-shared owner :nav) [:route "/home"]))
+      (put! (om/get-shared owner :nav) (get-route :home)))
 
     om/IRender
     (render [_]

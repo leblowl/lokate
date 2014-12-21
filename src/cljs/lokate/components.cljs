@@ -6,15 +6,16 @@
             [lokate.util :refer [display blankf]]
             [lokate.db :refer [db-add]]))
 
-(defn select [selectable owner {:keys [name-default path-fn] :as opts}]
+(defn select [selectable owner {:keys [name-default route-fn] :as opts}]
   (om/component
     (dom/li #js {:className "select-list-item"}
       (dom/a #js {:className "select"
                   :onClick #(put! (om/get-shared owner :nav)
-                              (or (:path selectable)
-                                (path-fn selectable)))}
-        (dom/span #js {:className "select-title"} (or (:name selectable) name-default))))))
+                              (or (:route selectable)
+                                (route-fn selectable)))}
+        (dom/span #js {:className "select-title"} (or (blankf (:name selectable)) name-default))))))
 
+; todo: sort by creation order
 (defn select-list [selectables owner opts]
   (om/component
     (apply dom/ol #js {:className "select-list"}

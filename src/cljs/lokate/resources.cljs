@@ -4,6 +4,7 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [goog.string :as gstring]
+            [lokate.routing :refer [get-route]]
             [lokate.util :refer [blankf]]
             [lokate.components :refer [select-list render-overlay modal-input]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]
@@ -42,19 +43,17 @@
   (om/component
     (dom/div #js {:className "resources"}
       (om/build select-list (vals (:resources data))
-        {:opts {:path-fn (fn [_]
-                           (.log js/console (str "/resources/" (:id _)))
-                           [:route (str "/resources/" (:id _))])}}))))
+        {:opts {:route-fn #(get-route :resource {:r-id (keyword (:id %))})}}))))
 
 (defn resource-view
-  [data owner {:keys [id] :as opts}]
+  [data owner {:keys [r-id] :as opts}]
   (om/component
-    (let [resource (get-in data [:resources id])]
+    (let [resource (get-in data [:resources r-id])]
       (dom/div #js {:className "info"}
         (dom/div #js {:id "name-editable"
                       :className "editable"
                       :onClick #(render-overlay
-                                  modal-input (get-in data [:resources id])
+                                  modal-input (get-in data [:resources r-id])
                                   {:title "Resource name"
                                    :placeholder "Untitled resource"
                                    :value (:name resource)

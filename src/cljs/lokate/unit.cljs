@@ -21,34 +21,34 @@
 (defn display-origin [point]
   (str "Originated: " (:origin point)))
 
-(defn update-unit [point-id data res]
-  (om/update! data [point-id :name] res)
+(defn update-unit [unit-id data res]
+  (om/update! data [:units unit-id :name] res)
   (db-new #(db-add "collection" @data))
   (om/detach-root (.getElementById js/document "overlay-root")))
 
 (defn unit-controls
   [data owner {:keys [collection-id point-id] :as opts}]
   (om/component
-    (let [point (get-in data [:collections collection-id :points point-id])]
-      (when (-> point :pos (comp not empty?))
+    (let [unit (get-in data [:collections collection-id :units point-id])]
+      (when (-> unit :pos (comp not empty?))
         (dom/div #js {:id "check-in-btn"
                       :className "btn icon-in-alt"
                       :onClick #(put! (om/get-shared owner :nav)
                                   [:route (str "/collections/" collection-id "/points/" point-id)])})))))
 
 (defn unit-view
-  [data owner {:keys [collection-id point-id] :as opts}]
+  [data owner {:keys [c-id u-id] :as opts}]
   (om/component
-    (let [collection (get-in data [:collections collection-id])
-          unit (get-in collection [:units point-id])]
+    (let [collection (get-in data [:collections c-id])
+          unit (get-in collection [:units u-id])]
       (dom/div #js {:className "info"}
         (dom/div #js {:id "name-editable"
                       :className "editable"
                       :onClick #(render-overlay
-                                    modal-input collection {:title "Collection name"
-                                                            :placeholder "Untitled collection"
-                                                            :value (:name collection)
-                                                            :on-edit (partial update-unit point-id)})}
+                                    modal-input collection {:title "Unit name"
+                                                            :placeholder "Untitled unit"
+                                                            :value (:name unit)
+                                                            :on-edit (partial update-unit u-id)})}
           (dom/span #js {:className "editable-title"
                          :data-ph "Unit Name"
                          :dangerouslySetInnerHTML #js {:__html (:name unit)}}))
@@ -56,7 +56,7 @@
                       :className "info-content"}
           (dom/div #js {:className "origin"}
             (display-origin unit))
-          (if (empty? (:pos unit))
+          (if-not (:pos unit)
             (dom/div #js {:className "location-tip-wrapper"}
               (dom/div #js {:className "location-tip"}
                 (dom/span #js {:className "img icon-pin"})

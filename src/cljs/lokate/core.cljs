@@ -17,12 +17,12 @@
   (om/transact! drawer :open not))
 
 (defn back-btn
-  [data owner {:keys [type-key] :as opts}]
+  [{{:keys [return-to]} :route} owner]
   (om/component
     (dom/div #js {:id "nav-back-btn"
                   :className "icon-arrow-left"
-                  :style (display (:return-to data))
-                  :onClick #(put! (om/get-shared owner :nav) [:return])})))
+                  :style (display return-to)
+                  :onClick #(put! (om/get-shared owner :nav) @return-to)})))
 
 (defn navicon
   [data owner]
@@ -31,7 +31,7 @@
                   :onClick (fn [] (toggle-open (:drawer data)))})))
 
 (defn control-panel
-  [{:keys [route-views route-opts] :as data} owner]
+  [{{:keys [views opts]} :route :as data} owner]
   (om/component
     (dom/div #js {:className "navigation-container"}
       (dom/div #js {:className "banner-container"}
@@ -45,13 +45,13 @@
           (when (open? (:drawer data))
             (om/build back-btn data))
           (dom/div #js {:id "drawer-sub-control"}
-            (when-let [sub-view (:controls route-views)]
+            (when-let [sub-view (:controls views)]
               (when (open? (:drawer data))
-                (om/build sub-view data {:opts route-opts})))))
+                (om/build sub-view data {:opts opts})))))
         (om/build navicon data)))))
 
 (defn drawer
-  [{:keys [route-views route-opts] :as data} owner]
+  [{{:keys [views opts]} :route :as data} owner]
   (reify
     om/IRender
     (render [_]
@@ -59,5 +59,5 @@
         (dom/div #js {:id "drawer"
                       :className (str (:orientation data)
                                    (if (open? (:drawer data)) " show" " hide"))}
-          (when-let [sub-view (:drawer route-views)]
-            (om/build sub-view data {:opts route-opts})))))))
+          (when-let [sub-view (:drawer views)]
+            (om/build sub-view data {:opts opts})))))))
