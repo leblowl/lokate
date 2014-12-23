@@ -1,11 +1,12 @@
 (set-env!
-        :tgt-path "target"
-        :src-paths #{"src/clj" "src/cljs" "../boot-reload/src"}
-        :rsc-paths #{"resources"}
-        :dependencies '[[adzerk/boot-cljs "0.0-2371-27"]
-                        [adzerk/boot-cljs-repl "0.1.6"]
+        :target-path "target"
+        :resource-paths #{"resources"}
+        :source-paths #{"src/clj" "src/cljs"}
+        :dependencies '[[adzerk/boot-cljs "0.0-2411-5"]
+                        [adzerk/boot-cljs-repl "0.1.7"]
+                        [adzerk/boot-reload "0.2.1"]
                         [org.clojure/clojure "1.6.0"]
-                        [org.clojure/clojurescript "0.0-2371"]
+                        [org.clojure/clojurescript "0.0-2511"]
                         [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                         [om "0.8.0-beta3"]
                         [com.domkm/silk "0.0.2"]
@@ -34,8 +35,7 @@
 (comp (watch)
       (speak)
       (cljs-repl)
-      (cljs :unified true
-            :source-map true
+      (cljs :source-map true
             :optimizations :none
             :output-to "public/js/main.js")
       (reload :on-jsload (symbol "lokate.app/go!"))))
@@ -43,7 +43,7 @@
 (deftask dev-serve
   "Start server for development."
 []
-(with-post-wrap (server/run (dev-handler))))
+(with-post-wrap fileset (server/run (dev-handler))))
 
 (deftask dev
   "Build cljs and start server for development."
