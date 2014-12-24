@@ -16,6 +16,14 @@
   [drawer]
   (om/transact! drawer :open not))
 
+(defn maximized?
+  [drawer]
+  (true? (:maximized drawer)))
+
+(defn toggle-maximized
+  [drawer]
+  (om/transact! drawer :maximized not))
+
 (defn back-btn
   [{{:keys [return-to]} :route} owner]
   (om/component
@@ -23,6 +31,15 @@
                   :className "icon-arrow-left"
                   :style (display return-to)
                   :onClick #(put! (om/get-shared owner :nav) @return-to)})))
+
+(defn resize-btn
+  [data owner]
+  (om/component
+    (dom/div #js {:id "resize-btn"
+                  :className (str "btn " (if (-> data :drawer maximized?)
+                                           "icon-resize-shrink"
+                                           "icon-resize-enlarge"))
+                  :onClick #(toggle-maximized (:drawer data))})))
 
 (defn navicon
   [data owner]
@@ -44,6 +61,8 @@
                       :style (display-fade-in (open? (:drawer data)))}
           (when (open? (:drawer data))
             (om/build back-btn data))
+          (when (open? (:drawer data))
+            (om/build resize-btn data))
           (dom/div #js {:id "drawer-sub-control"}
             (when-let [sub-view (:controls views)]
               (when (open? (:drawer data))
@@ -58,6 +77,8 @@
       (dom/div #js {:id "drawer-wrapper"}
         (dom/div #js {:id "drawer"
                       :className (str (:orientation data)
-                                   (if (open? (:drawer data)) " show" " hide"))}
-          (when-let [sub-view (:drawer views)]
-            (om/build sub-view data {:opts opts})))))))
+                                   (if (open? (:drawer data)) " show" " hide")
+                                   (when (maximized? (:drawer data)) " maximized"))}
+          (dom/div #js {:id "drawer-content"}
+            (when-let [sub-view (:drawer views)]
+              (om/build sub-view data {:opts opts}))))))))

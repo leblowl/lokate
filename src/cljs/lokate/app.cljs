@@ -21,7 +21,8 @@
 
 (def app-state
   (atom {:orientation nil
-         :drawer {:open false}
+         :drawer {:open false
+                  :maximized false}
          :collections {}
          :resources {}
          :route-name nil

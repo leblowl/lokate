@@ -34,11 +34,11 @@
 []
 (comp (watch)
       (speak)
+      (reload :on-jsload (symbol "lokate.app/go!"))
       (cljs-repl)
       (cljs :source-map true
             :optimizations :none
-            :output-to "public/js/main.js")
-      (reload :on-jsload (symbol "lokate.app/go!"))))
+            :output-to "public/js/main.js")))
 
 (deftask dev-serve
   "Start server for development."
