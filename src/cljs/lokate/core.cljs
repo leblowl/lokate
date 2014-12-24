@@ -48,19 +48,19 @@
                   :onClick (fn [] (toggle-open (:drawer data)))})))
 
 (defn control-panel
-  [{{:keys [views opts]} :route :as data} owner]
+  [{{:keys [views opts return-to]} :route :as data} owner]
   (om/component
     (dom/div #js {:className "navigation-container"}
-      (dom/div #js {:className "banner-container"}
-        (dom/span #js {:className "banner-icon"}
-          (gstring/unescapeEntities "&#11041;"))
-        (dom/span #js {:className "banner-title"}
-          "lokate"))
+      (if (and (open? (:drawer data)) return-to)
+        (om/build back-btn data)
+        (dom/div #js {:className "banner-container"}
+          (dom/span #js {:className "banner-icon"}
+            (gstring/unescapeEntities "&#11041;"))
+          (dom/span #js {:className "banner-title"}
+            "lokate")))
       (dom/div #js {:className "control-panel"}
         (dom/div #js {:id "drawer-control"
                       :style (display-fade-in (open? (:drawer data)))}
-          (when (open? (:drawer data))
-            (om/build back-btn data))
           (when (open? (:drawer data))
             (om/build resize-btn data))
           (dom/div #js {:id "drawer-sub-control"}

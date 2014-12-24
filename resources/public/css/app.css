@@ -552,6 +552,8 @@ a {
     width: 20px;
     font-size: 1.3em;
     color: white;
+    padding-left: .3em;
+
 }
 
 #nav-back-btn:hover {
