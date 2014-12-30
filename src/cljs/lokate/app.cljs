@@ -96,11 +96,13 @@
 (def handlers
   {:home           (fn [data route]
                      (dispatchR data route
-                       {:drawer home/home-view}))
+                       {:banner home/banner
+                        :drawer home/home-view}))
 
    :collections    (fn [data route]
                      (dispatchR data route
-                       {:controls collections/collections-controls
+                       {:banner collections/collections-banner
+                        :controls collections/collections-controls
                         :drawer collections/collections-view}
                        (get-route :home)))
 
@@ -111,7 +113,8 @@
 
    :collection     (fn [data route]
                      (dispatchR data route
-                       {:controls collections/collection-controls
+                       {:banner collections/collection-banner
+                        :controls collections/collection-controls
                         :drawer collections/collection-view}
                        (get-route :collections)
                        (select-keys route [:c-id])))
@@ -125,7 +128,8 @@
 
    :unit           (fn [data route]
                      (dispatchR data route
-                       {:controls unit/unit-controls
+                       {:banner unit/page-select
+                        :controls unit/unit-controls
                         :drawer unit/unit-view}
                        (get-route :collection (select-keys route [:c-id]))
                        (select-keys route [:c-id :u-id])))

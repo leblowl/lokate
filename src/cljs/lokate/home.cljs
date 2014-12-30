@@ -4,6 +4,11 @@
             [lokate.routing :refer [get-route]]
             [lokate.components :refer [select-list]]))
 
+(defn banner [data owner]
+  (om/component
+    (dom/div nil
+      (dom/span #js {:className "banner-title"} "home"))))
+
 (defn home-view [data owner]
   (reify
     om/IInitState

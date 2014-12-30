@@ -44,20 +44,42 @@
 (defn navicon
   [data owner]
   (om/component
-    (dom/div #js {:className (str "navicon" (when (open? (:drawer data)) " active"))
+    (dom/div #js {:className (str "navicon"
+                               (when (open? (:drawer data)) " active"))
                   :onClick (fn [] (toggle-open (:drawer data)))})))
+
+(defn home-icon
+  [data owner]
+  (om/component
+    (dom/span #js {:className "banner-icon"}
+      (gstring/unescapeEntities "&#11041;"))))
+
+(defn home-banner
+  [data owner]
+  (om/component
+    (dom/div #js {:className "banner-container"}
+      (om/build home-icon data)
+      (dom/span #js {:className "banner-title"}
+        "lokate"))))
+
+(defn drawer-banner
+  [{{:keys [views opts return-to]} :route :as data} owner]
+  (om/component
+    (dom/div #js {:className "banner-container"}
+      (if return-to
+        (om/build back-btn data)
+        (om/build home-icon data))
+      (when (:banner views)
+        (om/build (:banner views) data {:opts opts})))))
 
 (defn control-panel
   [{{:keys [views opts return-to]} :route :as data} owner]
   (om/component
     (dom/div #js {:className "navigation-container"}
-      (if (and (open? (:drawer data)) return-to)
-        (om/build back-btn data)
-        (dom/div #js {:className "banner-container"}
-          (dom/span #js {:className "banner-icon"}
-            (gstring/unescapeEntities "&#11041;"))
-          (dom/span #js {:className "banner-title"}
-            "lokate")))
+      (if (open? (:drawer data))
+        (om/build drawer-banner data)
+        (om/build home-banner data))
+
       (dom/div #js {:className "control-panel"}
         (dom/div #js {:id "drawer-control"
                       :style (display-fade-in (open? (:drawer data)))}

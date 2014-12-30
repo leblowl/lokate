@@ -3,7 +3,8 @@
   (:require [cljs.core.async :refer [put! <! >! chan timeout]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [lokate.components :refer [select-list render-overlay modal-input]]
+            [lokate.routing :refer [get-route]]
+            [lokate.components :refer [select select-list render-overlay modal-input]]
             [lokate.util :refer [fdate-now floormat distance]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]))
 
@@ -35,6 +36,21 @@
                       :className "btn icon-in-alt"
                       :onClick #(put! (om/get-shared owner :nav)
                                   [:route (str "/collections/" collection-id "/points/" point-id)])})))))
+
+(defn page-select
+  [data owner {:keys [c-id u-id] :as opts}]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:pages [{:name "info"
+                :route (get-route :unit-info {:c-id c-id :u-id u-id})}
+               {:name "resources"
+                :route (get-route :unit-resources {:c-id c-id :u-id u-id})}]})
+
+    om/IRenderState
+    (render-state [_ {:keys [pages]}]
+      (apply dom/div #js {:className "dropdown-select-list"}
+        (om/build-all select pages)))))
 
 (defn unit-view
   [data owner {:keys [c-id u-id] :as opts}]

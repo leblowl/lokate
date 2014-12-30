@@ -6,6 +6,16 @@
             [lokate.routing :refer [get-route]]
             [lokate.components :refer [select-list render-overlay modal-input]]))
 
+(defn collections-banner [data owner]
+  (om/component
+    (dom/div nil
+      (dom/span #js {:className "banner-title"} "collections"))))
+
+(defn collection-banner [data owner]
+  (om/component
+    (dom/div nil
+      (dom/span #js {:className "banner-title"} "collection"))))
+
 (defn add-collection-btn
   [collections owner]
   (om/component
