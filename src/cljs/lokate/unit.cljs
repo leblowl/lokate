@@ -43,7 +43,7 @@
     om/IInitState
     (init-state [_]
       {:pages [{:name "info"
-                 :route nil ;(get-route :unit-info {:c-id c-id :u-id u-id})
+                :route nil ;(get-route :unit-info {:c-id c-id :u-id u-id})
                  }
                {:name "resources"
                  :route nil ;(get-route :unit-resources {:c-id c-id :u-id u-id})

@@ -25,37 +25,32 @@
     (apply dom/ol #js {:className "link-list"}
       (om/build-all link-list-item links {:opts (merge opts {:class "btn-link"})}))))
 
-(defn select*
-  [selectable owner {:keys [class name-default] :as opts}]
-  (dom/div #js {:className (str "select " class
-                             (when (:active selectable) "active"))
-                :onClick (:action selectable)}
-    (dom/span #js {:className "select-title"}
-      (or (blankf (:name selectable)) name-default))))
+(defn select
+  [sel owner {:keys [class name-default] :as opts}]
+  (om/component
+    (dom/div #js {:className (str "select " class
+                               (when (:active sel) "active"))
+                  :onClick (:action sel)}
+      (dom/span #js {:className "select-title"}
+        (or (blankf (:name sel)) name-default)))))
 
-(defn select-list-item*
-  [selectable owner {:keys [class name-default action] :as opts}]
+(defn select-list-item
+  [sel owner {:keys [class name-default action] :as opts}]
   (om/component
     (dom/li #js {:className "select-list-item"}
-      (om/build select* selectable {:opts opts}))))
+      (om/build select sel {:opts opts}))))
 
-(defn select-list*
-  [selectables owner opts]
+(defn nav! [owner route]
+  (put! (om/get-shared owner :nav) route))
+
+(defn select-list
+  [sels owner {:keys [class name-default action] :as opts}]
   (reify
-    om/IInitState
-    (init-state [_]
-      {:selectables* (map #(assoc % :active false)
-                       selectables)})
-
-    om/IWillReceiveProps
-    (will-receive-props [this next-props]
-      ;do something
-      )
-
     om/IRenderState
-    (render-state [_ {:keys [selectables*]}]
-      (apply dom/ol #js {:className "select-list"}
-        (om/build-all select-list-item* selectables {:opts opts})))))
+    (render-state [_ {:keys [selected]}]
+      (let [sels* (map #(assoc % :active (= selected %)) sels)]
+        (apply dom/ol #js {:className "select-list"}
+          (om/build-all select-list-item sels* opts*))))))
 
 (defn dropdown-select-list
   [selectables owner opts]
@@ -72,7 +67,11 @@
                     :onClick #(om/update-state! owner :open not)}
           (dom/span #js {:className "banner-title"} (:name selected)))
         (when open
-          (om/build select-list* selectables))))))
+          (om/build select-list selectables
+            {:opts  {:action (fn []
+                               (om/set-state owner :selected selected)
+                               (nav! owner (:route selectable)))}
+             :state {:selected selected}}))))))
 
 (defn modal-editable
   [data owner {:keys [id className edit-key on-edit on-key-down] :as opts}]

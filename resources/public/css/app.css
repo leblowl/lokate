@@ -253,7 +253,7 @@ a {
     overflow-x: hidden;
 }
 
-.dropdown-select-list {
+.select-list {
     position: absolute;
     top: 45px;
     left: 0;
@@ -275,6 +275,10 @@ a {
     color: white;
 }
 
+.select.active {
+    color: rgb(33, 255, 150);
+}
+
 .current-select:hover {
     cursor: pointer;
 }
@@ -285,7 +289,7 @@ a {
     height: 30%;
 }
 
-.link-list::-webkit-scrollbar {
+.-list::-webkit-scrollbar {
     display: none;
 }
 
