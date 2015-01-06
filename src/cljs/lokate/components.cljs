@@ -2,24 +2,77 @@
   (:require [cljs.core.async :refer [put!]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
+            [clojure.string :as str]
             [goog.string :as gstring]
             [lokate.util :refer [display blankf]]
             [lokate.db :refer [db-add]]))
 
-(defn select [selectable owner {:keys [name-default route-fn] :as opts}]
+(defn link-list-item
+  [selectable owner {:keys [class name-default route-fn] :as opts}]
   (om/component
-    (dom/li #js {:className "select-list-item"}
-      (dom/a #js {:className "select"
+    (dom/li #js {:className "link-list-item"}
+      (dom/a #js {:className (str "link " class)
                   :onClick #(put! (om/get-shared owner :nav)
                               (or (:route selectable)
                                 (route-fn selectable)))}
-        (dom/span #js {:className "select-title"} (or (blankf (:name selectable)) name-default))))))
+        (dom/span #js {:className "link-title"}
+          (or (blankf (:name selectable)) name-default))))))
 
 ; todo: sort by creation order
-(defn select-list [selectables owner opts]
+(defn link-list
+  [links owner opts]
   (om/component
-    (apply dom/ol #js {:className "select-list"}
-        (om/build-all select selectables {:opts opts}))))
+    (apply dom/ol #js {:className "link-list"}
+      (om/build-all link-list-item links {:opts (merge opts {:class "btn-link"})}))))
+
+(defn select*
+  [selectable owner {:keys [class name-default] :as opts}]
+  (dom/div #js {:className (str "select " class
+                             (when (:active selectable) "active"))
+                :onClick (:action selectable)}
+    (dom/span #js {:className "select-title"}
+      (or (blankf (:name selectable)) name-default))))
+
+(defn select-list-item*
+  [selectable owner {:keys [class name-default action] :as opts}]
+  (om/component
+    (dom/li #js {:className "select-list-item"}
+      (om/build select* selectable {:opts opts}))))
+
+(defn select-list*
+  [selectables owner opts]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:selectables* (map #(assoc % :active false)
+                       selectables)})
+
+    om/IWillReceiveProps
+    (will-receive-props [this next-props]
+      ;do something
+      )
+
+    om/IRenderState
+    (render-state [_ {:keys [selectables*]}]
+      (apply dom/ol #js {:className "select-list"}
+        (om/build-all select-list-item* selectables {:opts opts})))))
+
+(defn dropdown-select-list
+  [selectables owner opts]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:open false
+       :selected nil})
+
+    om/IRenderState
+    (render-state [_ {:keys [open selected]}]
+      (dom/div nil
+        (dom/a #js {:className "current-select"
+                    :onClick #(om/update-state! owner :open not)}
+          (dom/span #js {:className "banner-title"} (:name selected)))
+        (when open
+          (om/build select-list* selectables))))))
 
 (defn modal-editable
   [data owner {:keys [id className edit-key on-edit on-key-down] :as opts}]

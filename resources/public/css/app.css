@@ -241,7 +241,7 @@ a {
     padding: .5em;
 }
 
-.select-list {
+.link-list {
     box-sizing: border-box;
     width: 100%;
     height: 100%;
@@ -253,17 +253,43 @@ a {
     overflow-x: hidden;
 }
 
+.dropdown-select-list {
+    position: absolute;
+    top: 45px;
+    left: 0;
+    z-index: 5;
+    box-sizing: border-box;
+    list-style-type: none;
+    margin: 0;
+    padding-left: 30px;
+    padding-right: 30px;
+    background-color: rgba(33, 33, 33, 0.9);
+    color: white;
+}
+
+.select:hover {
+    cursor: pointer;
+}
+
+.current-select {
+    color: white;
+}
+
+.current-select:hover {
+    cursor: pointer;
+}
+
 .collection-tip {
     margin: auto;
     width: 60%;
     height: 30%;
 }
 
-.select-list::-webkit-scrollbar {
+.link-list::-webkit-scrollbar {
     display: none;
 }
 
-.select {
+.btn-link {
     width: 100%;
     height: 33px;
     margin-top: .5em;
@@ -274,11 +300,11 @@ a {
     border: 1px solid rgba(33, 150, 255, 0.9);
 }
 
-.select:hover {
+.btn-link:hover {
     cursor: pointer;
 }
 
-.select-title {
+.btn-link .link-title {
     margin: auto;
     font-size: 1.3em;
 }
@@ -551,8 +577,8 @@ a {
     width: 20px;
     font-size: 1.3em;
     color: white;
-    padding-left: .3em;
-    padding-right: 1.2em;
+    margin-left: 5px;
+    margin-right: 5px;
     position: relative;
     top: 1px;
 }

@@ -4,7 +4,7 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [lokate.routing :refer [get-route]]
-            [lokate.components :refer [select select-list render-overlay modal-input]]
+            [lokate.components :refer [dropdown-select-list render-overlay modal-input]]
             [lokate.util :refer [fdate-now floormat distance]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]))
 
@@ -43,14 +43,16 @@
     om/IInitState
     (init-state [_]
       {:pages [{:name "info"
-                :route (get-route :unit-info {:c-id c-id :u-id u-id})}
+                 :route nil ;(get-route :unit-info {:c-id c-id :u-id u-id})
+                 }
                {:name "resources"
-                :route (get-route :unit-resources {:c-id c-id :u-id u-id})}]})
+                 :route nil ;(get-route :unit-resources {:c-id c-id :u-id u-id})
+                 }]})
 
     om/IRenderState
     (render-state [_ {:keys [pages]}]
-      (apply dom/div #js {:className "dropdown-select-list"}
-        (om/build-all select pages)))))
+      (om/build dropdown-select-list pages
+        {:init-state {:selected (first pages)}}))))
 
 (defn unit-view
   [data owner {:keys [c-id u-id] :as opts}]

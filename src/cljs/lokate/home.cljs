@@ -2,7 +2,7 @@
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [lokate.routing :refer [get-route]]
-            [lokate.components :refer [select-list]]))
+            [lokate.components :refer [link-list]]))
 
 (defn banner [data owner]
   (om/component
@@ -22,4 +22,4 @@
     om/IRenderState
     (render-state [_ {:keys [home-selects]}]
      (dom/div #js {:id "home"}
-       (om/build select-list home-selects)))))
+       (om/build link-list home-selects)))))

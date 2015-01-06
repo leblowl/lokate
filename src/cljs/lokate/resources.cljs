@@ -6,7 +6,7 @@
             [goog.string :as gstring]
             [lokate.routing :refer [get-route]]
             [lokate.util :refer [blankf]]
-            [lokate.components :refer [select-list render-overlay modal-input]]
+            [lokate.components :refer [link-list render-overlay modal-input]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]
             [cljs-uuid-utils :as uuid]))
 
@@ -42,7 +42,7 @@
   [data owner]
   (om/component
     (dom/div #js {:className "resources"}
-      (om/build select-list (vals (:resources data))
+      (om/build link-list (vals (:resources data))
         {:opts {:route-fn #(get-route :resource {:r-id (keyword (:id %))})}}))))
 
 (defn resource-view

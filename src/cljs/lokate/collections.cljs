@@ -4,7 +4,7 @@
             [om.dom :as dom :include-macros true]
             [lokate.db :refer [db-new db-add]]
             [lokate.routing :refer [get-route]]
-            [lokate.components :refer [select-list render-overlay modal-input]]))
+            [lokate.components :refer [link-list render-overlay modal-input]]))
 
 (defn collections-banner [data owner]
   (om/component
@@ -35,7 +35,7 @@
     om/IRender
     (render [_]
       (dom/div #js {:id "collections"}
-        (om/build select-list
+        (om/build link-list
           (vals collections)
           {:opts {:name-default "Untitled_Collection"
                   :route-fn #(get-route :collection
@@ -91,7 +91,7 @@
             (if (empty? (:units collection))
               (om/build collection-tip collection)
               (om/build
-                select-list (vals (:units collection))
+                link-list (vals (:units collection))
                 {:opts {:name-default "Untitled_Unit"
                         :route-fn #(get-route :unit
                                     {:c-id c-id :u-id (keyword (:id %))})
