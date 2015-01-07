@@ -53,7 +53,7 @@
           (om/build-all select-list-item sels* {:opts opts}))))))
 
 (defn dropdown-select-list
-  [selectables owner opts]
+  [sels owner opts]
   (reify
     om/IInitState
     (init-state [_]
@@ -67,9 +67,10 @@
                     :onClick #(om/update-state! owner :open not)}
           (dom/span #js {:className "banner-title"} (:name selected)))
         (when open
-          (om/build select-list selectables
+          (om/build select-list sels
             {:opts  {:action (fn [sel]
-                               (om/set-state! owner :selected selected)
+                               (om/set-state! owner :open false)
+                               (om/set-state! owner :selected sel)
                                (nav! owner (:route sel)))}
              :state {:selected selected}}))))))
 

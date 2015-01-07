@@ -34,8 +34,7 @@
       (when (-> unit :pos (comp not empty?))
         (dom/div #js {:id "check-in-btn"
                       :className "btn icon-in-alt"
-                      :onClick #(put! (om/get-shared owner :nav)
-                                  [:route (str "/collections/" collection-id "/points/" point-id)])})))))
+                      :onClick #()})))))
 
 (defn page-select
   [data owner {:keys [c-id u-id] :as opts}]
@@ -43,9 +42,11 @@
     om/IInitState
     (init-state [_]
       {:pages [{:name "info"
-                :route-fn #(get-route :unit-info {:c-id %1 :u-id %2})}
+                :route-fn #(get-route :unit-info {:c-id %1 :u-id %2})
+                :active false}
                {:name "resources"
-                :route-fn #(get-route :unit-resources {:c-id %1 :u-id %2})}]})
+                :route-fn #(get-route :unit-resources {:c-id %1 :u-id %2})
+                :active false}]})
 
     om/IRenderState
     (render-state [_ {:keys [pages]}]
@@ -62,13 +63,15 @@
         (dom/div #js {:id "name-editable"
                       :className "editable"
                       :onClick #(render-overlay
-                                    modal-input collection {:title "Unit name"
-                                                            :placeholder "Untitled unit"
-                                                            :value (:name unit)
-                                                            :on-edit (partial update-unit u-id)})}
+                                  modal-input collection
+                                  {:title "Unit name"
+                                   :placeholder "Untitled unit"
+                                   :value (:name unit)
+                                   :on-edit (partial update-unit u-id)})}
           (dom/span #js {:className "editable-title"
                          :data-ph "Unit Name"
                          :dangerouslySetInnerHTML #js {:__html (:name unit)}}))
+
         (dom/div #js {:id "point-content"
                       :className "info-content"}
           (dom/div #js {:className "origin"}
@@ -83,3 +86,13 @@
               (dom/span #js {:className "img icon-pin status"
                              :style #js {:color (status-color "green")}})
               (dom/span #js {:className "location-lat-lng"} (display-pos (:pos unit))))))))))
+
+(defn unit-resources-view
+  [data owner {:keys [c-id u-id] :as opts}]
+  (om/component
+    (let [collection (get-in data [:collections c-id])
+          unit (get-in collection [:units u-id])]
+      (dom/div #js {:id "resource-list"}
+        (if (empty? (:resources unit))
+          ;(om/build collection-tip collection)
+          (om/build list (vals (:resources unit))))))))

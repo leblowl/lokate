@@ -70,29 +70,27 @@
 
 (defn collection-view
   [data owner {:keys [c-id] :as opts}]
-  (reify
-    om/IRender
-    (render [_]
-      (let [collection (get-in data [:collections c-id])]
-        (dom/div #js {:className "info"}
-          (dom/div #js {:id "name-editable"
-                        :className "editable"
-                        :onClick #(render-overlay
-                                    modal-input collection
-                                    {:title "Collection name"
-                                     :placeholder "Untitled collection"
-                                     :value (:name collection)
-                                     :on-edit update-collection})}
+  (om/component
+    (let [collection (get-in data [:collections c-id])]
+      (dom/div #js {:className "info"}
+        (dom/div #js {:id "name-editable"
+                      :className "editable"
+                      :onClick #(render-overlay
+                                  modal-input collection
+                                  {:title "Collection name"
+                                   :placeholder "Untitled collection"
+                                   :value (:name collection)
+                                   :on-edit update-collection})}
 
-            (dom/span #js {:className "editable-title"
-                           :data-ph "Collection Name"
-                           :dangerouslySetInnerHTML #js {:__html (:name collection)}}))
-          (dom/div #js {:className "info-content"}
-            (if (empty? (:units collection))
-              (om/build collection-tip collection)
-              (om/build
-                link-list (vals (:units collection))
-                {:opts {:name-default "Untitled_Unit"
-                        :route-fn #(get-route :unit-info
+          (dom/span #js {:className "editable-title"
+                         :data-ph "Collection Name"
+                         :dangerouslySetInnerHTML #js {:__html (:name collection)}}))
+        (dom/div #js {:className "info-content"}
+          (if (empty? (:units collection))
+            (om/build collection-tip collection)
+            (om/build
+              link-list (vals (:units collection))
+              {:opts {:name-default "Untitled_Unit"
+                       :route-fn #(get-route :unit-info
                                     {:c-id c-id :u-id (keyword (:id %))})
-                        :props {:onContextMenu #(false)}}}))))))))
+                       :props {:onContextMenu #(false)}}})))))))
