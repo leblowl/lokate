@@ -21,7 +21,8 @@
                 [:collection-new [["collection" "new"]]]
                 [:collection     [["collection" (id-key :c-id)]]]
                 [:unit-new       [["collection" (id-key :c-id) "unit" "new"]]]
-                [:unit           [["collection" (id-key :c-id) "unit" (id-key :u-id)]]]
+                [:unit-info      [["collection" (id-key :c-id) "unit" (id-key :u-id) "info"]]]
+                [:unit-resources [["collection" (id-key :c-id) "unit" (id-key :u-id) "resources"]]]
                 [:resources      [["resources"]]]
                 [:resource       [["resource" (id-key :r-id)]]]]))
 

@@ -25,10 +25,7 @@
                   :maximized false}
          :collections {}
          :resources {}
-         :route-name nil
-         :route-opts {}
-         :route-views {}
-         :return-to nil}))
+         :route nil}))
 
 (def nav-chan (chan))
 
@@ -90,8 +87,8 @@
   ([data route views return-to opts]
      (om/update! data [:route]
        (merge route {:views views
-                     :opts opts
-                     :return-to return-to}))))
+                     :return-to return-to
+                     :opts opts}))))
 
 (def handlers
   {:home           (fn [data route]
@@ -122,11 +119,11 @@
    :unit-new       (fn [data route]
                      (let [c-id (:c-id route)]
                        (route!
-                         (get-route :unit {:c-id c-id
-                                           :u-id (add-unit data c-id)})
+                         (get-route :unit-info {:c-id c-id
+                                                :u-id (add-unit data c-id)})
                          (partial handle data))))
 
-   :unit           (fn [data route]
+   :unit-info      (fn [data route]
                      (dispatchR data route
                        {:banner unit/page-select
                         :controls unit/unit-controls

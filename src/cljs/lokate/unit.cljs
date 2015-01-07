@@ -43,16 +43,15 @@
     om/IInitState
     (init-state [_]
       {:pages [{:name "info"
-                :route nil ;(get-route :unit-info {:c-id c-id :u-id u-id})
-                 }
+                :route-fn #(get-route :unit-info {:c-id %1 :u-id %2})}
                {:name "resources"
-                 :route nil ;(get-route :unit-resources {:c-id c-id :u-id u-id})
-                 }]})
+                :route-fn #(get-route :unit-resources {:c-id %1 :u-id %2})}]})
 
     om/IRenderState
     (render-state [_ {:keys [pages]}]
-      (om/build dropdown-select-list pages
-        {:init-state {:selected (first pages)}}))))
+      (let [pages (map #(assoc % :route ((:route-fn %) c-id u-id)) pages)]
+        (om/build dropdown-select-list pages
+          {:state {:selected (first pages)}})))))
 
 (defn unit-view
   [data owner {:keys [c-id u-id] :as opts}]

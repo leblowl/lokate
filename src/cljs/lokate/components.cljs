@@ -26,11 +26,11 @@
       (om/build-all link-list-item links {:opts (merge opts {:class "btn-link"})}))))
 
 (defn select
-  [sel owner {:keys [class name-default] :as opts}]
+  [sel owner {:keys [class name-default action] :as opts}]
   (om/component
     (dom/div #js {:className (str "select " class
                                (when (:active sel) "active"))
-                  :onClick (:action sel)}
+                  :onClick #(action sel)}
       (dom/span #js {:className "select-title"}
         (or (blankf (:name sel)) name-default)))))
 
@@ -50,7 +50,7 @@
     (render-state [_ {:keys [selected]}]
       (let [sels* (map #(assoc % :active (= selected %)) sels)]
         (apply dom/ol #js {:className "select-list"}
-          (om/build-all select-list-item sels* opts*))))))
+          (om/build-all select-list-item sels* {:opts opts}))))))
 
 (defn dropdown-select-list
   [selectables owner opts]
@@ -68,9 +68,9 @@
           (dom/span #js {:className "banner-title"} (:name selected)))
         (when open
           (om/build select-list selectables
-            {:opts  {:action (fn []
-                               (om/set-state owner :selected selected)
-                               (nav! owner (:route selectable)))}
+            {:opts  {:action (fn [sel]
+                               (om/set-state! owner :selected selected)
+                               (nav! owner (:route sel)))}
              :state {:selected selected}}))))))
 
 (defn modal-editable

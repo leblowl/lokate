@@ -53,7 +53,7 @@
   (->
     (into {} (for [[k v] (partition 2 path)] [k v]))
     (set/rename-keys {:collections :c-id :units :u-id})
-    ((partial get-route :unit))))
+    ((partial get-route :unit-info))))
 
 (defn mark-it!
   [data owner map unit]
