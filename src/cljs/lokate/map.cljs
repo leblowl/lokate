@@ -143,7 +143,7 @@
             ;; Convert this into an api call to /edit @ app.cljs
             (let [c-id (-> @data :route :opts :c-id)
                   u-id (-> @data :route :opts :u-id)]
-              (when (= :unit (-> @data :route :domkm.silk/name))
+              (when (= :unit-info (-> @data :route :domkm.silk/name))
                (om/update! data [:collections c-id :units u-id :pos]
                  (select-keys
                    (js->clj (.-latlng e) :keywordize-keys true)

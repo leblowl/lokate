@@ -87,6 +87,15 @@
                              :style #js {:color (status-color "green")}})
               (dom/span #js {:className "location-lat-lng"} (display-pos (:pos unit))))))))))
 
+(defn unit-resources-tip
+  [data owner]
+  (om/component
+    (dom/div #js {:className "unit-resources-tip"}
+      (dom/div #js {:className "unit-resources-tip-msg"}
+        "Click "
+        (dom/span #js {:className "img icon-settings"})
+        " to add resources to your unit!"))))
+
 (defn unit-resources-view
   [data owner {:keys [c-id u-id] :as opts}]
   (om/component
@@ -94,5 +103,5 @@
           unit (get-in collection [:units u-id])]
       (dom/div #js {:id "resource-list"}
         (if (empty? (:resources unit))
-          ;(om/build collection-tip collection)
+          (om/build unit-resources-tip collection)
           (om/build list (vals (:resources unit))))))))

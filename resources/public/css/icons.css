@@ -1,0 +1,131 @@
+@font-face {
+	font-family: 'icomoon';
+	src:url('/fonts/icomoon/icomoon.eot?q1s9kp');
+	src:url('/fonts/icomoon/icomoon.eot?#iefixq1s9kp') format('embedded-opentype'),
+		url('/fonts/icomoon/icomoon.woff?q1s9kp') format('woff'),
+		url('/fonts/icomoon/icomoon.ttf?q1s9kp') format('truetype'),
+		url('/fonts/icomoon/icomoon.svg?q1s9kp#icomoon') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'goog-material';
+	src:url('/fonts/goog-material/icomoon.eot?w1eobz');
+	src:url('/fonts/goog-material/icomoon.eot?#iefixw1eobz') format('embedded-opentype'),
+		url('/fonts/goog-material/icomoon.woff?w1eobz') format('woff'),
+		url('/fonts/goog-material/icomoon.ttf?w1eobz') format('truetype'),
+		url('/fonts/goog-material/icomoon.svg?w1eobz#icomoon') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+	font-family: 'icomoon', 'goog-material';
+	speak: none;
+	font-style: normal;
+	font-weight: normal;
+	font-variant: normal;
+	text-transform: none;
+	line-height: 1;
+
+	/* Better Font Rendering =========== */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+.icon-in-alt:before {
+	content: "\e600";
+}
+
+.icon-googleplus:before {
+	content: "\e605";
+}
+
+.icon-pin:before {
+	content: "\e606";
+}
+
+.icon-pin-alt:before {
+	content: "\e607";
+}
+
+.icon-location:before {
+	content: "\e608";
+}
+
+.icon-login:before {
+	content: "\e601";
+}
+
+.icon-checkmark:before {
+	content: "\e602";
+}
+
+.icon-plus:before {
+	content: "\e609";
+}
+
+.icon-resize-enlarge:before {
+	content: "\e60b";
+}
+
+.icon-resize-shrink:before {
+	content: "\e60c";
+}
+
+.icon-flow-tree:before {
+	content: "\e60d";
+}
+
+.icon-flow-line:before {
+	content: "\e60e";
+}
+
+.icon-flow-parallel:before {
+	content: "\e60f";
+}
+
+.icon-arrow-right-circle:before {
+	content: "\e603";
+}
+
+.icon-arrow-left:before {
+	content: "\e60a";
+}
+
+.icon-arrow-right:before {
+	content: "\e604";
+}
+
+.icon-ellipsis:before {
+	content: "\e610";
+}
+
+.icon-dots:before {
+	content: "\e611";
+}
+
+.icon-dot:before {
+	content: "\e612";
+}
+
+.icon-box-outline:before {
+    content: "\f372";
+}
+
+.icon-box-filled:before {
+    content: "\f371";
+}
+
+.icon-done:before {
+	content: "\e613";
+}
+
+.icon-done-all:before {
+	content: "\e614";
+}
+
+.icon-settings:before {
+	content: "\e615";
+}
