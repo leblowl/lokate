@@ -108,7 +108,7 @@
                          :value value
                          ;default empty onChange allows you to enter input, all that's needed here
                          :onChange #()})
-         (dom/div #js {:className "name-input-ok btn icon-checkmark"
+         (dom/div #js {:className "name-input-ok btn icon-done"
                        :onClick #(on-edit data (.-value (om/get-node owner "input")))}))))))
 
 (defn overlay

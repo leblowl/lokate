@@ -136,4 +136,6 @@
             (om/build list (vals (:resources unit))))
 
           :configure
-          (om/build select-list (vals (:resources data))))))))
+          (om/build select-list (vals (:resources data))
+            {:opts {:class "btn-"
+                    :action #(.log js/console "activate!")}}))))))
