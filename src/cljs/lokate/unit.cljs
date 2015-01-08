@@ -39,7 +39,7 @@
 (defn unit-resources-controls
   [data owner {:keys [c-id u-id] :as opts}]
   (om/component
-    (dom/div #js {:className "inline-list"}
+    (dom/div #js {:className "inline-control-group"}
       (dom/div #js {:id "configure-resources-btn"
                     :className "btn icon-settings"
                     :onClick #(put! (:pub-chan (om/get-shared owner))

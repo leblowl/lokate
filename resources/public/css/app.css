@@ -355,7 +355,7 @@ a {
     margin-right: .3em;
 }
 
-.inline-list {
+.inline-control-group {
     display: flex;
     flex-direction: row;
 }
