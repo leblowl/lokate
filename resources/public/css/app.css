@@ -13,6 +13,7 @@ html, body, #root, #app {
     height: 100%;
     font-family: 'Open Sans', 'DejaVuSans', sans-serif;
     font-weight: 300;
+    color: white;
     overflow: hidden;
 }
 
@@ -241,10 +242,13 @@ a {
     padding: .5em;
 }
 
-.link-list {
-    box-sizing: border-box;
+.full {
     width: 100%;
     height: 100%;
+}
+
+.list, [class*="-list"] {
+    box-sizing: border-box;
     list-style-type: none;
     margin: 0;
     padding-left: .5em;
@@ -253,38 +257,39 @@ a {
     overflow-x: hidden;
 }
 
-.select-list {
+.list::-webkit-scrollbar,
+[class*="-list"]::-webkit-scrollbar {
+    display: none;
+}
+
+.title, [class*="-title"] {
+    font-size: 1em;
+}
+
+#page-select .list {
     position: absolute;
     top: 45px;
     left: 0;
     z-index: 5;
-    box-sizing: border-box;
-    list-style-type: none;
-    margin: 0;
     padding-left: 30px;
     padding-right: 30px;
     background-color: rgba(33, 33, 33, 0.9);
-    color: white;
-}
-
-.select:hover {
-    cursor: pointer;
-}
-
-.current-select {
-    color: white;
-}
-
-.select.active {
-    color: rgb(33, 255, 150);
 }
 
 .current-select:hover {
     cursor: pointer;
 }
 
-.-list::-webkit-scrollbar {
-    display: none;
+.current-select-title {
+    font-size: 1.3em;
+}
+
+.select:hover {
+    cursor: pointer;
+}
+
+.select.active {
+    color: rgb(33, 255, 150);
 }
 
 .btn-link {
@@ -304,7 +309,7 @@ a {
 
 .btn-link .link-title {
     margin: auto;
-    font-size: 1.3em;
+    font-size: 1.1em;
 }
 
 .info {

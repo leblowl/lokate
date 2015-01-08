@@ -43,7 +43,10 @@
   (om/component
     (dom/div #js {:className "resources"}
       (om/build link-list (vals (:resources data))
-        {:opts {:route-fn #(get-route :resource {:r-id (keyword (:id %))})}}))))
+        {:opts {:class "btn-"
+                :action #(put! (:nav (om/get-shared owner))
+                           (get-route :resource
+                             {:r-id (keyword (:id %))}))}}))))
 
 (defn resource-view
   [data owner {:keys [r-id] :as opts}]

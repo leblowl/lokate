@@ -1,6 +1,6 @@
 (ns lokate.app
   (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]])
-  (:require [cljs.core.async :refer [put! <! >! chan timeout]]
+  (:require [cljs.core.async :refer [put! <! >! pub chan timeout]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [clojure.set :refer [rename-keys]]
@@ -28,6 +28,8 @@
          :route nil}))
 
 (def nav-chan (chan))
+(def pub-chan (chan))
+(def notif-chan (pub pub-chan :topic))
 
 (defn init-app-state [key result]
   (swap! app-state
@@ -135,7 +137,7 @@
                      (dispatchR data route
                        {:banner unit/page-select
                         :controls unit/unit-resources-controls
-                        :drawer unit/unit-resources-view}
+                        :drawer unit/unit-resources}
                        (get-route :collection (select-keys route [:c-id]))
                        (select-keys route [:c-id :u-id])))
 
@@ -182,7 +184,9 @@
 
 (defn render []
   (om/root app app-state {:target (.getElementById js/document "root")
-                          :shared {:nav nav-chan}}))
+                          :shared {:nav nav-chan
+                                   :pub-chan pub-chan
+                                   :notif-chan notif-chan}}))
 
 (defn go! []
   (.addEventListener js/window "resize" on-resize)

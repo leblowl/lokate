@@ -1,5 +1,6 @@
 (ns lokate.home
-  (:require [om.core :as om :include-macros true]
+  (:require [cljs.core.async :refer [put!]]
+            [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [lokate.routing :refer [get-route]]
             [lokate.components :refer [link-list]]))
@@ -22,4 +23,7 @@
     om/IRenderState
     (render-state [_ {:keys [home-selects]}]
      (dom/div #js {:id "home"}
-       (om/build link-list home-selects)))))
+       (om/build link-list home-selects
+         {:opts {:class "btn-"
+                 :action #(put! (:nav (om/get-shared owner))
+                            (:route %))}})))))

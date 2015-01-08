@@ -1,53 +1,55 @@
 (ns lokate.components
-  (:require [cljs.core.async :refer [put!]]
-            [om.core :as om :include-macros true]
+  (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [clojure.string :as str]
             [goog.string :as gstring]
             [lokate.util :refer [display blankf]]
             [lokate.db :refer [db-add]]))
 
-(defn link-list-item
-  [selectable owner {:keys [class name-default route-fn] :as opts}]
+(defn list-item
+  [item owner {:keys [item-comp] :as opts}]
   (om/component
-    (dom/li #js {:className "link-list-item"}
-      (dom/a #js {:className (str "link " class)
-                  :onClick #(put! (om/get-shared owner :nav)
-                              (or (:route selectable)
-                                (route-fn selectable)))}
-        (dom/span #js {:className "link-title"}
-          (or (blankf (:name selectable)) name-default))))))
+    (dom/li #js {:className "list-item"}
+      (om/build item-comp item {:opts opts}))))
 
-; todo: sort by creation order
-(defn link-list
-  [links owner opts]
+(defn simple-list
+  [items owner {:keys [id class item-comp action] :as opts}]
   (om/component
-    (apply dom/ol #js {:className "link-list"}
-      (om/build-all link-list-item links {:opts (merge opts {:class "btn-link"})}))))
+    (apply dom/ol #js {:id id
+                       :className (str class "list")}
+      (om/build-all list-item items {:opts opts}))))
+
+(defn link
+  [item owner {:keys [class name-default action] :as opts}]
+  (om/component
+    (dom/a #js {:className (str class "link")
+                :onClick #(action item)}
+      (dom/span #js {:className "link-title"}
+        (or (blankf (:name item)) name-default)))))
 
 (defn select
-  [sel owner {:keys [class name-default action] :as opts}]
+  [item owner {:keys [class name-default action] :as opts}]
   (om/component
-    (dom/div #js {:className (str "select " class
-                               (when (:active sel) "active"))
-                  :onClick #(action sel)}
+    (dom/div #js {:className (str class "select"
+                               (when (:active item) " active"))
+                  :onClick #(action item)}
       (dom/span #js {:className "select-title"}
-        (or (blankf (:name sel)) name-default)))))
+        (or (blankf (:name item)) name-default)))))
 
-(defn select-list-item
-  [sel owner {:keys [class name-default action] :as opts}]
+; TODO: sorted list
+
+(defn link-list
+  [items owner {:keys [id class name-default action] :as opts}]
   (om/component
-    (dom/li #js {:className "select-list-item"}
-      (om/build select sel {:opts opts}))))
+    (om/build simple-list items {:opts (merge opts {:item-comp link})})))
 
 (defn select-list
-  [sels owner {:keys [class name-default action] :as opts}]
+  [items owner {:keys [id class name-default action] :as opts}]
   (om/component
-    (apply dom/ol #js {:className "select-list"}
-      (om/build-all select-list-item sels {:opts opts}))))
+    (om/build simple-list items {:opts (merge opts {:item-comp select})})))
 
 (defn dropdown-select-list
-  [sels owner {:keys [action] :as opts}]
+  [items owner {:keys [id class item-comp action] :as opts}]
   (reify
     om/IInitState
     (init-state [_]
@@ -55,16 +57,17 @@
 
     om/IRenderState
     (render-state [_ {:keys [open]}]
-      (dom/div nil
+      (dom/div #js {:id id}
         (dom/a #js {:className "current-select"
                     :onClick #(om/update-state! owner :open not)}
-          (dom/span #js {:className "banner-title"}
-            (:name (first (filter :active sels)))))
+          (dom/span #js {:className (str class " current-select-title")}
+            (:name (first (filter :active items)))))
         (when open
-          (om/build select-list sels
-            {:opts  {:action (fn [sel]
-                               (om/set-state! owner :open false)
-                               (action sel))}}))))))
+          (om/build select-list items
+            {:opts (update-in opts [:action]
+                     #(fn [sel]
+                        (om/set-state! owner :open false)
+                        (% sel)))}))))))
 
 (defn modal-editable
   [data owner {:keys [id className edit-key on-edit on-key-down] :as opts}]

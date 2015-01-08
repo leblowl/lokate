@@ -37,9 +37,11 @@
       (dom/div #js {:id "collections"}
         (om/build link-list
           (vals collections)
-          {:opts {:name-default "Untitled_Collection"
-                  :route-fn #(get-route :collection
-                               {:c-id (keyword (:id %))})}})))))
+          {:opts {:class "btn-"
+                  :name-default "Untitled_Collection"
+                  :action #(put! (:nav (om/get-shared owner))
+                             (get-route :collection
+                               {:c-id (keyword (:id %))}))}})))))
 
 (defn update-collection [data res]
   (om/update! data [:name] res)
@@ -86,7 +88,8 @@
                              " to add a unit or unit sector to your collection!")]}})
             (om/build
               link-list (vals (:units collection))
-              {:opts {:name-default "Untitled_Unit"
-                       :route-fn #(get-route :unit-info
-                                    {:c-id c-id :u-id (keyword (:id %))})
-                       :props {:onContextMenu #(false)}}})))))))
+              {:opts {:class "btn-"
+                      :name-default "Untitled_Unit"
+                      :action #(put! (:nav (om/get-shared owner))
+                                 (get-route :unit-info
+                                   {:c-id c-id :u-id (keyword (:id %))}))}})))))))

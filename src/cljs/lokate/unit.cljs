@@ -1,10 +1,10 @@
 (ns lokate.unit
   (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]])
-  (:require [cljs.core.async :refer [put! <! >! chan timeout]]
+  (:require [cljs.core.async :refer [put! <! >! sub chan timeout]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [lokate.routing :refer [get-route]]
-            [lokate.components :refer [tip dropdown-select-list render-overlay modal-input]]
+            [lokate.components :refer [tip dropdown-select-list select-list render-overlay modal-input]]
             [lokate.util :refer [fdate-now floormat distance]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]))
 
@@ -42,7 +42,8 @@
     (dom/div #js {:className "inline-list"}
       (dom/div #js {:id "configure-resources-btn"
                     :className "btn icon-settings"
-                    :onClick #()})
+                    :onClick #(put! (:pub-chan (om/get-shared owner))
+                                {:topic :unit-resources-mode :data :configure})})
       (om/build unit-controls data {:opts opts}))))
 
 (defn reset-active [next-route pages]
@@ -69,7 +70,8 @@
     om/IRenderState
     (render-state [_ {:keys [pages]}]
       (om/build dropdown-select-list pages
-        {:opts {:action #(put! (om/get-shared owner :nav)
+        {:opts {:id "page-select"
+                :action #(put! (om/get-shared owner :nav)
                            (get-route (:route-name %) {:c-id c-id :u-id u-id}))}}))))
 
 (defn unit-view
@@ -104,17 +106,34 @@
                              :style #js {:color (status-color "green")}})
               (dom/span #js {:className "location-lat-lng"} (display-pos (:pos unit))))))))))
 
-(def resources-tip-msg
-  (dom/p nil
-    "Click "
-    (dom/span #js {:className "img icon-settings"})
-    " to add resources to your unit!"))
-
-(defn unit-resources-view
+(defn unit-resources
   [data owner {:keys [c-id u-id] :as opts}]
-  (om/component
-    (let [collection (get-in data [:collections c-id])
-          unit (get-in collection [:units u-id])]
-      (if (empty? (:resources unit))
-        (om/build tip data {:opts {:children [resources-tip-msg]}})
-        (om/build list (vals (:resources unit)))))))
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:mode :view})
+
+    om/IDidMount
+    (did-mount [_]
+      (let [control (sub (:notif-chan (om/get-shared owner)) :unit-resources-mode (chan))]
+        (go-loop [action (<! control)]
+          (om/set-state! owner :mode (:data action))
+          (recur (<! control)))))
+
+    om/IRenderState
+    (render-state [_ {:keys [mode]}]
+      (let [collection (get-in data [:collections c-id])
+            unit (get-in collection [:units u-id])]
+        (case mode
+          :view
+          (if (empty? (:resources unit))
+            (om/build tip data
+              {:opts
+               {:children [(dom/p nil
+                             "Click "
+                             (dom/span #js {:className "img icon-settings"})
+                             " to add resources to your unit!")]}})
+            (om/build list (vals (:resources unit))))
+
+          :configure
+          (om/build select-list (vals (:resources data))))))))
