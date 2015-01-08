@@ -28,31 +28,49 @@
   (om/detach-root (.getElementById js/document "overlay-root")))
 
 (defn unit-controls
-  [data owner {:keys [collection-id point-id] :as opts}]
+  [data owner {:keys [c-id u-id] :as opts}]
   (om/component
-    (let [unit (get-in data [:collections collection-id :units point-id])]
+    (let [unit (get-in data [:collections c-id :units u-id])]
       (when (-> unit :pos (comp not empty?))
         (dom/div #js {:id "check-in-btn"
                       :className "btn icon-in-alt"
                       :onClick #()})))))
+
+(defn unit-resources-controls
+  [data owner {:keys [c-id u-id] :as opts}]
+  (om/component
+    (dom/div #js {:className "inline-list"}
+      (dom/div #js {:id "configure-resources-btn"
+                    :className "btn icon-settings"
+                    :onClick #()})
+      (om/build unit-controls data {:opts opts}))))
+
+(defn reset-active [next-route pages]
+  (map #(assoc % :active (= (:route-name %) next-route)) pages))
 
 (defn page-select
   [data owner {:keys [c-id u-id] :as opts}]
   (reify
     om/IInitState
     (init-state [_]
-      {:pages [{:name "info"
-                :route-fn #(get-route :unit-info {:c-id %1 :u-id %2})
-                :active false}
-               {:name "resources"
-                :route-fn #(get-route :unit-resources {:c-id %1 :u-id %2})
-                :active false}]})
+      (let [current-route (-> @data :route :domkm.silk/name)]
+       {:pages [{:name "info"
+                 :route-name :unit-info
+                 :active (= :unit-info current-route)}
+                {:name "resources"
+                 :route-name :unit-resources
+                 :active (= :unit-resources current-route)}]}))
+
+    om/IWillReceiveProps
+    (will-receive-props [_ next-props]
+      (let [next-route (-> @next-props :route :domkm.silk/name)]
+        (om/update-state! owner :pages (partial reset-active next-route))))
 
     om/IRenderState
     (render-state [_ {:keys [pages]}]
-      (let [pages (map #(assoc % :route ((:route-fn %) c-id u-id)) pages)]
-        (om/build dropdown-select-list pages
-          {:state {:selected (first pages)}})))))
+      (om/build dropdown-select-list pages
+        {:opts {:action #(put! (om/get-shared owner :nav)
+                           (get-route (:route-name %) {:c-id c-id :u-id u-id}))}}))))
 
 (defn unit-view
   [data owner {:keys [c-id u-id] :as opts}]
@@ -90,18 +108,18 @@
 (defn unit-resources-tip
   [data owner]
   (om/component
-    (dom/div #js {:className "unit-resources-tip"}
-      (dom/div #js {:className "unit-resources-tip-msg"}
-        "Click "
-        (dom/span #js {:className "img icon-settings"})
-        " to add resources to your unit!"))))
+    (dom/div #js {:className "tip-wrapper"}
+      (dom/div #js {:className "tip"}
+        (dom/div #js {:className "tip-msg"}
+          "Click "
+          (dom/span #js {:className "img icon-settings"})
+          " to add resources to your unit!")))))
 
 (defn unit-resources-view
   [data owner {:keys [c-id u-id] :as opts}]
   (om/component
     (let [collection (get-in data [:collections c-id])
           unit (get-in collection [:units u-id])]
-      (dom/div #js {:id "resource-list"}
-        (if (empty? (:resources unit))
-          (om/build unit-resources-tip collection)
-          (om/build list (vals (:resources unit))))))))
+      (if (empty? (:resources unit))
+        (om/build unit-resources-tip collection)
+        (om/build list (vals (:resources unit)))))))

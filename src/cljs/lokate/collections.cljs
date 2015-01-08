@@ -91,6 +91,6 @@
             (om/build
               link-list (vals (:units collection))
               {:opts {:name-default "Untitled_Unit"
-                       :route-fn #(get-route :unit-info
+                       :route-fn #(get-route :unit
                                     {:c-id c-id :u-id (keyword (:id %))})
                        :props {:onContextMenu #(false)}}})))))))

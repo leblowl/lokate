@@ -40,39 +40,31 @@
     (dom/li #js {:className "select-list-item"}
       (om/build select sel {:opts opts}))))
 
-(defn nav! [owner route]
-  (put! (om/get-shared owner :nav) route))
-
 (defn select-list
   [sels owner {:keys [class name-default action] :as opts}]
-  (reify
-    om/IRenderState
-    (render-state [_ {:keys [selected]}]
-      (let [sels* (map #(assoc % :active (= selected %)) sels)]
-        (apply dom/ol #js {:className "select-list"}
-          (om/build-all select-list-item sels* {:opts opts}))))))
+  (om/component
+    (apply dom/ol #js {:className "select-list"}
+      (om/build-all select-list-item sels {:opts opts}))))
 
 (defn dropdown-select-list
-  [sels owner opts]
+  [sels owner {:keys [action] :as opts}]
   (reify
     om/IInitState
     (init-state [_]
-      {:open false
-       :selected nil})
+      {:open false})
 
     om/IRenderState
-    (render-state [_ {:keys [open selected]}]
+    (render-state [_ {:keys [open]}]
       (dom/div nil
         (dom/a #js {:className "current-select"
                     :onClick #(om/update-state! owner :open not)}
-          (dom/span #js {:className "banner-title"} (:name selected)))
+          (dom/span #js {:className "banner-title"}
+            (:name (first (filter :active sels)))))
         (when open
           (om/build select-list sels
             {:opts  {:action (fn [sel]
                                (om/set-state! owner :open false)
-                               (om/set-state! owner :selected sel)
-                               (nav! owner (:route sel)))}
-             :state {:selected selected}}))))))
+                               (action sel))}}))))))
 
 (defn modal-editable
   [data owner {:keys [id className edit-key on-edit on-key-down] :as opts}]

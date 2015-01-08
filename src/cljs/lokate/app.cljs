@@ -131,6 +131,14 @@
                        (get-route :collection (select-keys route [:c-id]))
                        (select-keys route [:c-id :u-id])))
 
+   :unit-resources (fn [data route]
+                     (dispatchR data route
+                       {:banner unit/page-select
+                        :controls unit/unit-resources-controls
+                        :drawer unit/unit-resources-view}
+                       (get-route :collection (select-keys route [:c-id]))
+                       (select-keys route [:c-id :u-id])))
+
    :resources      (fn [data route]
                      (dispatchR data route
                        {:controls resources/resources-controls

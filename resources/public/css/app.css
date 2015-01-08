@@ -359,6 +359,18 @@ a {
     height: 30%;
 }
 
+.tip-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+}
+
+.tip {
+    margin: auto;
+    width: 60%;
+    height: 30%;
+}
+ 
 .location-tip-msg {
     margin-left: 4px;
 }
@@ -443,6 +455,11 @@ a {
     display: flex;
     flex-direction: row;
     margin-right: .3em;
+}
+
+.inline-list {
+    display: flex;
+    flex-direction: row;
 }
 
 .btn {
