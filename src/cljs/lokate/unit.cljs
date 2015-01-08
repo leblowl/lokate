@@ -4,7 +4,7 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [lokate.routing :refer [get-route]]
-            [lokate.components :refer [dropdown-select-list render-overlay modal-input]]
+            [lokate.components :refer [tip dropdown-select-list render-overlay modal-input]]
             [lokate.util :refer [fdate-now floormat distance]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]))
 
@@ -95,25 +95,20 @@
           (dom/div #js {:className "origin"}
             (display-origin unit))
           (if-not (:pos unit)
-            (dom/div #js {:className "location-tip-wrapper"}
-              (dom/div #js {:className "location-tip"}
-                (dom/span #js {:className "img icon-pin"})
-                (dom/span #js {:className "location-tip-msg"}
-                  "Right click or long press on the map to add a location to your unit!")))
+            (om/build tip data
+              {:opts
+               {:children [(dom/p nil
+                             "Right click or long press on the map to add a location to your unit!")]}})
             (dom/div #js {:className "location"}
               (dom/span #js {:className "img icon-pin status"
                              :style #js {:color (status-color "green")}})
               (dom/span #js {:className "location-lat-lng"} (display-pos (:pos unit))))))))))
 
-(defn unit-resources-tip
-  [data owner]
-  (om/component
-    (dom/div #js {:className "tip-wrapper"}
-      (dom/div #js {:className "tip"}
-        (dom/div #js {:className "tip-msg"}
-          "Click "
-          (dom/span #js {:className "img icon-settings"})
-          " to add resources to your unit!")))))
+(def resources-tip-msg
+  (dom/p nil
+    "Click "
+    (dom/span #js {:className "img icon-settings"})
+    " to add resources to your unit!"))
 
 (defn unit-resources-view
   [data owner {:keys [c-id u-id] :as opts}]
@@ -121,5 +116,5 @@
     (let [collection (get-in data [:collections c-id])
           unit (get-in collection [:units u-id])]
       (if (empty? (:resources unit))
-        (om/build unit-resources-tip collection)
+        (om/build tip data {:opts {:children [resources-tip-msg]}})
         (om/build list (vals (:resources unit)))))))

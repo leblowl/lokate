@@ -4,7 +4,7 @@
             [om.dom :as dom :include-macros true]
             [lokate.db :refer [db-new db-add]]
             [lokate.routing :refer [get-route]]
-            [lokate.components :refer [link-list render-overlay modal-input]]))
+            [lokate.components :refer [tip link-list render-overlay modal-input]]))
 
 (defn collections-banner [data owner]
   (om/component
@@ -57,17 +57,6 @@
       (dom/div #js {:id "add-sector-btn"
                     :className "btn icon-googleplus"}))))
 
-(defn collection-tip
-  [data owner]
-  (om/component
-    (dom/div #js {:className "collection-tip"}
-      (dom/div #js {:className "collection-tip-msg"}
-        "Click "
-        (dom/span #js {:className "img icon-pin"})
-        " or "
-        (dom/span #js {:className "gplus-img img icon-googleplus"})
-        " to add a unit or unit sector to your collection!"))))
-
 (defn collection-view
   [data owner {:keys [c-id] :as opts}]
   (om/component
@@ -87,7 +76,14 @@
                          :dangerouslySetInnerHTML #js {:__html (:name collection)}}))
         (dom/div #js {:className "info-content"}
           (if (empty? (:units collection))
-            (om/build collection-tip collection)
+            (om/build tip data
+              {:opts
+               {:children [(dom/p #js {:className "collection-tip-msg"}
+                             "Click "
+                             (dom/span #js {:className "img icon-pin"})
+                             " or "
+                             (dom/span #js {:className "gplus-img img icon-googleplus"})
+                             " to add a unit or unit sector to your collection!")]}})
             (om/build
               link-list (vals (:units collection))
               {:opts {:name-default "Untitled_Unit"

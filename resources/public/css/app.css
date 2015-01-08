@@ -283,12 +283,6 @@ a {
     cursor: pointer;
 }
 
-.collection-tip {
-    margin: auto;
-    width: 60%;
-    height: 30%;
-}
-
 .-list::-webkit-scrollbar {
     display: none;
 }
@@ -345,20 +339,6 @@ a {
     padding: .5em;
 }
 
-.location-tip-wrapper {
-    width: 100%;
-    height: 100%;
-    display: flex;
-}
-
-.location-tip {
-    border-radius: 3px;
-    /*border: 1px solid #888;*/
-    margin: auto;
-    width: 60%;
-    height: 30%;
-}
-
 .tip-wrapper {
     width: 100%;
     height: 100%;
@@ -369,10 +349,8 @@ a {
     margin: auto;
     width: 60%;
     height: 30%;
-}
- 
-.location-tip-msg {
-    margin-left: 4px;
+    display: flex;
+    justify-content: center;
 }
 
 .location {

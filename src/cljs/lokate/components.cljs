@@ -114,7 +114,15 @@
     (dom/div #js {:id "overlay"}
       (om/build child data {:opts child-opts}))))
 
-(defn render-overlay [child data child-opts]
+(defn render-overlay
+  [child data child-opts]
   (om/root overlay data {:target (.getElementById js/document "overlay-root")
                          :opts {:child child
                                 :child-opts child-opts}}))
+
+(defn tip
+  [data owner {:keys [children] :as opts}]
+  (om/component
+    (dom/div #js {:className "tip-wrapper"}
+      (apply dom/div #js {:className "tip"}
+        children))))
