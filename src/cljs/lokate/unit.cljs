@@ -164,5 +164,9 @@
       (om/build select-list (vals resources)
         {:opts {:class "btn-"
                 :action (fn [rsc]
-                          (om/transact! unit-resources
-                            #(merge % (select-keys (:resources data) [(-> rsc :id (keyword))]))))}}))))
+                          (let [k (-> rsc :id (keyword))]
+                            (if (:active rsc)
+                              (om/transact! unit-resources
+                                #(dissoc % k))
+                              (om/transact! unit-resources
+                                #(assoc % k (-> data :resources k))))))}}))))
