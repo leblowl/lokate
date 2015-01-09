@@ -1,5 +1,6 @@
 (ns lokate.components
-  (:require [om.core :as om :include-macros true]
+  (:require [cljs.core.async :refer [put!]]
+            [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [clojure.string :as str]
             [goog.string :as gstring]
@@ -176,3 +177,34 @@
                               :className "inline-control-group"}
             children)))
       (om/build navicon data))))
+
+(defn back-btn
+  [{{:keys [return-to]} :route} owner]
+  (om/component
+    (dom/div #js {:id "nav-back-btn"
+                  :className "icon-arrow-left"
+                  :style (display return-to)
+                  :onClick #(put! (:nav (om/get-shared owner))
+                              @return-to)})))
+
+(defn home-icon
+  [data owner]
+  (om/component
+    (dom/span #js {:className "banner-icon"}
+      (gstring/unescapeEntities "&#11041;"))))
+
+(defn banner
+  [{{:keys [return-to]} :route :as data} owner {:keys [children] :as opts}]
+  (om/component
+    (apply dom/div #js {:className "banner-container"}
+      (if return-to
+        (om/build back-btn data)
+        (om/build home-icon data))
+      children)))
+
+(defn title-banner
+  [data owner {:keys [title] :as opts}]
+  (om/component
+    (om/build banner data
+      {:opts
+       {:children [(dom/span #js {:className "banner-title"} title)]}})))

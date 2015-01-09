@@ -16,15 +16,16 @@
 (defn id-key [k] (IDKey. k))
 
 (def routes
-  (silk/routes [[:home           [["home"]]]
-                [:collections    [["collections"]]]
-                [:collection-new [["collection" "new"]]]
-                [:collection     [["collection" (id-key :c-id)]]]
-                [:unit-new       [["collection" (id-key :c-id) "unit" "new"]]]
-                [:unit-info      [["collection" (id-key :c-id) "unit" (id-key :u-id) "info"]]]
-                [:unit-resources [["collection" (id-key :c-id) "unit" (id-key :u-id) "resources"]]]
-                [:resources      [["resources"]]]
-                [:resource       [["resource" (id-key :r-id)]]]]))
+  (silk/routes [[:home                  [["home"]]]
+                [:collections           [["collections"]]]
+                [:collection-new        [["collection" "new"]]]
+                [:collection            [["collection" (id-key :c-id)]]]
+                [:unit-new              [["collection" (id-key :c-id) "unit" "new"]]]
+                [:unit-info             [["collection" (id-key :c-id) "unit" (id-key :u-id) "info"]]]
+                [:unit-resources        [["collection" (id-key :c-id) "unit" (id-key :u-id) "resources"]]]
+                [:unit-resources-config [["collection" (id-key :c-id) "unit" (id-key :u-id) "resources" "config"]]]
+                [:resources             [["resources"]]]
+                [:resource              [["resource" (id-key :r-id)]]]]))
 
 (defn unmatch*
   ([routes name]

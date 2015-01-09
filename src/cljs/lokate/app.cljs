@@ -95,7 +95,7 @@
 (def handlers
   {:home           (fn [data route]
                      (dispatchR data route
-                       {:banner home/banner
+                       {:banner home/home-banner
                         :drawer home/home-view}))
 
    :collections    (fn [data route]
@@ -127,7 +127,7 @@
 
    :unit-info      (fn [data route]
                      (dispatchR data route
-                       {:banner unit/page-select
+                       {:banner unit/unit-banner
                         :controls unit/unit-controls
                         :drawer unit/unit-view}
                        (get-route :collection (select-keys route [:c-id]))
@@ -135,11 +135,19 @@
 
    :unit-resources (fn [data route]
                      (dispatchR data route
-                       {:banner unit/page-select
+                       {:banner unit/unit-banner
                         :controls unit/unit-resources-controls
                         :drawer unit/unit-resources}
                        (get-route :collection (select-keys route [:c-id]))
                        (select-keys route [:c-id :u-id])))
+
+   :unit-resources-config (fn [data route]
+                            (om/update! data [:drawer :maximized] true)
+                            (dispatchR data route
+                              {:controls unit/done!-btn
+                               :drawer unit/unit-resources-config}
+                              nil
+                              (select-keys route [:c-id :u-id])))
 
    :resources      (fn [data route]
                      (dispatchR data route

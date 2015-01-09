@@ -383,6 +383,18 @@ a {
     margin-right: 3px;
 }
 
+#done-btn-wrapper {
+    position: absolute;
+    right: 0;
+    height: 45px;
+    display: flex;
+    align-items: center;
+}
+
+#done-btn {
+    margin-right: .3em;
+}
+
 #check-in-btn {
     margin-right: .3em;
 }

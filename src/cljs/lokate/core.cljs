@@ -17,45 +17,22 @@
   [drawer]
   (true? (:maximized drawer)))
 
-(defn back-btn
-  [{{:keys [return-to]} :route} owner]
-  (om/component
-    (dom/div #js {:id "nav-back-btn"
-                  :className "icon-arrow-left"
-                  :style (display return-to)
-                  :onClick #(put! (om/get-shared owner :nav) @return-to)})))
-
-(defn home-icon
-  [data owner]
-  (om/component
-    (dom/span #js {:className "banner-icon"}
-      (gstring/unescapeEntities "&#11041;"))))
-
-(defn home-banner
+(defn lokate-banner
   [data owner]
   (om/component
     (dom/div #js {:className "banner-container"}
-      (om/build home-icon data)
+      (om/build components/home-icon data)
       (dom/span #js {:className "banner-title"}
         "lokate"))))
-
-(defn drawer-banner
-  [{{:keys [views opts return-to]} :route :as data} owner]
-  (om/component
-    (dom/div #js {:className "banner-container"}
-      (if return-to
-        (om/build back-btn data)
-        (om/build home-icon data))
-      (when-let [banner (:banner views)]
-        (om/build banner data {:opts opts})))))
 
 (defn control-panel
   [{{:keys [views opts return-to]} :route :as data} owner]
   (om/component
     (dom/div #js {:className "navigation-container"}
       (if (open? (:drawer data))
-        (om/build drawer-banner data)
-        (om/build home-banner data))
+        (when-let [banner (:banner views)]
+          (om/build banner data {:opts opts}))
+        (om/build lokate-banner data))
       (let [controls (or (:controls views) components/control-panel)]
         (om/build controls data {:opts opts})))))
 

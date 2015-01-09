@@ -4,17 +4,15 @@
             [om.dom :as dom :include-macros true]
             [lokate.db :refer [db-new db-add]]
             [lokate.routing :refer [get-route]]
-            [lokate.components :refer [tip link-list render-overlay modal-input control-panel]]))
+            [lokate.components :refer [tip link-list render-overlay modal-input control-panel title-banner]]))
 
 (defn collections-banner [data owner]
   (om/component
-    (dom/div nil
-      (dom/span #js {:className "banner-title"} "collections"))))
+    (om/build title-banner data {:opts {:title "collections"}})))
 
 (defn collection-banner [data owner]
   (om/component
-    (dom/div nil
-      (dom/span #js {:className "banner-title"} "collection"))))
+    (om/build title-banner data {:opts {:title "collection"}})))
 
 (defn collections-controls
   [{:keys [collections] :as data} owner]

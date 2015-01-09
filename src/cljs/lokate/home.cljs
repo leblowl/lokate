@@ -3,12 +3,12 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [lokate.routing :refer [get-route]]
-            [lokate.components :refer [link-list]]))
+            [lokate.components :refer [link-list title-banner]]))
 
-(defn banner [data owner]
+(defn home-banner [data owner]
   (om/component
-    (dom/div nil
-      (dom/span #js {:className "banner-title"} "home"))))
+    (om/build title-banner data
+      {:opts {:title "home"}})))
 
 (defn home-view [data owner]
   (reify

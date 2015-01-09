@@ -4,7 +4,7 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [lokate.routing :refer [get-route]]
-            [lokate.components :refer [control-panel tip dropdown-select-list
+            [lokate.components :refer [banner control-panel tip dropdown-select-list
                                        select-list render-overlay modal-input]]
             [lokate.util :refer [fdate-now floormat distance]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]))
@@ -28,34 +28,10 @@
   (db-new #(db-add "collection" @data))
   (om/detach-root (.getElementById js/document "overlay-root")))
 
-(defn unit-controls
-  [data owner {:keys [c-id u-id children] :as opts}]
-  (om/component
-    (om/build control-panel data
-      {:opts
-       {:children (concat children
-                    [(let [unit (get-in data [:collections c-id :units u-id])]
-                       (when-not (-> unit :pos empty?)
-                         (dom/div #js {:id "check-in-btn"
-                                       :className "btn icon-in-alt"
-                                       :onClick #()})))])}})))
-
-(defn unit-resources-controls
-  [data owner {:keys [c-id u-id] :as opts}]
-  (om/component
-    (om/build unit-controls data
-      {:opts
-       (merge
-         opts
-         {:children [(dom/div #js {:id "configure-resources-btn"
-                                   :className "btn icon-settings"
-                                   :onClick #(put! (:pub-chan (om/get-shared owner))
-                                               {:topic :unit-resources-mode :data :configure})})]})})))
-
 (defn reset-active [next-route pages]
   (map #(assoc % :active (= (:route-name %) next-route)) pages))
 
-(defn page-select
+(defn unit-nav
   [data owner {:keys [c-id u-id] :as opts}]
   (reify
     om/IInitState
@@ -79,6 +55,38 @@
         {:opts {:id "page-select"
                 :action #(put! (om/get-shared owner :nav)
                            (get-route (:route-name %) {:c-id c-id :u-id u-id}))}}))))
+
+(defn unit-banner
+  [data owner opts]
+  (om/component
+    (om/build banner data
+      {:opts
+       {:children [(om/build unit-nav data {:opts opts})]}})))
+
+(defn unit-controls
+  [data owner {:keys [c-id u-id children] :as opts}]
+  (om/component
+    (om/build control-panel data
+      {:opts
+       {:children (concat children
+                    [(let [unit (get-in data [:collections c-id :units u-id])]
+                       (when-not (-> unit :pos empty?)
+                         (dom/div #js {:id "check-in-btn"
+                                       :className "btn icon-in-alt"
+                                       :onClick #()})))])}})))
+
+(defn unit-resources-controls
+  [data owner {:keys [c-id u-id] :as opts}]
+  (om/component
+    (om/build unit-controls data
+      {:opts
+       (merge
+         opts
+         {:children [(dom/div #js {:id "configure-resources-btn"
+                                   :className "btn icon-settings"
+                                   :onClick #(put! (:nav (om/get-shared owner))
+                                               (get-route :unit-resources-config
+                                                 {:c-id c-id :u-id u-id}))})]})})))
 
 (defn unit-view
   [data owner {:keys [c-id u-id] :as opts}]
@@ -114,34 +122,33 @@
 
 (defn unit-resources
   [data owner {:keys [c-id u-id] :as opts}]
-  (reify
-    om/IInitState
-    (init-state [_]
-      {:mode :view})
+  (om/component
+    (let [collection (get-in data [:collections c-id])
+          unit (get-in collection [:units u-id])]
+      (if (empty? (:resources unit))
+        (om/build tip data
+          {:opts
+           {:children [(dom/p nil
+                         "Click "
+                         (dom/span #js {:className "img icon-settings"})
+                         " to add resources to your unit!")]}})
+        (om/build list (vals (:resources unit)))))))
 
-    om/IDidMount
-    (did-mount [_]
-      (let [control (sub (:notif-chan (om/get-shared owner)) :unit-resources-mode (chan))]
-        (go-loop [action (<! control)]
-          (om/set-state! owner :mode (:data action))
-          (recur (<! control)))))
+(defn done!-btn
+  [data owner {:keys [c-id u-id] :as opts}]
+  (om/component
+    (dom/div #js {:id "done-btn-wrapper"}
+      (dom/div #js {:id "done-btn"
+                    :className "btn icon-done"
+                    :onClick (fn []
+                               (om/update! data [:drawer :maximized] false)
+                               (put! (:nav (om/get-shared owner))
+                                 (get-route :unit-resources
+                                   {:c-id c-id :u-id u-id})))}))))
 
-    om/IRenderState
-    (render-state [_ {:keys [mode]}]
-      (let [collection (get-in data [:collections c-id])
-            unit (get-in collection [:units u-id])]
-        (case mode
-          :view
-          (if (empty? (:resources unit))
-            (om/build tip data
-              {:opts
-               {:children [(dom/p nil
-                             "Click "
-                             (dom/span #js {:className "img icon-settings"})
-                             " to add resources to your unit!")]}})
-            (om/build list (vals (:resources unit))))
-
-          :configure
-          (om/build select-list (vals (:resources data))
-            {:opts {:class "btn-"
-                    :action #(.log js/console "activate!")}}))))))
+(defn unit-resources-config
+  [data owner {:keys [c-id u-id] :as opts}]
+  (om/component
+    (om/build select-list (vals (:resources data))
+      {:opts {:class "btn-"
+              :action #(.log js/console "activate!")}})))
