@@ -3,7 +3,7 @@
             [om.dom :as dom :include-macros true]
             [clojure.string :as str]
             [goog.string :as gstring]
-            [lokate.util :refer [display blankf]]
+            [lokate.util :refer [display display-fade-in blankf]]
             [lokate.db :refer [db-add]]))
 
 (defn list-item
@@ -129,3 +129,50 @@
     (dom/div #js {:className "tip-wrapper"}
       (apply dom/div #js {:className "tip"}
         children))))
+
+;remove duplication of these two functions
+(defn open?
+  [drawer]
+  (true? (:open drawer)))
+
+(defn maximized?
+  [drawer]
+  (true? (:maximized drawer)))
+
+(defn toggle-open
+  [drawer]
+  (om/transact! drawer :open not))
+
+(defn toggle-maximized
+  [drawer]
+  (om/transact! drawer :maximized not))
+
+(defn resize-btn
+  [data owner]
+  (om/component
+    (dom/div #js {:id "resize-btn"
+                  :className (str "btn " (if (-> data :drawer maximized?)
+                                           "icon-resize-shrink"
+                                           "icon-resize-enlarge"))
+                  :onClick #(toggle-maximized (:drawer data))})))
+
+(defn navicon
+  [data owner]
+  (om/component
+    (dom/div #js {:className (str "navicon"
+                               (when (open? (:drawer data)) " active"))
+                  :onClick (fn [] (toggle-open (:drawer data)))})))
+
+(defn control-panel
+  [data owner {:keys [children] :as opts}]
+  (om/component
+    (dom/div #js {:className "control-panel"}
+      (dom/div #js {:id "drawer-control"
+                    :style (display-fade-in (open? (:drawer data)))}
+        (when (open? (:drawer data))
+          (om/build resize-btn data))
+        (when (open? (:drawer data))
+          (apply dom/div #js {:id "drawer-sub-control"
+                              :className "inline-control-group"}
+            children)))
+      (om/build navicon data))))

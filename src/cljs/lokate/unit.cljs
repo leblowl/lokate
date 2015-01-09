@@ -4,7 +4,8 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [lokate.routing :refer [get-route]]
-            [lokate.components :refer [tip dropdown-select-list select-list render-overlay modal-input]]
+            [lokate.components :refer [control-panel tip dropdown-select-list
+                                       select-list render-overlay modal-input]]
             [lokate.util :refer [fdate-now floormat distance]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]))
 
@@ -28,23 +29,28 @@
   (om/detach-root (.getElementById js/document "overlay-root")))
 
 (defn unit-controls
-  [data owner {:keys [c-id u-id] :as opts}]
+  [data owner {:keys [c-id u-id children] :as opts}]
   (om/component
-    (let [unit (get-in data [:collections c-id :units u-id])]
-      (when (-> unit :pos (comp not empty?))
-        (dom/div #js {:id "check-in-btn"
-                      :className "btn icon-in-alt"
-                      :onClick #()})))))
+    (om/build control-panel data
+      {:opts
+       {:children (concat children
+                    [(let [unit (get-in data [:collections c-id :units u-id])]
+                       (when-not (-> unit :pos empty?)
+                         (dom/div #js {:id "check-in-btn"
+                                       :className "btn icon-in-alt"
+                                       :onClick #()})))])}})))
 
 (defn unit-resources-controls
   [data owner {:keys [c-id u-id] :as opts}]
   (om/component
-    (dom/div #js {:className "inline-control-group"}
-      (dom/div #js {:id "configure-resources-btn"
-                    :className "btn icon-settings"
-                    :onClick #(put! (:pub-chan (om/get-shared owner))
-                                {:topic :unit-resources-mode :data :configure})})
-      (om/build unit-controls data {:opts opts}))))
+    (om/build unit-controls data
+      {:opts
+       (merge
+         opts
+         {:children [(dom/div #js {:id "configure-resources-btn"
+                                   :className "btn icon-settings"
+                                   :onClick #(put! (:pub-chan (om/get-shared owner))
+                                               {:topic :unit-resources-mode :data :configure})})]})})))
 
 (defn reset-active [next-route pages]
   (map #(assoc % :active (= (:route-name %) next-route)) pages))

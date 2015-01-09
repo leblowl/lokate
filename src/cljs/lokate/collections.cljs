@@ -4,7 +4,7 @@
             [om.dom :as dom :include-macros true]
             [lokate.db :refer [db-new db-add]]
             [lokate.routing :refer [get-route]]
-            [lokate.components :refer [tip link-list render-overlay modal-input]]))
+            [lokate.components :refer [tip link-list render-overlay modal-input control-panel]]))
 
 (defn collections-banner [data owner]
   (om/component
@@ -16,18 +16,28 @@
     (dom/div nil
       (dom/span #js {:className "banner-title"} "collection"))))
 
-(defn add-collection-btn
-  [collections owner]
-  (om/component
-    (dom/div #js {:id "nav-add-btn"
-                  :className "btn icon-plus"
-                  :onClick #(put! (om/get-shared owner :nav)
-                              (get-route :collection-new))})))
-
 (defn collections-controls
   [{:keys [collections] :as data} owner]
   (om/component
-    (om/build add-collection-btn collections)))
+    (om/build control-panel data
+      {:opts
+       {:children [(dom/div #js {:id "nav-add-btn"
+                                 :className "btn icon-plus"
+                                 :onClick #(put! (om/get-shared owner :nav)
+                                             (get-route :collection-new))})]}})))
+
+(defn collection-controls
+  [data owner {:keys [c-id] :as opts}]
+  (om/component
+    (om/build control-panel data
+      {:opts
+       {:children [(dom/div #js {:id "collection-controls"}
+                     (dom/div #js {:id "add-point-btn"
+                                   :className "btn icon-pin"
+                                   :onClick #(put! (:nav (om/get-shared owner))
+                                               (get-route :unit-new {:c-id c-id}))})
+                     (dom/div #js {:id "add-sector-btn"
+                                   :className "btn icon-googleplus"}))]}})))
 
 (defn collections-view
   [{:keys [collections] :as data} owner]
@@ -47,17 +57,6 @@
   (om/update! data [:name] res)
   (db-new #(db-add "collection" @data))
   (om/detach-root (.getElementById js/document "overlay-root")))
-
-(defn collection-controls
-  [data owner {:keys [c-id] :as opts}]
-  (om/component
-    (dom/div #js {:id "collection-controls"}
-      (dom/div #js {:id "add-point-btn"
-                    :className "btn icon-pin"
-                    :onClick #(put! (om/get-shared owner :nav)
-                                (get-route :unit-new {:c-id c-id}))})
-      (dom/div #js {:id "add-sector-btn"
-                    :className "btn icon-googleplus"}))))
 
 (defn collection-view
   [data owner {:keys [c-id] :as opts}]
