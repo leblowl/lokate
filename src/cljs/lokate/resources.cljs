@@ -6,7 +6,7 @@
             [goog.string :as gstring]
             [lokate.routing :refer [get-route]]
             [lokate.util :refer [blankf]]
-            [lokate.components :refer [link-list render-overlay modal-input]]
+            [lokate.components :refer [control-panel link-list render-overlay modal-input]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]
             [cljs-uuid-utils :as uuid]))
 
@@ -28,15 +28,17 @@
 (defn resources-controls
   [data owner {:keys [id] :as opts}]
   (om/component
-    (dom/div #js {:id "resources-controls"}
-      (dom/div #js {:id "add-resource-btn"
-                    :className "btn icon-flow-line"
-                    :onClick #(render-overlay
-                                modal-input data {:title "Resource name"
-                                                  :placeholder "Untitled resource"
-                                                  :on-edit add-resource})})
-      (dom/div #js {:id "add-resource-cluster-btn"
-                    :className "btn icon-flow-tree"}))))
+    (om/build control-panel data
+      {:opts
+       {:children [(dom/div #js {:id "add-resource-btn"
+                                 :className "btn icon-flow-line"
+                                 :onClick #(render-overlay
+                                             modal-input data
+                                             {:title "Resource name"
+                                              :placeholder "Untitled resource"
+                                              :on-edit add-resource})})
+                   (dom/div #js {:id "add-resource-cluster-btn"
+                                 :className "btn icon-flow-tree"})]}})))
 
 (defn resources-view
   [data owner]

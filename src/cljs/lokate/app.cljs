@@ -53,7 +53,7 @@
   {:name nil
    :origin (fdate-now)
    :pos nil
-   :resources []
+   :resources {}
    :notes nil
    :id (str (uuid/make-random-uuid))})
 

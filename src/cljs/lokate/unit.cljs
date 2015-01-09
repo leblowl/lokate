@@ -4,8 +4,9 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [lokate.routing :refer [get-route]]
-            [lokate.components :refer [banner control-panel tip dropdown-select-list
-                                       select-list render-overlay modal-input]]
+            [lokate.components :refer [banner control-panel tip simple-list
+                                       select-list dropdown-select-list
+                                       render-overlay modal-input]]
             [lokate.util :refer [fdate-now floormat distance]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]))
 
@@ -120,6 +121,13 @@
                              :style #js {:color (status-color "green")}})
               (dom/span #js {:className "location-lat-lng"} (display-pos (:pos unit))))))))))
 
+(defn unit-resource
+  [resource owner opts]
+  (om/component
+    (dom/div #js {:className "unit-resources"}
+      (dom/span #js {:className "unit-resource-title"} (:name resource))
+      (dom/span #js {:className "unit-resource-count"} (:count resource)))))
+
 (defn unit-resources
   [data owner {:keys [c-id u-id] :as opts}]
   (om/component
@@ -132,7 +140,7 @@
                          "Click "
                          (dom/span #js {:className "img icon-settings"})
                          " to add resources to your unit!")]}})
-        (om/build list (vals (:resources unit)))))))
+        (om/build simple-list (vals (:resources unit)) {:opts {:item-comp unit-resource}})))))
 
 (defn done!-btn
   [data owner {:keys [c-id u-id] :as opts}]
@@ -149,6 +157,12 @@
 (defn unit-resources-config
   [data owner {:keys [c-id u-id] :as opts}]
   (om/component
-    (om/build select-list (vals (:resources data))
-      {:opts {:class "btn-"
-              :action #(.log js/console "activate!")}})))
+    (let [unit-resources (-> data :collections c-id :units u-id :resources)
+          resources (into {}
+                      (for [[k v] (:resources data)]
+                        [k (assoc v :active (contains? unit-resources k))]))]
+      (om/build select-list (vals resources)
+        {:opts {:class "btn-"
+                :action (fn [rsc]
+                          (om/transact! unit-resources
+                            #(merge % (select-keys (:resources data) [(-> rsc :id (keyword))]))))}}))))
