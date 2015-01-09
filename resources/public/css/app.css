@@ -271,6 +271,36 @@ a {
     border: 1px solid rgba(33, 150, 255, 0.9);
 }
 
+.unit-resource {
+    width: 100%;
+    height: 33px;
+    margin-top: .5em;
+    margin-bottom: .5em;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    
+}
+
+.unit-resource-title {
+    width: 100%;
+    font-size: 1.1em;
+}
+
+.unit-resource-count-box {
+    border-radius: 3px;
+    border: 1px solid #222;
+    width: 55px;
+    height: 100%;
+    display: flex;
+}
+
+.unit-resource-count {
+    margin: auto;
+    font-size: 1.2em;
+}
+    
+
 .btn-link:hover {
     cursor: pointer;
 }

@@ -124,9 +124,10 @@
 (defn unit-resource
   [resource owner opts]
   (om/component
-    (dom/div #js {:className "unit-resources"}
+    (dom/div #js {:className "unit-resource"}
       (dom/span #js {:className "unit-resource-title"} (:name resource))
-      (dom/span #js {:className "unit-resource-count"} (:count resource)))))
+      (dom/div #js {:className "unit-resource-count-box"}
+        (dom/span #js {:className "unit-resource-count"} (:count resource))))))
 
 (defn unit-resources
   [data owner {:keys [c-id u-id] :as opts}]
@@ -169,4 +170,4 @@
                               (om/transact! unit-resources
                                 #(dissoc % k))
                               (om/transact! unit-resources
-                                #(assoc % k (-> data :resources k))))))}}))))
+                                #(assoc % k (assoc (-> data :resources k) :count 0))))))}}))))
