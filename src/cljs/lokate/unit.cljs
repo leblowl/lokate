@@ -38,10 +38,10 @@
     om/IInitState
     (init-state [_]
       (let [current-route (-> @data :route :domkm.silk/name)]
-       {:pages [{:name "info"
+       {:pages [{:name "unit :info"
                  :route-name :unit-info
                  :active (= :unit-info current-route)}
-                {:name "resources"
+                {:name "unit :resources"
                  :route-name :unit-resources
                  :active (= :unit-resources current-route)}]}))
 

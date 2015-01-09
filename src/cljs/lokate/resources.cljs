@@ -6,7 +6,7 @@
             [goog.string :as gstring]
             [lokate.routing :refer [get-route]]
             [lokate.util :refer [blankf]]
-            [lokate.components :refer [control-panel link-list render-overlay modal-input]]
+            [lokate.components :refer [title-banner control-panel link-list render-overlay modal-input]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]
             [cljs-uuid-utils :as uuid]))
 
@@ -24,6 +24,11 @@
     (om/update! data [:resources (:id to-add)] to-add)
     (db-new #(db-add "resource" to-add)))
   (om/detach-root (.getElementById js/document "overlay-root")))
+
+(defn resources-banner
+  [data owner opts]
+  (om/component
+    (om/build title-banner data {:opts {:title "resources"}})))
 
 (defn resources-controls
   [data owner {:keys [id] :as opts}]

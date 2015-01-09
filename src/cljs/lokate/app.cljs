@@ -151,7 +151,8 @@
 
    :resources      (fn [data route]
                      (dispatchR data route
-                       {:controls resources/resources-controls
+                       {:banner resources/resources-banner
+                        :controls resources/resources-controls
                         :drawer resources/resources-view}
                        (get-route :home)
                        (select-keys route [:c-id :u-id])))

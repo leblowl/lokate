@@ -59,10 +59,12 @@
     om/IRenderState
     (render-state [_ {:keys [open]}]
       (dom/div #js {:id id}
-        (dom/a #js {:className "current-select"
-                    :onClick #(om/update-state! owner :open not)}
-          (dom/span #js {:className (str class " current-select-title")}
-            (:name (first (filter :active items)))))
+        (dom/div #js {:className "current-select-wrap"}
+          (dom/a #js {:className "current-select"
+                      :onClick #(om/update-state! owner :open not)}
+           (dom/span #js {:className (str class " current-select-title")}
+             (:name (first (filter :active items)))))
+          (dom/div #js {:className "drop-down"}))
         (when open
           (om/build select-list items
             {:opts (update-in opts [:action]
