@@ -288,7 +288,7 @@ a {
     box-sizing: border-box;
     border-radius: 3px;
     display: flex;
-    border: 1px solid red;
+    border: 1px solid #888;
 }
 
 .btn-select:hover {
@@ -296,7 +296,7 @@ a {
 }
 
 .btn-select.active {
-    border: 1px solid green;
+    border: 1px solid rgba(33, 150, 255, 0.9);
 }
 
 .btn-select .select-title {
