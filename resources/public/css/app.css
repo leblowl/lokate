@@ -218,6 +218,7 @@ a {
 .list, [class*="-list"] {
     box-sizing: border-box;
     list-style-type: none;
+    height: 100%;
     margin: 0;
     padding-left: .5em;
     padding-right: .5em;
@@ -254,8 +255,8 @@ a {
     z-index: 5;
     padding-left: 30px;
     padding-right: 30px;
-    /*background-color: rgba(33, 33, 33, 0.9);*/
-    background-image: -webkit-gradient(linear, left top, right top, from(rgba(33, 33, 33, 0.9)), to(rgba(33, 33, 33, .8)));
+    background-color: rgba(33, 33, 33, 0.9);
+    /*background-image: -webkit-gradient(linear, left top, right top, from(rgba(33, 33, 33, 0.9)), to(rgba(33, 33, 33, .8)));*/
 }
 
 .current-select-wrap {
@@ -322,7 +323,15 @@ a {
     margin: auto;
     font-size: 1.2em;
 }
-    
+
+.unit-resource-count-input {
+    margin: auto;
+    font-size: 1.2em;
+    background-color: inherit;
+    border: none;
+    outline: none;
+    padding-left: .3em;
+}
 
 .btn-link:hover {
     cursor: pointer;
@@ -406,6 +415,11 @@ a {
     display: flex;
     flex-direction: row;
     margin-right: .3em;
+}
+
+.resources {
+    width: 100%;
+    height: 100%;
 }
 
 .inline-control-group {

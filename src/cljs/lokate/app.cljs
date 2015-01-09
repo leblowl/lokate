@@ -93,75 +93,83 @@
                      :opts opts}))))
 
 (def handlers
-  {:home           (fn [data route]
-                     (dispatchR data route
-                       {:banner home/home-banner
-                        :drawer home/home-view}))
+  {:home                  (fn [data route]
+                            (dispatchR data route
+                              {:banner home/home-banner
+                               :drawer home/home-view}))
 
-   :collections    (fn [data route]
-                     (dispatchR data route
-                       {:banner collections/collections-banner
-                        :controls collections/collections-controls
-                        :drawer collections/collections-view}
-                       (get-route :home)))
+   :collections           (fn [data route]
+                            (dispatchR data route
+                              {:banner collections/collections-banner
+                               :controls collections/collections-controls
+                               :drawer collections/collections-view}
+                              (get-route :home)))
 
-   :collection-new (fn [data route]
-                     (route!
-                       (get-route :collection {:c-id (add-collection data)})
-                       (partial handle data)))
+   :collection-new        (fn [data route]
+                            (route!
+                              (get-route :collection {:c-id (add-collection data)})
+                              (partial handle data)))
 
-   :collection     (fn [data route]
-                     (dispatchR data route
-                       {:banner collections/collection-banner
-                        :controls collections/collection-controls
-                        :drawer collections/collection-view}
-                       (get-route :collections)
-                       (select-keys route [:c-id])))
+   :collection            (fn [data route]
+                            (dispatchR data route
+                              {:banner collections/collection-banner
+                               :controls collections/collection-controls
+                               :drawer collections/collection-view}
+                              (get-route :collections)
+                              (select-keys route [:c-id])))
 
-   :unit-new       (fn [data route]
-                     (let [c-id (:c-id route)]
-                       (route!
-                         (get-route :unit-info {:c-id c-id
-                                                :u-id (add-unit data c-id)})
-                         (partial handle data))))
+   :unit-new              (fn [data route]
+                            (let [c-id (:c-id route)]
+                              (route!
+                                (get-route :unit-info {:c-id c-id
+                                                       :u-id (add-unit data c-id)})
+                                (partial handle data))))
 
-   :unit-info      (fn [data route]
-                     (dispatchR data route
-                       {:banner unit/unit-banner
-                        :controls unit/unit-controls
-                        :drawer unit/unit-view}
-                       (get-route :collection (select-keys route [:c-id]))
-                       (select-keys route [:c-id :u-id])))
+   :unit-info             (fn [data route]
+                            (dispatchR data route
+                              {:banner unit/unit-banner
+                               :controls unit/unit-controls
+                               :drawer unit/unit-view}
+                              (get-route :collection (select-keys route [:c-id]))
+                              (select-keys route [:c-id :u-id])))
 
-   :unit-resources (fn [data route]
-                     (dispatchR data route
-                       {:banner unit/unit-banner
-                        :controls unit/unit-resources-controls
-                        :drawer unit/unit-resources}
-                       (get-route :collection (select-keys route [:c-id]))
-                       (select-keys route [:c-id :u-id])))
+   :unit-resources        (fn [data route]
+                            (dispatchR data route
+                              {:banner unit/unit-banner
+                               :controls unit/unit-resources-controls
+                               :drawer unit/unit-resources}
+                              (get-route :collection (select-keys route [:c-id]))
+                              (select-keys route [:c-id :u-id])))
 
    :unit-resources-config (fn [data route]
                             (om/update! data [:drawer :maximized] true)
                             (dispatchR data route
-                              {:controls unit/done!-btn
+                              {:controls unit/unit-resources-config-controls
                                :drawer unit/unit-resources-config}
                               nil
                               (select-keys route [:c-id :u-id])))
 
-   :resources      (fn [data route]
-                     (dispatchR data route
-                       {:banner resources/resources-banner
-                        :controls resources/resources-controls
-                        :drawer resources/resources-view}
-                       (get-route :home)
-                       (select-keys route [:c-id :u-id])))
+   :check-in-resources    (fn [data route]
+                            (om/update! data [:drawer :maximized] true)
+                            (dispatchR data route
+                              {:controls unit/check-in-resources-controls
+                               :drawer unit/check-in-resources}
+                              nil
+                              (select-keys route [:c-id :u-id])))
 
-   :resource       (fn [data route]
-                     (dispatchR data route
-                       {:drawer resources/resource-view}
-                       (get-route :resources)
-                       (select-keys route [:r-id])))})
+   :resources             (fn [data route]
+                            (dispatchR data route
+                              {:banner resources/resources-banner
+                               :controls resources/resources-controls
+                               :drawer resources/resources-view}
+                              (get-route :home)
+                              (select-keys route [:c-id :u-id])))
+
+   :resource              (fn [data route]
+                            (dispatchR data route
+                              {:drawer resources/resource-view}
+                              (get-route :resources)
+                              (select-keys route [:r-id])))})
 
 (defn handle [data x]
   (if-let [handler (get handlers (:domkm.silk/name x))]

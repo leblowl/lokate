@@ -74,7 +74,9 @@
                        (when-not (-> unit :pos empty?)
                          (dom/div #js {:id "check-in-btn"
                                        :className "btn icon-in-alt"
-                                       :onClick #()})))])}})))
+                                       :onClick #(put! (:nav (om/get-shared owner))
+                                                   (get-route :check-in-resources
+                                                     {:c-id c-id :u-id u-id}))})))])}})))
 
 (defn unit-resources-controls
   [data owner {:keys [c-id u-id] :as opts}]
@@ -144,17 +146,24 @@
         (om/build simple-list (vals (:resources unit)) {:opts {:item-comp unit-resource}})))))
 
 (defn done!-btn
-  [data owner {:keys [c-id u-id] :as opts}]
+  [data owner {:keys [action] :as opts}]
   (om/component
     (dom/div #js {:id "done-btn-wrapper"}
       (dom/div #js {:id "done-btn"
                     :className "btn icon-done"
-                    :onClick (fn []
-                               (db-add "collection" (-> @data :collections c-id))
-                               (om/update! data [:drawer :maximized] false)
-                               (put! (:nav (om/get-shared owner))
-                                 (get-route :unit-resources
-                                   {:c-id c-id :u-id u-id})))}))))
+                    :onClick action}))))
+
+(defn unit-resources-config-controls
+  [data owner {:keys [c-id u-id] :as opts}]
+  (om/component
+    (om/build done!-btn data
+      {:opts
+       {:action (fn []
+                  (db-add "collection" (-> @data :collections c-id))
+                  (om/update! data [:drawer :maximized] false)
+                  (put! (:nav (om/get-shared owner))
+                    (get-route :unit-resources
+                      {:c-id c-id :u-id u-id})))}})))
 
 (defn unit-resources-config
   [data owner {:keys [c-id u-id] :as opts}]
@@ -172,3 +181,33 @@
                                 #(dissoc % k))
                               (om/transact! unit-resources
                                 #(assoc % k (assoc (-> data :resources k) :count 0))))))}}))))
+
+(defn check-in-resources-controls
+  [data owner {:keys [c-id u-id] :as opts}]
+  (om/component
+    (om/build done!-btn data
+      {:opts
+       {:action #(put! (:nav (om/get-state owner))
+                   (get-route :check-in-commit
+                     {:c-id c-id :u-id u-id}))}})))
+
+(defn unit-resource-editable
+  [resource owner opts]
+  (om/component
+    (dom/div #js {:className "unit-resource"}
+      (dom/span #js {:className "unit-resource-title"} (:name resource))
+      (dom/div #js {:className "unit-resource-count-box"}
+        (dom/input #js {:className "unit-resource-count-input"
+                        :type "number"
+                        :min 0
+                        :max 100
+                        :value 0
+                        :onChange #()
+                        :onFocus #(.scrollIntoView (om/get-node owner) true)})))))
+
+(defn check-in-resources
+  [data owner {:keys [c-id u-id] :as opts}]
+  (om/component
+    (let [collection (get-in data [:collections c-id])
+          unit (get-in collection [:units u-id])]
+      (om/build simple-list (vals (:resources unit)) {:opts {:item-comp unit-resource-editable}}))))

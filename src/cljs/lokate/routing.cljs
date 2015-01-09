@@ -24,6 +24,8 @@
                 [:unit-info             [["collection" (id-key :c-id) "unit" (id-key :u-id) "info"]]]
                 [:unit-resources        [["collection" (id-key :c-id) "unit" (id-key :u-id) "resources"]]]
                 [:unit-resources-config [["collection" (id-key :c-id) "unit" (id-key :u-id) "resources" "config"]]]
+                [:check-in-resources    [["collection" (id-key :c-id) "unit" (id-key :u-id) "check-in" "resources"]]]
+                [:check-in-commit       [["collection" (id-key :c-id) "unit" (id-key :u-id) "check-in" "commit"]]]
                 [:resources             [["resources"]]]
                 [:resource              [["resource" (id-key :r-id)]]]]))
 
