@@ -150,6 +150,7 @@
       (dom/div #js {:id "done-btn"
                     :className "btn icon-done"
                     :onClick (fn []
+                               (db-add "collection" (-> @data :collections c-id))
                                (om/update! data [:drawer :maximized] false)
                                (put! (:nav (om/get-shared owner))
                                  (get-route :unit-resources
