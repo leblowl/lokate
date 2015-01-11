@@ -20,6 +20,24 @@
                        :className (str class "list")}
       (om/build-all list-item items {:opts opts}))))
 
+(defn input-list-item
+  [item owner {:keys [item-comp] :as opts}]
+  (om/component
+    (dom/li #js {:className "list-item"}
+      (om/build item-comp item
+        {:opts (update-in opts [:action] #(fn [item]
+                                            (partial (% (om/get-node owner)))))}))))
+
+(defn input-list
+  [items owner {:keys [id class item-comp action] :as opts}]
+  (om/component
+    (apply dom/ol #js {:id id
+                       :className (str class "list")}
+      (om/build-all list-item items
+        {:opts (update-in opts [:action] #(fn [node item]
+                                            (.log js/console (.top (.offset node)))
+                                           (% item)))}))))
+
 (defn link
   [item owner {:keys [class name-default action] :as opts}]
   (om/component

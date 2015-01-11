@@ -5,7 +5,7 @@
             [om.dom :as dom :include-macros true]
             [lokate.routing :refer [get-route]]
             [lokate.components :refer [banner control-panel tip simple-list
-                                       select-list dropdown-select-list
+                                       input-list select-list dropdown-select-list
                                        render-overlay modal-input]]
             [lokate.util :refer [fdate-now floormat distance]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]))
@@ -191,23 +191,47 @@
                    (get-route :check-in-commit
                      {:c-id c-id :u-id u-id}))}})))
 
+;TODO: apply to all lists, keep scrollTop where it was before resize
 (defn unit-resource-editable
   [resource owner opts]
-  (om/component
-    (dom/div #js {:className "unit-resource"}
-      (dom/span #js {:className "unit-resource-title"} (:name resource))
-      (dom/div #js {:className "unit-resource-count-box"}
-        (dom/input #js {:className "unit-resource-count-input"
-                        :type "number"
-                        :min 0
-                        :max 100
-                        :value 0
-                        :onChange #()
-                        :onFocus #(.scrollIntoView (om/get-node owner) true)})))))
+  (reify
+    om/IInitState
+    (init-state [_]
+      ; TODO: make sure active is within list, or maybe doesn't matter?
+      {:handle-scroll #(when-let [active (.-activeElement js/document)]
+                         (do
+                           (set! (.-scrollTop (.-offsetParent active)) (- (.-offsetTop active) 14))))})
+
+    om/IWillMount
+    (will-mount [_]
+      (def timer)
+      (.addEventListener js/window "resize"
+        (fn []
+          (and timer (.clearTimeout js/window timer))
+          (def timer (.setTimeout js/window
+                       (om/get-state owner :handle-scroll)
+                       100)))))
+
+    om/IWillUnmount
+    (will-unmount [_]
+      (.removeEventListener js/window "resize" (om/get-state owner :handle-scroll)))
+
+    om/IRender
+    (render [_]
+      (dom/div #js {:className "unit-resource"}
+        (dom/span #js {:className "unit-resource-title"} (:name resource))
+        (dom/div #js {:className "unit-resource-count-box"}
+          (dom/input #js {:className "unit-resource-count-input"
+                          :type "number"
+                          :min 0
+                          :max 100
+                          :value 0
+                          :onChange #()
+                          :onFocus #()}))))))
 
 (defn check-in-resources
   [data owner {:keys [c-id u-id] :as opts}]
   (om/component
     (let [collection (get-in data [:collections c-id])
           unit (get-in collection [:units u-id])]
-      (om/build simple-list (vals (:resources unit)) {:opts {:item-comp unit-resource-editable}}))))
+      (om/build input-list (vals (:resources unit)) {:opts {:item-comp unit-resource-editable}}))))
