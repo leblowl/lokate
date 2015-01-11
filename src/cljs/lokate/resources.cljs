@@ -3,6 +3,7 @@
   (:require [cljs.core.async :refer [put! <! >! chan timeout]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
+            [clojure.string :as str]
             [goog.string :as gstring]
             [lokate.routing :refer [get-route]]
             [lokate.util :refer [blankf]]
@@ -53,7 +54,8 @@
         {:opts {:class "btn-"
                 :action #(put! (:nav (om/get-shared owner))
                            (get-route :resource
-                             {:r-id (keyword (:id %))}))}}))))
+                             {:r-id (keyword (:id %))}))
+                :keyfn #(-> % :name (str/upper-case))}}))))
 
 (defn resource-view
   [data owner {:keys [r-id] :as opts}]

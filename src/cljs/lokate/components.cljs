@@ -14,11 +14,12 @@
       (om/build item-comp item {:opts opts}))))
 
 (defn simple-list
-  [items owner {:keys [id class item-comp action] :as opts}]
+  [items owner {:keys [id class item-comp action keyfn] :as opts}]
   (om/component
     (apply dom/ol #js {:id id
                        :className (str class "list")}
-      (om/build-all list-item items {:opts opts}))))
+      (om/build-all list-item (if keyfn (sort-by keyfn items) items)
+        {:opts opts}))))
 
 (defn input-list-item
   [item owner {:keys [item-comp] :as opts}]
@@ -27,16 +28,6 @@
       (om/build item-comp item
         {:opts (update-in opts [:action] #(fn [item]
                                             (partial (% (om/get-node owner)))))}))))
-
-(defn input-list
-  [items owner {:keys [id class item-comp action] :as opts}]
-  (om/component
-    (apply dom/ol #js {:id id
-                       :className (str class "list")}
-      (om/build-all list-item items
-        {:opts (update-in opts [:action] #(fn [node item]
-                                            (.log js/console (.top (.offset node)))
-                                           (% item)))}))))
 
 (defn link
   [item owner {:keys [class name-default action] :as opts}]

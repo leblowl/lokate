@@ -2,6 +2,7 @@
   (:require [cljs.core.async :refer [put!]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
+            [clojure.string :as str]
             [lokate.db :refer [db-new db-add]]
             [lokate.routing :refer [get-route]]
             [lokate.components :refer [tip link-list render-overlay modal-input control-panel title-banner]]))
@@ -49,7 +50,8 @@
                   :name-default "Untitled_Collection"
                   :action #(put! (:nav (om/get-shared owner))
                              (get-route :collection
-                               {:c-id (keyword (:id %))}))}})))))
+                               {:c-id (keyword (:id %))}))
+                  :keyfn #(-> % :name (str/upper-case))}})))))
 
 (defn update-collection [data res]
   (om/update! data [:name] res)
@@ -89,4 +91,5 @@
                       :name-default "Untitled_Unit"
                       :action #(put! (:nav (om/get-shared owner))
                                  (get-route :unit-info
-                                   {:c-id c-id :u-id (keyword (:id %))}))}})))))))
+                                   {:c-id c-id :u-id (keyword (:id %))}))
+                      :keyfn #(-> % :name (str/upper-case))}})))))))

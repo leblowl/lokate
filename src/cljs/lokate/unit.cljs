@@ -3,9 +3,10 @@
   (:require [cljs.core.async :refer [put! <! >! sub chan timeout]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
+            [clojure.string :as str]
             [lokate.routing :refer [get-route]]
             [lokate.components :refer [banner control-panel tip simple-list
-                                       input-list select-list dropdown-select-list
+                                       simple-list select-list dropdown-select-list
                                        render-overlay modal-input]]
             [lokate.util :refer [fdate-now floormat distance]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]))
@@ -143,7 +144,9 @@
                          "Click "
                          (dom/span #js {:className "img icon-settings"})
                          " to add resources to your unit!")]}})
-        (om/build simple-list (vals (:resources unit)) {:opts {:item-comp unit-resource}})))))
+        (om/build simple-list (vals (:resources unit))
+          {:opts {:item-comp unit-resource
+                  :keyfn #(-> % :name (str/upper-case))}})))))
 
 (defn done!-btn
   [data owner {:keys [action] :as opts}]
@@ -180,7 +183,8 @@
                               (om/transact! unit-resources
                                 #(dissoc % k))
                               (om/transact! unit-resources
-                                #(assoc % k (assoc (-> data :resources k) :count 0))))))}}))))
+                                #(assoc % k (assoc (-> data :resources k) :count 0))))))
+                :keyfn #(-> % :name (str/upper-case))}}))))
 
 (defn check-in-resources-controls
   [data owner {:keys [c-id u-id] :as opts}]
@@ -234,4 +238,6 @@
   (om/component
     (let [collection (get-in data [:collections c-id])
           unit (get-in collection [:units u-id])]
-      (om/build input-list (vals (:resources unit)) {:opts {:item-comp unit-resource-editable}}))))
+      (om/build simple-list (vals (:resources unit))
+        {:opts {:item-comp unit-resource-editable
+                :keyfn #(-> % :name (str/upper-case))}}))))
