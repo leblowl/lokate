@@ -6,7 +6,7 @@
             [clojure.string :as str]
             [lokate.routing :refer [get-route]]
             [lokate.components :refer [banner control-panel tip simple-list
-                                       simple-list select-list dropdown-select-list
+                                       input-list select-list dropdown-select-list
                                        render-overlay modal-input]]
             [lokate.util :refer [fdate-now floormat distance]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]))
@@ -216,6 +216,10 @@
                        (om/get-state owner :handle-scroll)
                        100)))))
 
+    om/IDidMount
+    (did-mount [_]
+      ((:on-mount opts)))
+
     om/IWillUnmount
     (will-unmount [_]
       (.removeEventListener js/window "resize" (om/get-state owner :handle-scroll)))
@@ -238,6 +242,6 @@
   (om/component
     (let [collection (get-in data [:collections c-id])
           unit (get-in collection [:units u-id])]
-      (om/build simple-list (vals (:resources unit))
+      (om/build input-list (vals (:resources unit))
         {:opts {:item-comp unit-resource-editable
                 :keyfn #(-> % :name (str/upper-case))}}))))

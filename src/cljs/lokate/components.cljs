@@ -14,20 +14,13 @@
       (om/build item-comp item {:opts opts}))))
 
 (defn simple-list
-  [items owner {:keys [id class item-comp action keyfn] :as opts}]
+  [items owner {:keys [id class item-comp action keyfn fn] :as opts}]
   (om/component
     (apply dom/ol #js {:id id
                        :className (str class "list")}
       (om/build-all list-item (if keyfn (sort-by keyfn items) items)
-        {:opts opts}))))
-
-(defn input-list-item
-  [item owner {:keys [item-comp] :as opts}]
-  (om/component
-    (dom/li #js {:className "list-item"}
-      (om/build item-comp item
-        {:opts (update-in opts [:action] #(fn [item]
-                                            (partial (% (om/get-node owner)))))}))))
+        {:opts opts
+         :fn fn}))))
 
 (defn link
   [item owner {:keys [class name-default action] :as opts}]
@@ -46,7 +39,30 @@
       (dom/span #js {:className "select-title"}
         (or (blankf (:name item)) name-default)))))
 
-; TODO: sorted list
+(defn input-list
+  [items owner {:keys [id class item-comp] :as opts}]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:children-loaded 0})
+
+    om/IRender
+    (render [_]
+      (om/build simple-list items
+        {:opts (merge opts
+                 {:item-comp item-comp
+                  :on-mount (fn []
+                             (om/update-state! owner :children-mounted inc)
+                             (when (= (om/get-state owner :children-mounted) (count items))
+                               (let [children (.getElementsByTagName (om/get-node owner) "input")]
+                                 (.select (.item children 0))
+                                 ; also could have tab direct to next page or add hover effect to done!-btn
+                                 (.addEventListener (.item children (dec (count items))) "keydown"
+                                   (fn [e]
+                                     (when (= (.-keyCode e) 9)
+                                       (.select (.item children 0))
+                                       (.preventDefault e)
+                                       false))))))})}))))
 
 (defn link-list
   [items owner {:keys [id class name-default action] :as opts}]

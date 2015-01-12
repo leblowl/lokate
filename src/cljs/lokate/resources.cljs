@@ -22,7 +22,7 @@
 
 (defn add-resource [data res]
   (let [to-add (new-resource res)]
-    (om/update! data [:resources (:id to-add)] to-add)
+    (om/update! data [:resources (keyword (:id to-add))] to-add)
     (db-new #(db-add "resource" to-add)))
   (om/detach-root (.getElementById js/document "overlay-root")))
 

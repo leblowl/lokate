@@ -238,15 +238,15 @@ a {
 
 
 .drop-down {
-	width: 0; 
-	height: 0; 
-	border-top: 5px solid transparent;
-	border-bottom: 5px solid transparent;
-	border-left: 5px solid rgb(33, 255, 150);
-        transform: rotate(45deg);
-        position: absolute;
-        right: 0;
-        bottom: 0;
+    width: 0;
+    height: 0; 
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 5px solid rgb(33, 255, 150);
+    transform: rotate(45deg);
+    position: absolute;
+    right: 0;
+    bottom: 0;
 }
 
 #page-select .list {
@@ -332,7 +332,13 @@ a {
     background-color: inherit;
     border: none;
     outline: none;
-    padding-left: .3em;
+    text-align: center;
+}
+
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
 }
 
 .btn-link:hover {
