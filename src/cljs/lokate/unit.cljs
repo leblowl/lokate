@@ -202,8 +202,8 @@
     om/IInitState
     (init-state [_]
       ; TODO: make sure active is within list, or maybe doesn't matter?
-      {:handle-scroll #(when-let [active (.-activeElement js/document)]
-                         (do
+      {:handle-scroll #(let [active (.-activeElement js/document)]
+                         (when (= (.-tagName active) "input")
                            (set! (.-scrollTop (.-offsetParent active)) (- (.-offsetTop active) 14))))})
 
     om/IWillMount

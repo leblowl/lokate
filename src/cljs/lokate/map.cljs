@@ -19,20 +19,22 @@
 (defn mfilter [f m]
   (select-keys m (for [[k v] m :when (f v)] k)))
 
-(-> js/L .-AwesomeMarkers .-Icon .-prototype .-options .-prefix (set! "ion"))
-(def green-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "ion-ios-circle-outline"
+(-> js/L .-AwesomeMarkers .-Icon .-prototype .-options .-prefix (set! "icon"))
+(def green-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "radio-button-off"
                                                      :markerColor "lightgreen"
                                                      :iconColor "#212121"})))
-(def yellow-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "ion-ios-circle-outline"
-                                                      :markerColor "beige"})))
-(def red-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "ion-ios-circle-outline"
-                                                   :markerColor "lightred"})))
+(def yellow-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "radio-button-off"
+                                                      :markerColor "beige"
+                                                      :iconColor "#212121"})))
+(def red-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "radio-button-off"
+                                                   :markerColor "lightred"
+                                                   :iconColor "#212121"})))
 (defn reset-ico [icon]
-  (-> icon .-options .-icon (set! "ion-ios-circle-outline"))
+  (-> icon .-options .-icon (set! "radio-button-off"))
   icon)
 
 (defn activate-ico [icon]
-  (-> icon .-options .-icon (set! "ion-ios-circle-filled"))
+  (-> icon .-options .-icon (set! "radio-button-on"))
   icon)
 
 (defn reset-markers [owner]
