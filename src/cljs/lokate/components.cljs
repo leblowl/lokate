@@ -134,7 +134,11 @@
                          :type "text"
                          :placeholder placeholder
                          :value value
-                         ;default empty onChange allows you to enter input, all that's needed here
+                         :onKeyDown #(when (= (.-keyCode %) 13)
+                                       (on-edit data (.-value (om/get-node owner "input")))
+                                       (.preventDefault %)
+                                       false)
+                         ; empty onChange allows uncontrolled input
                          :onChange #()})
          (dom/div #js {:className "name-input-ok btn icon-done"
                        :onClick #(on-edit data (.-value (om/get-node owner "input")))}))))))

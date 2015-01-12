@@ -22,13 +22,15 @@
 (-> js/L .-AwesomeMarkers .-Icon .-prototype .-options .-prefix (set! "icon"))
 (def green-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "radio-button-off"
                                                      :markerColor "lightgreen"
-                                                     :iconColor "#212121"})))
+                                                     :iconColor "#444444"
+                                                     ; or #212121
+                                                     })))
 (def yellow-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "radio-button-off"
                                                       :markerColor "beige"
-                                                      :iconColor "#212121"})))
+                                                      :iconColor "#444444"})))
 (def red-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "radio-button-off"
                                                    :markerColor "lightred"
-                                                   :iconColor "#212121"})))
+                                                   :iconColor "#444444"})))
 (defn reset-ico [icon]
   (-> icon .-options .-icon (set! "radio-button-off"))
   icon)
