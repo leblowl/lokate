@@ -10,6 +10,34 @@
   ([db attr & attrs]
    (mapv #(system-attr db %) (concat [attr] attrs))))
 
+(defn -q [q & args]
+  (apply d/q q args))
+
+(defn qe
+  "If queried entity id, return single entity of first result"
+  [q db & sources]
+  (->> (apply -q q db sources)
+       ffirst
+       (d/entity db)))
+
+(defn qes
+  "If queried entity ids, return all entities of result"
+  [q db & sources]
+  (->> (apply -q q db sources)
+       (map #(d/entity db (first %)))))
+
+(defn qes-by
+  "Return all entities by attribute existence or specific value"
+  ([db attr]
+   (qes '[:find ?e :in $ ?a :where [?e ?a]] db attr))
+  ([db attr value]
+   (qes '[:find ?e :in $ ?a ?v :where [?e ?a ?v]] db attr value)))
+
+(defn qmap
+  "Convert returned 2-tuples to a map"
+  [q & sources]
+  (into {} (apply -q q sources)))
+
 (defn display [show]
   (if show
     #js {}

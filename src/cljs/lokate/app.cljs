@@ -5,7 +5,7 @@
             [datascript.core :as dc]
             [sablono.core :as html :refer-macros [html]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]
-            [lokate.util :refer [distance fdate-now]]
+            [lokate.util :as u :refer [distance fdate-now]]
             [lokate.core :as core]
             [lokate.map :as map]
             [lokate.home :as home])
@@ -32,6 +32,15 @@
    :system.drawer/maximized   {}
    :system.home/view          {}
    :system.unit/view          {}}))
+
+(def app-state
+  {:model {:collections {}
+           :resources {}}
+   :view {:app {:orientation "landscape"}
+          :drawer {:open false
+                   :maximized false}
+          :home {:view :default}
+          :unit {:view :info}}})
 
 (def event-bus (async/chan))
 (def event-bus-pub (async/pub event-bus first))
@@ -93,17 +102,22 @@
                      :unit/status         status
                      :unit/collection     cid}))
 
-(defn nearest
-  [hive hives]
-  (apply min-key #(distance (:pos hive) (:pos (second %))) (seq hives)))
-
-(defn delete
-  [data type-key select-path]
-  (om/transact! data (pop select-path) #(dissoc % (peek select-path)))
-  (om/update! data type-key nil))
+(defn- prepare-ui [db]
+  {:collections (let [collections (->> (u/qes-by db :collection/title)
+                                       (sort-by :collection/title))]
+                  (for [{cid :db/id :as collection} collections]
+                    {:collection collection
+                     :units (let [units (->> (u/qes-by db :unit/title)
+                                          (sort-by :unit/title))]
+                              (for [{uid :db/id :as unit} units]
+                                {:unit unit
+                                 :resources (let [resources (->> (u/qes-by db))])}))}))})
 
 (defn app [db owner]
   (om/component
+
+    (.log js/console (u/system-attr db :system.drawer/open))
+    (.log js/console (pr-str (u/qes-by db :collection/title)))
     (html [:div#app
            (om/build core/control-panel db)
            [:div {:class (str "flex-container " "landscape")}
@@ -116,6 +130,7 @@
                      :shared {:event-bus event-bus}}))
 
 (defn init []
+  (set-system-attrs! :system.drawer/open true)
   (set-orientation)
   (.addEventListener js/window "resize" set-orientation))
 

@@ -211,3 +211,25 @@
     (om/build banner data
       {:opts
        {:children [(dom/span #js {:className "banner-title"} title)]}})))
+
+(defn hover [owner]
+  (om/set-state! owner :hover true))
+
+(defn release-hover [owner]
+  (om/set-state! owner :hover false))
+
+(defn hdiv
+  [props owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:hover false})
+    om/IRenderState
+    (render-state [_ {:keys [hover]}]
+      (html [:div (merge
+                    (update-in props [:class] #(str % (when hover " hover")))
+                    {:on-touchstart #(hover owner)
+                     :on-touchmove  #(release-hover owner)
+                     :on-mouseenter #(hover owner)
+                     :on-mouseleave #(release-hover owner)
+                     :on-click      #(release-hover owner)})]))))
