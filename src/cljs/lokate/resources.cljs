@@ -8,12 +8,10 @@
             [lokate.routing :refer [get-route]]
             [lokate.util :refer [blankf]]
             [lokate.components :refer [title-banner control-panel link-list render-overlay modal-input]]
-            [lokate.db :refer [db-new db-add db-delete db-get-all]]
-            [cljs-uuid-utils :as uuid]))
+            [lokate.db :refer [db-new db-add db-delete db-get-all]]))
 
 (defn new-resource [name]
-  {:name name
-   :id (str (uuid/make-random-uuid))})
+  {:name name})
 
 (defn update-resource [data res]
   (om/update! data [:name] res)

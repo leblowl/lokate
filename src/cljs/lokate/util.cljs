@@ -1,7 +1,14 @@
 (ns lokate.util
   (:require
    [clojure.string :as string]
-   [goog.string :as gstring]))
+   [goog.string :as gstring]
+   [datascript :as d]))
+
+(defn system-attr
+  ([db attr]
+   (get (d/entity db 0) attr))
+  ([db attr & attrs]
+   (mapv #(system-attr db %) (concat [attr] attrs))))
 
 (defn display [show]
   (if show

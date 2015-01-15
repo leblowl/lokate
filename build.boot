@@ -8,9 +8,10 @@
                         [org.clojure/clojure "1.6.0"]
                         [org.clojure/clojurescript "0.0-2511"]
                         [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-                        [om "0.8.0-beta3"]
+                        [org.om/om "0.8.0"]
+                        [datascript "0.7.2"]
+                        [sablono "0.2.22"]
                         [com.domkm/silk "0.0.2"]
-                        [org.clojars.leanpixel/cljs-uuid-utils "1.0.0-SNAPSHOT"]
                         [ring "1.3.1"]
                         [compojure "1.2.1"]
                         [http-kit "2.1.19"]])

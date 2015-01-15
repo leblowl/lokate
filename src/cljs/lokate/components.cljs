@@ -2,9 +2,10 @@
   (:require [cljs.core.async :refer [put!]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
+            [sablono.core :as html :refer-macros [html]]
             [clojure.string :as str]
             [goog.string :as gstring]
-            [lokate.util :refer [display display-fade-in blankf]]
+            [lokate.util :as u :refer [display display-fade-in blankf]]
             [lokate.db :refer [db-add]]))
 
 (defn list-item
@@ -124,6 +125,7 @@
     om/IDidMount
     (did-mount [_]
       (.select (om/get-node owner "input")))
+
     om/IRender
     (render [_]
      (dom/div #js {:className "name-input"}
@@ -162,52 +164,22 @@
       (apply dom/div #js {:className "tip"}
         children))))
 
-;remove duplication of these two functions
-(defn open?
-  [drawer]
-  (true? (:open drawer)))
-
-(defn maximized?
-  [drawer]
-  (true? (:maximized drawer)))
-
-(defn toggle-open
-  [drawer]
-  (om/transact! drawer :open not))
-
-(defn toggle-maximized
-  [drawer]
-  (om/transact! drawer :maximized not))
-
-(defn resize-btn
-  [data owner]
-  (om/component
-    (dom/div #js {:id "resize-btn"
-                  :className (str "btn " (if (-> data :drawer maximized?)
-                                           "icon-resize-shrink"
-                                           "icon-resize-enlarge"))
-                  :onClick #(toggle-maximized (:drawer data))})))
-
-(defn navicon
-  [data owner]
-  (om/component
-    (dom/div #js {:className (str "navicon"
-                               (when (open? (:drawer data)) " active"))
-                  :onClick (fn [] (toggle-open (:drawer data)))})))
-
 (defn control-panel
-  [data owner {:keys [children] :as opts}]
+  [[db open? maximized?] owner {:keys [children] :as opts}]
   (om/component
-    (dom/div #js {:className "control-panel"}
-      (dom/div #js {:id "drawer-control"
-                    :style (display-fade-in (open? (:drawer data)))}
-        (when (open? (:drawer data))
-          (om/build resize-btn data))
-        (when (open? (:drawer data))
-          (apply dom/div #js {:id "drawer-sub-control"
-                              :className "inline-control-group"}
-            children)))
-      (om/build navicon data))))
+    (html [:.control-panel
+           [:#drawer-control
+            {:style (display-fade-in open?)}
+            (when open?
+              [:#drawer-sub-control.inline-control-group
+               [:#resize-btn
+                {:class (str "btn icon-resize-" (if maximized? "shrink" "enlarge"))
+                 :on-click #(put! (:event-bus (om/get-shared owner))
+                              [:toggle-drawer :maximized])}]
+               (for [child children] child)])]
+           [:div {:class (str "navicon" (when open? " active"))
+                  :on-click #(put! (:event-bus (om/get-shared owner))
+                               [:toggle-drawer :open])}]])))
 
 (defn back-btn
   [{{:keys [return-to]} :route} owner]

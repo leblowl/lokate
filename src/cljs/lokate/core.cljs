@@ -3,49 +3,34 @@
   (:require [cljs.core.async :refer [put! <! >! chan timeout]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
+            [sablono.core :as html :refer-macros [html]]
             [goog.string :as gstring]
-            [lokate.util :refer [display display-fade-in]]
+            [lokate.util :as u :refer [display display-fade-in]]
             [lokate.components :as components]))
 
-(enable-console-print!)
-
-(defn open?
-  [drawer]
-  (true? (:open drawer)))
-
-(defn maximized?
-  [drawer]
-  (true? (:maximized drawer)))
-
-(defn lokate-banner
-  [data owner]
+(defn lokate-control-panel
+  [[db open? maximized?] owner]
   (om/component
-    (dom/div #js {:className "banner-container"}
-      (om/build components/home-icon data)
-      (dom/span #js {:className "banner-title"}
-        "lokate"))))
+    (html [:div.navigation-container
+           [:div.banner-container
+            (om/build components/home-icon db)
+            [:span.banner-title "lokate"]]
+           (om/build components/control-panel [db open? maximized?])])))
 
 (defn control-panel
-  [{{:keys [views opts return-to]} :route :as data} owner]
+  [db owner]
   (om/component
-    (dom/div #js {:className "navigation-container"}
-      (if (open? (:drawer data))
-        (when-let [banner (:banner views)]
-          (om/build banner data {:opts opts}))
-        (om/build lokate-banner data))
-      (let [controls (or (:controls views) components/control-panel)]
-        (om/build controls data {:opts opts})))))
+    (html
+      (om/build lokate-control-panel
+        (concat [db] (u/system-attr db :system.drawer/open :system.drawer/maximized))))))
 
 (defn drawer
-  [{{:keys [views opts]} :route :as data} owner]
-  (reify
-    om/IRender
-    (render [_]
-      (dom/div #js {:id "drawer-wrapper"}
-        (dom/div #js {:id "drawer"
-                      :className (str (:orientation data)
-                                   (if (open? (:drawer data)) " show" " hide")
-                                   (when (maximized? (:drawer data)) " maximized"))}
-          (dom/div #js {:id "drawer-content"}
-            (when-let [sub-view (:drawer views)]
-              (om/build sub-view data {:opts opts}))))))))
+  [[db view] owner]
+  (om/component
+    (html
+      [:div#drawer-wrapper
+       [:div#drawer
+        {:class (str (u/system-attr db :system.app/orientation)
+                  (if (u/system-attr db :system.drawer/open) " show" " hide")
+                  (when (u/system-attr db :system.drawer/maximized) " maximized"))}
+        (om/build view db)]])))

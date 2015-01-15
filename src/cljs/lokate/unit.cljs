@@ -13,7 +13,7 @@
 
 (defn status-color [status]
   (case status
-    "green"  "#bbf970"
+    "green" "#bbf970"
     "yellow" "#ffc991"
     "red"    "#ff8e7f"))
 
@@ -76,7 +76,7 @@
                          (dom/div #js {:id "check-in-btn"
                                        :className "btn icon-in-alt"
                                        :onClick #(put! (:nav (om/get-shared owner))
-                                                   (get-route :check-in-resources
+                                                   (get-route :check-in
                                                      {:c-id c-id :u-id u-id}))})))])}})))
 
 (defn unit-resources-controls
@@ -186,15 +186,6 @@
                                 #(assoc % k (assoc (-> data :resources k) :count 0))))))
                 :keyfn #(-> % :name (str/upper-case))}}))))
 
-(defn check-in-resources-controls
-  [data owner {:keys [c-id u-id] :as opts}]
-  (om/component
-    (om/build done!-btn data
-      {:opts
-       {:action #(put! (:nav (om/get-state owner))
-                   (get-route :check-in-commit
-                     {:c-id c-id :u-id u-id}))}})))
-
 ;TODO: apply to all lists, keep scrollTop where it was before resize
 (defn unit-resource-editable
   [resource owner opts]
@@ -237,11 +228,62 @@
                           :onChange #()
                           :onFocus #()}))))))
 
-(defn check-in-resources
+(defn status-select
+  [data owner opts]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:active :green})
+
+    om/IRenderState
+    (render-state [_ {:keys [active]}]
+      (dom/div #js {:className (str "status-select-wrapper"
+                                 (when (= active (:color data)) " active"))}
+        (dom/div #js {:className "status-select icon-pin"
+                      :style #js {:color (status-color (:color data))}
+                      :onClick #(om/set-state! owner :active (:color data))})))))
+
+(def check-in-state (atom {:state {:route :resources}}))
+
+(defn check-in-observable []
+  (om/ref-cursor (:state (om/root-cursor check-in-state))))
+
+(defn check-in-controls
   [data owner {:keys [c-id u-id] :as opts}]
-  (om/component
-    (let [collection (get-in data [:collections c-id])
-          unit (get-in collection [:units u-id])]
-      (om/build input-list (vals (:resources unit))
-        {:opts {:item-comp unit-resource-editable
-                :keyfn #(-> % :name (str/upper-case))}}))))
+  (reify
+    om/IRender
+    (render [_]
+      (let [state (om/observe owner (check-in-observable))]
+        (om/transact! state [:route] (fn [x] :commit))
+        (case (:route state)
+          :resources (om/build done!-btn data
+                       {:opts
+                        {:action #(om/update! state :route :commit)}})
+
+          :commit    (om/build done!-btn data
+                       {:opts
+                        {:action #(put! (:nav (om/get-shared owner))
+                                    (get-route :unit-info
+                                      {:c-id c-id :u-id u-id}))}}))))))
+
+(defn check-in
+  [data owner {:keys [c-id u-id] :as opts}]
+  (reify
+    om/IRender
+    (render [_]
+      (let [collection (-> data :collections c-id)
+            unit (-> collection :units u-id)
+            state (om/observe owner (check-in-observable))]
+        (dom/div #js {:id "check-in"}
+          (case (:route state)
+            :resources (om/build input-list (vals (:resources unit))
+                         {:opts {:item-comp unit-resource-editable
+                                 :keyfn #(-> % :name (str/upper-case))}})
+
+            :commit    (dom/div #js {:id "commit-wrapper"}
+                         (dom/div #js {:id "commit"}
+                           (apply dom/div #js {:id "commit-status-wrapper"}
+                             (om/build-all status-select [{:color "green"}
+                                                          {:color "yellow"}
+                                                          {:color "red"}]
+                               {:state {:active (:status unit)}}))))))))))

@@ -1,76 +1,97 @@
 (ns lokate.app
-  (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]])
-  (:require [cljs.core.async :refer [put! <! >! pub chan timeout]]
+  (:require [cljs.core.async :as async]
             [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]
-            [clojure.set :refer [rename-keys]]
-            [cljs-uuid-utils :as uuid]
+            [datascript :as d]
+            [datascript.core :as dc]
+            [sablono.core :as html :refer-macros [html]]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]
-            [lokate.routing :refer [routes get-route route!]]
             [lokate.util :refer [distance fdate-now]]
             [lokate.core :as core]
             [lokate.map :as map]
-            [lokate.home :as home]
-            [lokate.collections :as collections]
-            [lokate.unit :as unit]
-            [lokate.resources :as resources]))
+            [lokate.home :as home])
+  (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
 (enable-console-print!)
 
-(def handle)
+(def conn (d/create-conn
+  {:collection/title    {}
 
-(def app-state
-  (atom {:orientation nil
-         :drawer {:open false
-                  :maximized false}
-         :collections {}
-         :resources {}
-         :route nil}))
+   :unit/title          {}
+   :unit/timestamp      {}
+   :unit/pos            {}
+   :unit/status         {}
+   :unit/collection     {:db/valueType :db.type/ref}
 
-(def nav-chan (chan))
-(def pub-chan (chan))
-(def notif-chan (pub pub-chan :topic))
+   :resource-type/title {}
+   :resource/type       {:db/valueType :db.type/ref}
+   :resource/count      {}
+   :resource/unit       {:db/valueType :db.type/ref}
 
-(defn init-app-state [key result]
-  (swap! app-state
-    (fn [m]
-      (assoc-in m [key (keyword (.-key result))]
-        (js->clj (.-value result) :keywordize-keys true)))))
+   :system.app/orientation    {}
+   :system.drawer/open        {}
+   :system.drawer/maximized   {}
+   :system.home/view          {}
+   :system.unit/view          {}}))
 
-(defn on-resize []
-  (swap! app-state #(assoc % :orientation
-                           (if (> (.-height (.-screen js/window))
-                                  (.-width (.-screen js/window)))
-                             "portrait"
-                             "landscape"))))
+(def event-bus (async/chan))
+(def event-bus-pub (async/pub event-bus first))
 
-(defn new-collection []
-  {:name nil
-   :units {}
-   :id (str (uuid/make-random-uuid))})
+;; prevent cursor-ification
+(extend-type dc/DB
+  om/IToCursor
+  (-to-cursor
+    ([this _] this)
+    ([this _ _] this)))
 
-(defn new-unit []
-  {:name nil
-   :origin (fdate-now)
-   :pos nil
-   :resources {}
-   :notes nil
-   :id (str (uuid/make-random-uuid))})
+(defn set-system-attrs! [& args]
+  (d/transact! conn
+    (for [[attr value] (partition 2 args)]
+      (if value
+        [:db/add 0 attr value]
+        [:db.fn/retractAttribute 0 attr]))))
+
+(defn set-orientation []
+  (set-system-attrs! :system.app/orientation
+    (if (> (.-height (.-screen js/window))
+           (.-width (.-screen js/window)))
+      "portrait"
+      "landscape")))
+
+(defn system-tx [db attr fun]
+  (let [val (attr (d/entity db 0))]
+    [[:db/add 0 attr (fun val)]]))
+
+(defn toggle-drawer-open []
+  (d/transact! conn
+    [[:db.fn/call system-tx :system.drawer/open not]]))
+
+(defn toggle-drawer-maximized []
+  (d/transact! conn
+    [[:db.fn/call system-tx :system.drawer/maximized not]]))
+
+(let [events (async/sub event-bus-pub :toggle-drawer (async/chan))]
+  (go-loop [e (async/<! events)]
+    (case (second e)
+      :open (toggle-drawer-open)
+      :maximized (toggle-drawer-maximized))
+    (recur (<! events))))
 
 (defn add-collection
-  [data]
-  (let [to-add (new-collection)]
-    (om/update! data [:collections (keyword (:id to-add))] to-add)
-    (db-add "collection" to-add)
-    (keyword (:id to-add))))
+  [title]
+  (d/transact! conn {:collection/title title}))
+
+(let [events (async/sub event-bus-pub :add-collection (async/chan))]
+  (go-loop [e (async/<! events)]
+    (add-collection (:data e))
+    (recur (<! events))))
 
 (defn add-unit
-  [data collection-id]
-  (let [to-add (new-unit)]
-    (om/update! data
-      [:collections collection-id :units (keyword (:id to-add))] to-add)
-    (db-add "collection" (get-in @data [:collections collection-id]))
-    (keyword (:id to-add))))
+  [title timestamp pos status cid]
+  (d/transact! conn {:unit/title          title
+                     :unit/timestamp      timestamp
+                     :unit/pos            pos
+                     :unit/status         status
+                     :unit/collection     cid}))
 
 (defn nearest
   [hive hives]
@@ -81,136 +102,25 @@
   (om/transact! data (pop select-path) #(dissoc % (peek select-path)))
   (om/update! data type-key nil))
 
-(defn dispatchR
-  ([data route views]
-     (dispatchR data route views nil))
-  ([data route views return-to]
-     (dispatchR data route views return-to nil))
-  ([data route views return-to opts]
-     (om/update! data [:route]
-       (merge route {:views views
-                     :return-to return-to
-                     :opts opts}))))
-
-(def handlers
-  {:home                  (fn [data route]
-                            (dispatchR data route
-                              {:banner home/home-banner
-                               :drawer home/home-view}))
-
-   :collections           (fn [data route]
-                            (dispatchR data route
-                              {:banner collections/collections-banner
-                               :controls collections/collections-controls
-                               :drawer collections/collections-view}
-                              (get-route :home)))
-
-   :collection-new        (fn [data route]
-                            (route!
-                              (get-route :collection {:c-id (add-collection data)})
-                              (partial handle data)))
-
-   :collection            (fn [data route]
-                            (dispatchR data route
-                              {:banner collections/collection-banner
-                               :controls collections/collection-controls
-                               :drawer collections/collection-view}
-                              (get-route :collections)
-                              (select-keys route [:c-id])))
-
-   :unit-new              (fn [data route]
-                            (let [c-id (:c-id route)]
-                              (route!
-                                (get-route :unit-info {:c-id c-id
-                                                       :u-id (add-unit data c-id)})
-                                (partial handle data))))
-
-   :unit-info             (fn [data route]
-                            (dispatchR data route
-                              {:banner unit/unit-banner
-                               :controls unit/unit-controls
-                               :drawer unit/unit-view}
-                              (get-route :collection (select-keys route [:c-id]))
-                              (select-keys route [:c-id :u-id])))
-
-   :unit-resources        (fn [data route]
-                            (dispatchR data route
-                              {:banner unit/unit-banner
-                               :controls unit/unit-resources-controls
-                               :drawer unit/unit-resources}
-                              (get-route :collection (select-keys route [:c-id]))
-                              (select-keys route [:c-id :u-id])))
-
-   :unit-resources-config (fn [data route]
-                            (om/update! data [:drawer :maximized] true)
-                            (dispatchR data route
-                              {:controls unit/unit-resources-config-controls
-                               :drawer unit/unit-resources-config}
-                              nil
-                              (select-keys route [:c-id :u-id])))
-
-   :check-in-resources    (fn [data route]
-                            (om/update! data [:drawer :maximized] true)
-                            (dispatchR data route
-                              {:controls unit/check-in-resources-controls
-                               :drawer unit/check-in-resources}
-                              nil
-                              (select-keys route [:c-id :u-id])))
-
-   :resources             (fn [data route]
-                            (dispatchR data route
-                              {:banner resources/resources-banner
-                               :controls resources/resources-controls
-                               :drawer resources/resources-view}
-                              (get-route :home)
-                              (select-keys route [:c-id :u-id])))
-
-   :resource              (fn [data route]
-                            (dispatchR data route
-                              {:drawer resources/resource-view}
-                              (get-route :resources)
-                              (select-keys route [:r-id])))})
-
-(defn handle [data x]
-  (if-let [handler (get handlers (:domkm.silk/name x))]
-    (handler data x)
-    (println "No matching handler found for route " (:domkm.silk/name x) "... >.< !")))
-
-(defn app [data owner]
-  (reify
-    om/IWillMount
-    (will-mount [_]
-      (let [nav (om/get-shared owner :nav)]
-        (go-loop []
-          (let [route (<! nav)]
-            (route! route (partial handle data)))
-          (recur))))
-
-    om/IDidMount
-    (did-mount [_]
-      (put! (om/get-shared owner :nav) (get-route :home)))
-
-    om/IRender
-    (render [_]
-      (dom/div #js {:id "app"}
-        (om/build core/control-panel data)
-        (dom/div #js {:className (str "flex-container " (:orientation data))}
-          (dom/div #js {:className "flex-content"}
-            (om/build map/l-map data))
-          (om/build core/drawer data))))))
+(defn app [db owner]
+  (om/component
+    (html [:div#app
+           (om/build core/control-panel db)
+           [:div {:class (str "flex-container " "landscape")}
+            [:div.flex-content
+             (om/build map/l-map db)
+             (om/build core/drawer [db home/home-view ])]]])))
 
 (defn render []
-  (om/root app app-state {:target (.getElementById js/document "root")
-                          :shared {:nav nav-chan
-                                   :pub-chan pub-chan
-                                   :notif-chan notif-chan}}))
+  (om/root app conn {:target (.getElementById js/document "root")
+                     :shared {:event-bus event-bus}}))
+
+(defn init []
+  (set-orientation)
+  (.addEventListener js/window "resize" set-orientation))
 
 (defn go! []
-  (.addEventListener js/window "resize" on-resize)
-  (on-resize)
-  (db-new
-    (fn []
-      (db-get-all "collection" (partial init-app-state :collections)
-        #(db-get-all "resource" (partial init-app-state :resources) render)))))
+  (init)
+  (render))
 
 (go!)
