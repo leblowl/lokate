@@ -12,6 +12,7 @@
                         [datascript "0.7.2"]
                         [sablono "0.2.22"]
                         [com.domkm/silk "0.0.2"]
+                        [org.clojars.leanpixel/cljs-uuid-utils "1.0.0-SNAPSHOT"]
                         [ring "1.3.1"]
                         [compojure "1.2.1"]
                         [http-kit "2.1.19"]])

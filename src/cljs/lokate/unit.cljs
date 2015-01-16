@@ -8,7 +8,7 @@
             [lokate.components :refer [banner control-panel tip simple-list
                                        input-list select-list dropdown-select-list
                                        render-overlay modal-input]]
-            [lokate.util :refer [fdate-now floormat distance]]
+            [lokate.util :as u]
             [lokate.db :refer [db-new db-add db-delete db-get-all]]))
 
 (defn status-color [status]
@@ -19,8 +19,8 @@
 
 (defn display-pos [pos]
   (str
-    "Lat: " (floormat "%.2f" (:lat pos))
-    " Lng: " (floormat "%.2f" (:lng pos))))
+    "Lat: " (u/floormat "%.2f" (:lat pos))
+    " Lng: " (u/floormat "%.2f" (:lng pos))))
 
 (defn display-origin [point]
   (str "Originated: " (:origin point)))

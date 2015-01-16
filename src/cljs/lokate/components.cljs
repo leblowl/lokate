@@ -5,8 +5,10 @@
             [sablono.core :as html :refer-macros [html]]
             [clojure.string :as str]
             [goog.string :as gstring]
-            [lokate.util :as u :refer [display display-fade-in blankf]]
+            [lokate.util :as u]
             [lokate.db :refer [db-add]]))
+
+;; lists && list-items
 
 (defn list-item
   [item owner {:keys [item-comp] :as opts}]
@@ -29,7 +31,7 @@
     (dom/a #js {:className (str class "link")
                 :onClick #(action item)}
       (dom/span #js {:className "link-title"}
-        (or (blankf (:name item)) name-default)))))
+        (or (u/blankf (:title item)) name-default)))))
 
 (defn select
   [item owner {:keys [class name-default action] :as opts}]
@@ -38,7 +40,7 @@
                                (when (:active item) " active"))
                   :onClick #(action item)}
       (dom/span #js {:className "select-title"}
-        (or (blankf (:name item)) name-default)))))
+        (or (u/blankf (:name item)) name-default)))))
 
 (defn input-list
   [items owner {:keys [id class item-comp] :as opts}]
@@ -98,6 +100,8 @@
                         (om/set-state! owner :open false)
                         (% sel)))}))))))
 
+;; modals
+
 (defn modal-editable
   [data owner {:keys [id className edit-key on-edit on-key-down] :as opts}]
   (reify
@@ -120,7 +124,7 @@
             (gstring/unescapeEntities "&#10003;")))))))
 
 (defn modal-input
-  [data owner {:keys [title placeholder value on-edit] :as opts}]
+  [[title placeholder value on-edit] owner]
   (reify
     om/IDidMount
     (did-mount [_]
@@ -128,89 +132,75 @@
 
     om/IRender
     (render [_]
-     (dom/div #js {:className "name-input"}
-       (dom/span #js {:className "name-input-title"} title)
-       (dom/div #js {:className "name-input-wrap"}
-         (dom/input #js {:className "name-input-input"
-                         :ref "input"
-                         :type "text"
-                         :placeholder placeholder
-                         :value value
-                         :onKeyDown #(when (= (.-keyCode %) 13)
-                                       (on-edit data (.-value (om/get-node owner "input")))
-                                       (.preventDefault %)
-                                       false)
-                         ; empty onChange allows uncontrolled input
-                         :onChange #()})
-         (dom/div #js {:className "name-input-ok btn icon-done"
-                       :onClick #(on-edit data (.-value (om/get-node owner "input")))}))))))
+      (html [:div.name-input
+             [:span.name-input-title title]
+             [:div.name-input-wrap
+              [:input.name-input-input
+               {:ref "input"
+                :type "text"
+                :placeholder placeholder
+                :value value
+                :on-keydown #(when (= (.-keyCode %) 13)
+                               (on-edit (.-value (om/get-node owner "input")))
+                               (.preventDefault %))
+                ; empty onChange allows uncontrolled input
+                :onChange #()}]
+              [:div {:class "name-input-ok btn icon-done"
+                     :on-click #(on-edit (.-value (om/get-node owner "input")))}]]]))))
 
-(defn overlay
-  [data owner {:keys [child child-opts] :as opts}]
-  (om/component
-    (dom/div #js {:id "overlay"}
-      (om/build child data {:opts child-opts}))))
+;; navigation panel components
 
-(defn render-overlay
-  [child data child-opts]
-  (om/root overlay data {:target (.getElementById js/document "overlay-root")
-                         :opts {:child child
-                                :child-opts child-opts}}))
+(defn back-btn [back-action]
+  [:div#nav-back-btn.icon-arrow-left
+   {:on-click back-action}])
 
-(defn tip
-  [data owner {:keys [children] :as opts}]
-  (om/component
-    (dom/div #js {:className "tip-wrapper"}
-      (apply dom/div #js {:className "tip"}
-        children))))
+(def home-icon
+  [:span.banner-icon
+   (gstring/unescapeEntities "&#11041;")])
 
-(defn control-panel
-  [[db open? maximized?] owner {:keys [children] :as opts}]
-  (om/component
-    (html [:.control-panel
-           [:#drawer-control
-            {:style (display-fade-in open?)}
-            (when open?
-              [:#drawer-sub-control.inline-control-group
-               [:#resize-btn
-                {:class (str "btn icon-resize-" (if maximized? "shrink" "enlarge"))
-                 :on-click #(put! (:event-bus (om/get-shared owner))
-                              [:toggle-drawer :maximized])}]
-               (for [child children] child)])]
-           [:div {:class (str "navicon" (when open? " active"))
-                  :on-click #(put! (:event-bus (om/get-shared owner))
-                               [:toggle-drawer :open])}]])))
+(defn resize-btn [maximized? owner]
+  [:div#resize-btn
+   {:class (str "btn icon-resize-" (if maximized? "shrink" "enlarge"))
+    :on-click #(put! (:event-bus (om/get-shared owner))
+                 [:toggle-drawer :maximized])}])
 
-(defn back-btn
-  [{{:keys [return-to]} :route} owner]
-  (om/component
-    (dom/div #js {:id "nav-back-btn"
-                  :className "icon-arrow-left"
-                  :style (display return-to)
-                  :onClick #(put! (:nav (om/get-shared owner))
-                              @return-to)})))
-
-(defn home-icon
-  [data owner]
-  (om/component
-    (dom/span #js {:className "banner-icon"}
-      (gstring/unescapeEntities "&#11041;"))))
+(defn navicon [open? owner]
+  [:div {:class (str "navicon" (when open? " active"))
+         :on-click #(put! (:event-bus (om/get-shared owner))
+                      [:toggle-drawer :open])}])
 
 (defn banner
-  [{{:keys [return-to]} :route :as data} owner {:keys [children] :as opts}]
+  [[child back-action] owner]
   (om/component
-    (apply dom/div #js {:className "banner-container"}
-      (if return-to
-        (om/build back-btn data)
-        (om/build home-icon data))
-      children)))
+    (html [:div.banner-container
+           (if back-action
+             (back-btn back-action)
+             home-icon)
+           child])))
 
 (defn title-banner
-  [data owner {:keys [title] :as opts}]
+  [title owner]
   (om/component
-    (om/build banner data
-      {:opts
-       {:children [(dom/span #js {:className "banner-title"} title)]}})))
+    (om/build banner [[:span.banner-title title] nil])))
+
+(defn drawer-nav-panel
+  [[drawer banner controls] owner]
+  (om/component
+    (let [open? (:open? drawer)]
+      (html [:div.navigation-container
+             (if open?
+               banner
+               (om/build title-banner "lokate"))
+             [:div.control-panel
+              [:div#drawer-control
+               {:style (u/fade-in open?)}
+               (when open?
+                 [:div#drawer-sub-control.inline-control-group
+                  (resize-btn (:maximized? drawer) owner)
+                  (for [control controls] control)])]
+              (navicon open? owner)]]))))
+
+;; hoverable div that works on mobile
 
 (defn hover [owner]
   (om/set-state! owner :hover true))
@@ -233,3 +223,8 @@
                      :on-mouseenter #(hover owner)
                      :on-mouseleave #(release-hover owner)
                      :on-click      #(release-hover owner)})]))))
+
+;; etc
+
+(defn tip [tip-msg]
+  [:div.tip-wrapper [:div.tip tip-msg]])

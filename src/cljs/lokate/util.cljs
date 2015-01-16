@@ -1,63 +1,43 @@
 (ns lokate.util
   (:require
+   [om.core :as om :include-macros true]
+   [sablono.core :as html :refer-macros [html]]
    [clojure.string :as string]
    [goog.string :as gstring]
-   [datascript :as d]))
+   [cljs-uuid-utils :as uuid]
+   [lokate.components :as c]))
 
-(defn system-attr
-  ([db attr]
-   (get (d/entity db 0) attr))
-  ([db attr & attrs]
-   (mapv #(system-attr db %) (concat [attr] attrs))))
+(defn uuid []
+  (str (uuid/make-random-uuid)))
 
-(defn -q [q & args]
-  (apply d/q q args))
+(defn now []
+  (.now js/Date))
 
-(defn qe
-  "If queried entity id, return single entity of first result"
-  [q db & sources]
-  (->> (apply -q q db sources)
-       ffirst
-       (d/entity db)))
-
-(defn qes
-  "If queried entity ids, return all entities of result"
-  [q db & sources]
-  (->> (apply -q q db sources)
-       (map #(d/entity db (first %)))))
-
-(defn qes-by
-  "Return all entities by attribute existence or specific value"
-  ([db attr]
-   (qes '[:find ?e :in $ ?a :where [?e ?a]] db attr))
-  ([db attr value]
-   (qes '[:find ?e :in $ ?a ?v :where [?e ?a ?v]] db attr value)))
-
-(defn qmap
-  "Convert returned 2-tuples to a map"
-  [q & sources]
-  (into {} (apply -q q sources)))
+(defn format [& args]
+  (apply gstring/format args))
 
 (defn display [show]
   (if show
     #js {}
     #js {:display "none"}))
 
-(defn display-fade-in [show]
+(defn fade-in [show]
   (if show
     #js {:opacity 1
          :transition "opacity .3s"}
     #js {:opacity 0}))
 
-(defn fdate-now []
-  (let [d (js/Date.)
-        date (.getDate d)
-        month (+ (.getMonth d) 1)
-        year (.getFullYear d)]
-    (str month "/" date "/" year)))
+(defn render-overlay
+  [overlay]
+  (om/root (fn [overlay owner]
+             (om/component
+               (html [:div#overlay overlay])))
+    overlay
+    {:target (.getElementById js/document "overlay-root")}))
 
-(defn floormat [& args]
-  (apply gstring/format args))
+(defn render-input-overlay
+  [title placeholder value on-edit]
+  (render-overlay (om/build c/modal-input [title placeholder value on-edit])))
 
 ; switch to haversine
 (defn distance
@@ -68,5 +48,4 @@
    0.5))
 
 (defn blankf [s]
-  (when (not (string/blank? s))
-    s))
+  (when (not (string/blank? s)) s))
