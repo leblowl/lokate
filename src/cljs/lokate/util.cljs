@@ -1,11 +1,8 @@
 (ns lokate.util
   (:require
-   [om.core :as om :include-macros true]
-   [sablono.core :as html :refer-macros [html]]
    [clojure.string :as string]
    [goog.string :as gstring]
-   [cljs-uuid-utils :as uuid]
-   [lokate.components :as c]))
+   [cljs-uuid-utils :as uuid]))
 
 (defn uuid []
   (str (uuid/make-random-uuid)))
@@ -26,18 +23,6 @@
     #js {:opacity 1
          :transition "opacity .3s"}
     #js {:opacity 0}))
-
-(defn render-overlay
-  [overlay]
-  (om/root (fn [overlay owner]
-             (om/component
-               (html [:div#overlay overlay])))
-    overlay
-    {:target (.getElementById js/document "overlay-root")}))
-
-(defn render-input-overlay
-  [title placeholder value on-edit]
-  (render-overlay (om/build c/modal-input [title placeholder value on-edit])))
 
 ; switch to haversine
 (defn distance

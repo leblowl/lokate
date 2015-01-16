@@ -140,13 +140,25 @@
                 :type "text"
                 :placeholder placeholder
                 :value value
-                :on-keydown #(when (= (.-keyCode %) 13)
+                :on-key-down #(when (= (.-keyCode %) 13)
                                (on-edit (.-value (om/get-node owner "input")))
                                (.preventDefault %))
                 ; empty onChange allows uncontrolled input
                 :onChange #()}]
               [:div {:class "name-input-ok btn icon-done"
                      :on-click #(on-edit (.-value (om/get-node owner "input")))}]]]))))
+
+(defn render-overlay
+  [overlay]
+  (om/root (fn [overlay owner]
+             (om/component
+               (html [:div#overlay overlay])))
+    overlay
+    {:target (.getElementById js/document "overlay-root")}))
+
+(defn render-input-overlay
+  [title placeholder value on-edit]
+  (render-overlay (om/build modal-input [title placeholder value on-edit])))
 
 ;; navigation panel components
 
@@ -179,9 +191,9 @@
            child])))
 
 (defn title-banner
-  [title owner]
+  [[title back-action] owner]
   (om/component
-    (om/build banner [[:span.banner-title title] nil])))
+    (om/build banner [[:span.banner-title title] back-action])))
 
 (defn drawer-nav-panel
   [[drawer banner controls] owner]
@@ -190,14 +202,14 @@
       (html [:div.navigation-container
              (if open?
                banner
-               (om/build title-banner "lokate"))
+               (om/build title-banner ["lokate"]))
              [:div.control-panel
               [:div#drawer-control
                {:style (u/fade-in open?)}
                (when open?
                  [:div#drawer-sub-control.inline-control-group
-                  (resize-btn (:maximized? drawer) owner)
-                  (for [control controls] control)])]
+                  (for [control controls] control)
+                  (resize-btn (:maximized? drawer) owner)])]
               (navicon open? owner)]]))))
 
 ;; hoverable div that works on mobile

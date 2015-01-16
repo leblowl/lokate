@@ -4,8 +4,7 @@
             [sablono.core :as html :refer-macros [html]]
             [lokate.util :as u]
             [lokate.components :as c]
-            [lokate.core :as core]
-            [lokate.home :as home])
+            [lokate.core :as core])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
 (enable-console-print!)
@@ -46,18 +45,28 @@
       :maximized (toggle-drawer-maximized))
     (recur (<! events))))
 
+(defn collection-name-input [on-edit]
+  (c/render-input-overlay
+    "Collection name"
+    "Untitled collection"
+    nil
+    on-edit))
+
 (defn add-collection [title]
   (let [collection {:id (u/uuid)
                     :title title
                     :timestamp (u/now)
-                    :units {}}]
+                    :units {}
+                    :selected true}]
     (swap! app-state
       #(assoc-in % [:model :collections (:id collection)]
          collection))))
 
 (let [events (async/sub event-bus-pub :add-collection (async/chan))]
   (go-loop [e (<! events)]
-    (apply add-collection (second e))
+    (collection-name-input (fn [name]
+                             (add-collection name)
+                             (om/detach-root (.getElementById js/document "overlay-root"))))
     (recur (<! events))))
 
 (defn add-unit [cid title latlng]
@@ -77,10 +86,15 @@
     (apply add-unit (second e))
     (recur (<! events))))
 
+(let [events (async/sub event-bus-pub :set-app-path (async/chan))]
+  (go-loop [e (<! events)]
+    (swap! app-state
+      #(assoc-in % [:view :app :path] (second e)))
+    (recur (<! events))))
+
 (defn app [data owner]
   (om/component
-    (case (-> data :view :app :path)
-      :home (om/build home/home-view data))))
+    (om/build core/window data)))
 
 (defn render []
   (om/root app app-state {:target (.getElementById js/document "root")
