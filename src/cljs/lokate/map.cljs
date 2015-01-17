@@ -1,37 +1,21 @@
 (ns lokate.map
-  (:require-macros [cljs.core.async.macros :refer [go alt!]])
-  (:require [goog.events :as events]
-            [cljs.core.async :as async :refer [put! <! >! chan timeout]]
+  (:require [cljs.core.async :as async]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [clojure.set :as set]
-            [clojure.data :refer [diff]]
-            [clojure.string :as string]
-            [goog.string :as gstring]
-            [goog.string.format]
-            [lokate.util :as u]
-            [lokate.db :as db :refer [db-add]]
-            [lokate.routing :refer [get-route]]))
-
-(defn mmap [f m]
-  (into {} (for [[k v] m]
-             [k (f v)])))
-
-(defn mfilter [f m]
-  (select-keys m (for [[k v] m :when (f v)] k)))
+            [lokate.util :as u]))
 
 (-> js/L .-AwesomeMarkers .-Icon .-prototype .-options .-prefix (set! "icon"))
-(def green-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "radio-button-off"
-                                                     :markerColor "lightgreen"
-                                                     :iconColor "#444444"
-                                                     ; or #212121
-                                                     })))
+
+(def green-ico  (-> js/L .-AwesomeMarkers (.icon #js {:icon "radio-button-off"
+                                                      :markerColor "lightgreen"
+                                                      :iconColor "#444444"})))
 (def yellow-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "radio-button-off"
                                                       :markerColor "beige"
                                                       :iconColor "#444444"})))
-(def red-ico (-> js/L .-AwesomeMarkers (.icon #js {:icon "radio-button-off"
-                                                   :markerColor "lightred"
-                                                   :iconColor "#444444"})))
+(def red-ico    (-> js/L .-AwesomeMarkers (.icon #js {:icon "radio-button-off"
+                                                      :markerColor "lightred"
+                                                      :iconColor "#444444"})))
 (defn reset-ico [icon]
   (-> icon .-options .-icon (set! "radio-button-off"))
   icon)
@@ -53,40 +37,24 @@
       (do (.setIcon (:marker active) (activate-ico (:icon active)))
           (.panTo l-map (.getLatLng (:marker active)))))))
 
-(defn path-to-route
-  [path]
-  (->
-    (into {} (for [[k v] (partition 2 path)] [k v]))
-    (set/rename-keys {:collections :c-id :units :u-id})
-    ((partial get-route :unit-info))))
-
 (defn mark-it!
   [data owner map unit]
   (let [pos (:pos unit)
         icon green-ico
         marker (-> js/L
-                 (.marker (clj->js pos) #js {:icon icon})
-                 (.addTo map))]
+                   (.marker (clj->js pos) #js {:icon icon})
+                   (.addTo map))]
 
     (.on marker "click"
-      (fn []
-        (om/update! data [:drawer :open] true)
-        (async/put! (om/get-shared owner :nav)
-          (path-to-route (om/path unit)))))
-
-    (.on marker "contextmenu"
       #(async/put! (om/get-shared owner :nav)
-         [:route :point {:id (:id unit)}]))
+         [:select-unit unit]))
 
     (assoc unit :marker marker :icon icon)))
 
 (defn add-markers [data owner units]
   (let [map (om/get-state owner :map)]
     (om/update-state! owner :markers
-      #(merge % (mmap (partial mark-it! data owner map) units)))))
-
-(defn add-group [owner places opts]
-  (map #({:name (:name %) :group (js/L.MarkerClusterGroup.)})))
+      #(merge % (u/mmap (partial mark-it! data owner map) units)))))
 
 (defn delete-markers [owner keys]
   (let [l-map (om/get-state owner :map)]
@@ -98,11 +66,13 @@
   (om/update-state! owner :markers
     #(apply dissoc % keys)))
 
-(defn cancel-action [owner]
-  (js/clearTimeout (om/get-state owner :evt-timeout))
-  (om/set-state! owner :evt-timeout nil))
+(defn add-group [owner places opts]
+  (map #({:name (:name %) :group (js/L.MarkerClusterGroup.)})))
 
-
+(defn add-unit [owner evt]
+  (async/put! (:event-bus (om/get-shared owner))
+    [:add-unit [(.-lat (.-latlng evt))
+                (.-lng (.-latlng evt))]]))
 
 (defn l-map [[selected units] owner]
   (reify
@@ -136,30 +106,26 @@
       (let [tile-url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
             tile-attr "&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors"
             l-map (-> js/L
-                    (.map "map" #js {:zoomControl false
-                                     :contextmenu true
-                                     :contextmenuWidth 140
-                                     :contextmenuAnchor #js [-70 -35]
-                                     :contextmenuItems #js [ #js {:text "Add unit"
-                                                                  :callback #(async/put! (:event-bus (om/get-shared owner))
-                                                                               [:add-unit [(.-lat (.-latlng %))
-                                                                                           (.-lng (.-latlng %))]])}]})
+                    (.map "map"
+                      (clj->js {:zoomControl false
+                                :contextmenu true
+                                :contextmenuWidth 140
+                                :contextmenuAnchor [-70 -35]
+                                :contextmenuItems [{:text "Add unit"
+                                                    :callback #(add-unit owner %)}]}))
                     (.setView (om/get-state owner :center) 9))]
 
-        (if selected
-          (.addHooks (.-contextmenu l-map))
-          (.removeHooks (.-contextmenu l-map)))
+        (-> l-map (.-contextmenu) (.removeHooks))
 
         (-> js/L
           (.tileLayer tile-url #js {:attribution tile-attr})
           (.addTo l-map))
 
-        (.on l-map "contextmenu"
-          (fn [e]))
+        (.on l-map "contextmenu" #())
 
         (if navigator.geolocation
           (.getCurrentPosition navigator.geolocation
-           (fn [pos]
+            (fn [pos]
              (let [initialLoc #js [(.-coords.latitude pos)
                                    (.-coords.longitude pos)]]
                (.setView l-map initialLoc 9))))

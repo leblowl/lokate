@@ -41,3 +41,10 @@
 
 (defn get-selected [data]
   (first (filter :selected (vals data))))
+
+(defn mmap [f m]
+  (into {} (for [[k v] m]
+             [k (f v)])))
+
+(defn mfilter [f m]
+  (select-keys m (for [[k v] m :when (f v)] k)))
