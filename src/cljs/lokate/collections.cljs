@@ -88,9 +88,7 @@
   (let [collections (-> data :model :collections vals)]
     (if-let [collection (selected? collections)]
       (if-let [unit (selected? (-> collection :units vals))]
-        (do
-          (.log js/console "selected")
-          [])
+        []
         [(om/build collection-nav-view [(-> data :view :drawer) collection])
          (om/build collection-drawer-view collection)])
       [(om/build collections-nav-view data)

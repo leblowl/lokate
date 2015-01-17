@@ -87,10 +87,8 @@
               :cid cid
               :selected true}]
     (swap! app-state
-      #(assoc-in % [:model :collections cid :units]
-         unit))
-    (.log js/console cid)
-    (.log js/console (get-in @app-state [:model :collections cid :units]))))
+      #(assoc-in % [:model :collections cid :units (:id unit)]
+         unit))))
 
 (let [events (async/sub event-bus-pub :add-unit (async/chan))]
   (go-loop [e (<! events)]

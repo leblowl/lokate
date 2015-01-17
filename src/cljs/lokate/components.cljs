@@ -246,3 +246,15 @@
 
 (defn tip [tip-msg]
   [:div.tip-wrapper [:div.tip tip-msg]])
+
+(defn cancel-btn [action]
+  [:div#cancel-btn-wrapper
+   [:div#cancel-btn
+    {:className "btn icon-cancel"
+     :onClick action}]])
+
+(defn done!-btn [action]
+  [:div#done-btn-wrapper
+   [:div#done-btn
+    {:className "btn icon-done"
+     :onClick action}]])

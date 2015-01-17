@@ -4,6 +4,12 @@
    [goog.string :as gstring]
    [cljs-uuid-utils :as uuid]))
 
+;; add to system data
+(def status-colors
+  {"green"  "#bbf970"
+   "yellow" "#ffc991"
+   "red"    "#ff8e7f"})
+
 (defn uuid []
   (str (uuid/make-random-uuid)))
 

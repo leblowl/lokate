@@ -115,7 +115,7 @@
                                                     :callback #(add-unit owner %)}]}))
                     (.setView (om/get-state owner :center) 9))]
 
-        (-> l-map (.-contextmenu) (.removeHooks))
+        (-> l-map .-contextmenu .removeHooks)
 
         (-> js/L
           (.tileLayer tile-url #js {:attribution tile-attr})
