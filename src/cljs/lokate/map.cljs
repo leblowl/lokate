@@ -1,7 +1,7 @@
 (ns lokate.map
   (:require-macros [cljs.core.async.macros :refer [go alt!]])
   (:require [goog.events :as events]
-            [cljs.core.async :refer [put! <! >! chan timeout]]
+            [cljs.core.async :as async :refer [put! <! >! chan timeout]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [clojure.set :as set]
@@ -9,6 +9,7 @@
             [clojure.string :as string]
             [goog.string :as gstring]
             [goog.string.format]
+            [lokate.util :as u]
             [lokate.db :as db :refer [db-add]]
             [lokate.routing :refer [get-route]]))
 
@@ -70,11 +71,11 @@
     (.on marker "click"
       (fn []
         (om/update! data [:drawer :open] true)
-        (put! (om/get-shared owner :nav)
+        (async/put! (om/get-shared owner :nav)
           (path-to-route (om/path unit)))))
 
     (.on marker "contextmenu"
-      #(put! (om/get-shared owner :nav)
+      #(async/put! (om/get-shared owner :nav)
          [:route :point {:id (:id unit)}]))
 
     (assoc unit :marker marker :icon icon)))
@@ -101,11 +102,9 @@
   (js/clearTimeout (om/get-state owner :evt-timeout))
   (om/set-state! owner :evt-timeout nil))
 
-(defn get-units [collections]
-  (reduce into {}
-    (map :units (vals collections))))
 
-(defn l-map [{:keys [collections] :as data} owner]
+
+(defn l-map [[selected units] owner]
   (reify
     om/IInitState
     (init-state [_]
@@ -115,44 +114,48 @@
        :map nil})
 
     om/IWillReceiveProps
-    (will-receive-props [this {:keys [collections] :as next-props}]
-      (let [next-units    (set (mfilter :pos
-                                 (get-units collections)))
-            current-units (set (mfilter :pos
-                                 (get-units (:collections (om/get-props owner)))))
+    (will-receive-props [this next-props]
+      (let [next-units    (set next-props)
+            current-units (set (om/get-props owner))
             to-add (set/difference next-units current-units)
             to-delete (set/difference current-units next-units)]
 
+        ;(delete-markers owner (keys to-delete))
+        ;(add-markers data owner to-add)
+        ;(reset-markers owner)
+        ;(when-let [u-id (-> next-props :route :opts :u-id)]
+         ; (activate-marker owner u-id))
 
-        (delete-markers owner (keys to-delete))
-        (add-markers data owner to-add)
-        (reset-markers owner)
-        (when-let [u-id (-> next-props :route :opts :u-id)]
-          (activate-marker owner u-id))))
+        (let [cm (.-contextmenu (om/get-state owner :map))]
+          (if (first next-props)
+            (.addHooks cm)
+            (.removeHooks cm)))))
 
     om/IDidMount
     (did-mount [_]
       (let [tile-url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
             tile-attr "&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors"
             l-map (-> js/L
-                    (.map "map" #js {:zoomControl false})
+                    (.map "map" #js {:zoomControl false
+                                     :contextmenu true
+                                     :contextmenuWidth 140
+                                     :contextmenuAnchor #js [-70 -35]
+                                     :contextmenuItems #js [ #js {:text "Add unit"
+                                                                  :callback #(async/put! (:event-bus (om/get-shared owner))
+                                                                               [:add-unit [(.-lat (.-latlng %))
+                                                                                           (.-lng (.-latlng %))]])}]})
                     (.setView (om/get-state owner :center) 9))]
+
+        (if selected
+          (.addHooks (.-contextmenu l-map))
+          (.removeHooks (.-contextmenu l-map)))
 
         (-> js/L
           (.tileLayer tile-url #js {:attribution tile-attr})
           (.addTo l-map))
 
         (.on l-map "contextmenu"
-          (fn [e]
-            ;; Convert this into an api call to /edit @ app.cljs
-            (let [c-id (-> @data :route :opts :c-id)
-                  u-id (-> @data :route :opts :u-id)]
-              (when (= :unit-info (-> @data :route :domkm.silk/name))
-               (om/update! data [:collections c-id :units u-id :pos]
-                 (select-keys
-                   (js->clj (.-latlng e) :keywordize-keys true)
-                   [:lat :lng]))
-               (db-add "collection" (get-in @data [:collections c-id]))))))
+          (fn [e]))
 
         (if navigator.geolocation
           (.getCurrentPosition navigator.geolocation
@@ -164,8 +167,9 @@
 
 
         (om/set-state! owner :map l-map)
-        (add-markers data owner (mfilter :pos
-                                  (get-units collections)))))
+        ;(add-markers data owner (mfilter :pos
+         ;                         (u/get-units collections)))
+        ))
 
     om/IRenderState
     (render-state [_ {:keys [markers]}]

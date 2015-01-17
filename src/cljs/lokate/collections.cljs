@@ -5,7 +5,6 @@
             [clojure.string :as str]
             [lokate.util :as u]
             [lokate.components :as c]
-            [lokate.core :as core]
             [lokate.unit :as unit]))
 
 (defn selected? [items]
@@ -53,14 +52,15 @@
                 {:opts {:class "btn-"
                         :name-default "Untitled_Unit"
                         :action #(assoc % :selected true)
-                        :keyfn #(-> % :name (str/upper-case))}}))]])))
+                        :keyfn #(-> % :title (str/upper-case))}}))]])))
 
 (defn add-collection-btn
   [owner]
-  [:div#nav-add-btn.btn
-   {:class "btn icon-plus"
+  (om/build c/cdiv
+    {:id "nav-add-btn"
+    :class "btn icon-plus"
     :on-click #(async/put! (:event-bus (om/get-shared owner))
-                 [:add-collection])}])
+                 [:add-collection])}))
 
 (defn collections-nav-view
   [data owner]
@@ -82,13 +82,15 @@
              {:opts {:class "btn-"
                      :name-default "Untitled_Collection"
                      :action #(om/update! % :selected true)
-                     :keyfn #(-> % :name (str/upper-case))}})])))
+                     :keyfn #(-> % :title (str/upper-case))}})])))
 
 (defn collections-views [data]
   (let [collections (-> data :model :collections vals)]
     (if-let [collection (selected? collections)]
       (if-let [unit (selected? (-> collection :units vals))]
-        []
+        (do
+          (.log js/console "selected")
+          [])
         [(om/build collection-nav-view [(-> data :view :drawer) collection])
          (om/build collection-drawer-view collection)])
       [(om/build collections-nav-view data)

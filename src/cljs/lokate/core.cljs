@@ -1,6 +1,7 @@
 (ns lokate.core
   (:require [om.core :as om :include-macros true]
             [sablono.core :as html :refer-macros [html]]
+            [lokate.util :as u]
             [lokate.map :as map]
             [lokate.home :as home]
             [lokate.collections :as collections]))
@@ -27,5 +28,6 @@
              nav-view
              [:div {:class (str "flex-container " (:orientation app))}
               [:div.flex-content
-               (om/build map/l-map data)
+               (om/build map/l-map [(first (filter :selected (-> data :model :collections vals)))
+                                    (vals (u/get-units (-> data :model :collections)))])
                (om/build drawer-panel [app drawer drawer-view])]]]))))

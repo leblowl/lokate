@@ -8,6 +8,32 @@
             [lokate.util :as u]
             [lokate.db :refer [db-add]]))
 
+;; div with effect on click
+
+(defn set-effect [owner]
+  (om/set-state! owner :effect true))
+
+(defn release-effect [owner]
+  (om/set-state! owner :effect false))
+
+(defn cdiv
+  [props owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:effect false})
+    om/IRenderState
+    (render-state [_ {:keys [effect]}]
+      (html [:div
+             (merge
+               (update-in props [:class] #(str % (when effect " effect")))
+               {:on-touch-start #(set-effect owner)
+                :on-touch-move  #(release-effect owner)
+                :on-touch-end   #(release-effect owner)
+                :on-mouse-down  #(set-effect owner)
+                :on-mouse-up    #(release-effect owner)
+                :on-mouse-out   #(release-effect owner)})]))))
+
 ;; lists && list-items
 
 (defn list-item
@@ -118,8 +144,9 @@
                       :contentEditable "true"
                       :onKeyDown on-key-down
                       :dangerouslySetInnerHTML #js {:__html (edit-key data)}})
-        (dom/div #js {:id "input-ok"
-                      :onClick #(on-edit (.-innerHTML (om/get-node owner (str edit-key))))}
+        (om/build cdiv
+          {:id "input-ok"
+           :onClick #(on-edit (.-innerHTML (om/get-node owner (str edit-key))))}
           (dom/span #js {:id "input-ok-mark"}
             (gstring/unescapeEntities "&#10003;")))))))
 
@@ -145,8 +172,9 @@
                                (.preventDefault %))
                 ; empty onChange allows uncontrolled input
                 :onChange #()}]
-              [:div {:class "name-input-ok btn icon-done"
-                     :on-click #(on-edit (.-value (om/get-node owner "input")))}]]]))))
+              (om/build cdiv
+                {:class "name-input-ok btn icon-done"
+                 :on-click #(on-edit (.-value (om/get-node owner "input")))})]]))))
 
 (defn render-overlay
   [overlay]
@@ -171,15 +199,17 @@
    (gstring/unescapeEntities "&#11041;")])
 
 (defn resize-btn [maximized? owner]
-  [:div#resize-btn
-   {:class (str "btn icon-resize-" (if maximized? "shrink" "enlarge"))
-    :on-click #(put! (:event-bus (om/get-shared owner))
-                 [:toggle-drawer :maximized])}])
+  (om/build cdiv
+    {:id "resize-btn"
+     :class (str "btn icon-resize-" (if maximized? "shrink" "enlarge"))
+     :on-click #(put! (:event-bus (om/get-shared owner))
+                  [:toggle-drawer :maximized])}))
 
 (defn navicon [open? owner]
-  [:div {:class (str "navicon" (when open? " active"))
-         :on-click #(put! (:event-bus (om/get-shared owner))
-                      [:toggle-drawer :open])}])
+  [:div
+   {:class (str "navicon" (when open? " active"))
+    :on-click #(put! (:event-bus (om/get-shared owner))
+                 [:toggle-drawer :open])}])
 
 (defn banner
   [[child back-action] owner]
@@ -211,30 +241,6 @@
                   (for [control controls] control)
                   (resize-btn (:maximized? drawer) owner)])]
               (navicon open? owner)]]))))
-
-;; hoverable div that works on mobile
-
-(defn hover [owner]
-  (om/set-state! owner :hover true))
-
-(defn release-hover [owner]
-  (om/set-state! owner :hover false))
-
-(defn hdiv
-  [props owner]
-  (reify
-    om/IInitState
-    (init-state [_]
-      {:hover false})
-    om/IRenderState
-    (render-state [_ {:keys [hover]}]
-      (html [:div (merge
-                    (update-in props [:class] #(str % (when hover " hover")))
-                    {:on-touchstart #(hover owner)
-                     :on-touchmove  #(release-hover owner)
-                     :on-mouseenter #(hover owner)
-                     :on-mouseleave #(release-hover owner)
-                     :on-click      #(release-hover owner)})]))))
 
 ;; etc
 

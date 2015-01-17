@@ -2,8 +2,7 @@
   (:require [cljs.core.async :as async]
             [om.core :as om :include-macros true]
             [sablono.core :as html :refer-macros [html]]
-            [lokate.components :as c]
-            [lokate.core :as core]))
+            [lokate.components :as c]))
 
 (defn set-app-path! [owner path]
   (async/put! (:event-bus (om/get-shared owner))

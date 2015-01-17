@@ -104,6 +104,21 @@ a {
     height: 100%;
 }
 
+.leaflet-contextmenu {
+    background-color: #444;
+}
+
+.leaflet-contextmenu a.leaflet-contextmenu-item {
+    color: white;
+}
+
+.leaflet-contextmenu a.leaflet-contextmenu-item.over {
+    background-color: #444;
+    border-top: 1px solid #444;
+    border-bottom: 1px solid #444;
+    cursor: pointer;
+}
+
 #drawer-wrapper {
     width: 100%;
     height: 100%;
@@ -231,8 +246,8 @@ a {
 
 .tip {
     margin: auto;
-    width: 60%;
-    height: 30%;
+    max-width: 300px;
+    max-height: 300px;
     display: flex;
     justify-content: center;
 }
@@ -494,6 +509,9 @@ input[type=number]::-webkit-outer-spin-button {
 
 .btn:hover {
     cursor: pointer;
+}
+
+.btn.effect {
     color: rgb(33, 255, 150);
 }
 
@@ -563,8 +581,6 @@ input[type=number]::-webkit-outer-spin-button {
 
 .navicon:hover::after {
     cursor: pointer;
-    border-top: 0.5em double rgba(33, 150, 255, 0.9);
-    border-bottom: 0.2em solid rgba(33, 150, 255, 0.9);
 }
 
 .awesome-marker i {

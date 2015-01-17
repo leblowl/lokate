@@ -34,3 +34,10 @@
 
 (defn blankf [s]
   (when (not (string/blank? s)) s))
+
+(defn get-units [collections]
+  (reduce into {}
+    (map :units (vals collections))))
+
+(defn get-selected [data]
+  (first (filter :selected (vals data))))

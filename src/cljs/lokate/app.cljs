@@ -64,26 +64,39 @@
 
 (let [events (async/sub event-bus-pub :add-collection (async/chan))]
   (go-loop [e (<! events)]
-    (collection-name-input (fn [name]
-                             (add-collection name)
+    (collection-name-input (fn [title]
+                             (add-collection title)
                              (om/detach-root (.getElementById js/document "overlay-root"))))
     (recur (<! events))))
 
-(defn add-unit [cid title latlng]
+
+(defn unit-name-input [on-edit]
+  (c/render-input-overlay
+    "Unit name"
+    "Untitled unit"
+    nil
+    on-edit))
+
+(defn add-unit [title latlng cid]
   (let [unit {:id (u/uuid)
               :title title
               :timestamp (u/now)
               :latlng latlng
               :status "green"
               :resources {}
-              :cid cid}]
+              :cid cid
+              :selected true}]
     (swap! app-state
       #(assoc-in % [:model :collections cid :units]
-         unit))))
+         unit))
+    (.log js/console cid)
+    (.log js/console (get-in @app-state [:model :collections cid :units]))))
 
 (let [events (async/sub event-bus-pub :add-unit (async/chan))]
   (go-loop [e (<! events)]
-    (apply add-unit (second e))
+    (unit-name-input (fn [title]
+                       (add-unit title (second e) (:id (u/get-selected (-> @app-state :model :collections))))
+                       (om/detach-root (.getElementById js/document "overlay-root"))))
     (recur (<! events))))
 
 (let [events (async/sub event-bus-pub :set-app-path (async/chan))]
