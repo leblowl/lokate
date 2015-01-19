@@ -176,17 +176,25 @@
                 {:class "name-input-ok btn icon-done"
                  :on-click #(on-edit (.-value (om/get-node owner "input")))})]]))))
 
-(defn render-overlay
-  [overlay]
+(defn mount-overlay [overlay]
   (om/root (fn [overlay owner]
              (om/component
                (html [:div#overlay overlay])))
     overlay
     {:target (.getElementById js/document "overlay-root")}))
 
-(defn render-input-overlay
-  [title placeholder value on-edit]
-  (render-overlay (om/build modal-input [title placeholder value on-edit])))
+(defn unmount-overlay []
+  (om/detach-root (.getElementById js/document "overlay-root")))
+
+(defn display-input
+  ([title placeholder on-edit]
+   (display-input title placeholder nil on-edit))
+  ([title placeholder initial-value on-edit]
+   (let [on-edit* (fn [res]
+                    (on-edit res)
+                    (unmount-overlay))]
+     (mount-overlay (om/build modal-input [title placeholder
+                                           initial-value on-edit*])))))
 
 ;; navigation panel components
 

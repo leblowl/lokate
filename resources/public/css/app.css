@@ -106,6 +106,7 @@ a {
 
 .leaflet-contextmenu {
     background-color: #444;
+    border-radius: 0;
 }
 
 .leaflet-contextmenu a.leaflet-contextmenu-item {

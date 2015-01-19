@@ -2,9 +2,7 @@
   (:require [om.core :as om :include-macros true]
             [sablono.core :as html :refer-macros [html]]
             [lokate.util :as u]
-            [lokate.map :as map]
-            [lokate.home :as home]
-            [lokate.collections :as collections]))
+            [lokate.map :as map]))
 
 (defn drawer-panel
   [[app drawer drawer-view] owner]
@@ -17,17 +15,14 @@
             [:div#drawer-content drawer-view]]])))
 
 (defn window
-  [data owner]
+  [[data nav-view drawer-view] owner]
   (om/component
     (let [app (-> data :view :app)
-          drawer (-> data :view :drawer)
-          [nav-view drawer-view] (case (-> app :path)
-                                   :home (home/home-views data)
-                                   :collections (collections/collections-views data))]
+          drawer (-> data :view :drawer)]
       (html [:div#app
              nav-view
              [:div {:class (str "flex-container " (:orientation app))}
               [:div.flex-content
-               (om/build map/l-map [(first (filter :selected (-> data :model :collections vals)))
+               (om/build map/l-map [(-> data :view :app :path)
                                     (vals (u/get-units (-> data :model :collections)))])
                (om/build drawer-panel [app drawer drawer-view])]]]))))

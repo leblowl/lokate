@@ -6,23 +6,15 @@
             [lokate.util :as u]
             [lokate.components :as c]))
 
-(defn format-latlng [latlng]
-  (str
-    "Lat: "  (u/format "%.2f" (:lat latlng))
-    " Lng: " (u/format "%.2f" (:lng latlng))))
+(defn format-timestamp [timestamp]
+  (str "Created: "
+    (-> timestamp
+      (js/Date.)
+      (.toJSON)
+      (.slice 0 10))))
 
-(defn unit-nav
-  [[unit-data] owner]
-  (om/component
-    (om/build c/dropdown-select-list [{:name "unit :info"
-                                       :path :info
-                                       :active (= :info (:path unit-data))}
-                                      {:name "unit :resources"
-                                       :path :resources
-                                       :active (= :resources (:path unit-data))}]
-      {:opts {:id "page-select"
-              :action #(async/put! (:event-bus (om/get-shared owner))
-                         [:set-unit-path (:path %)])}})))
+(defn format-latlng [latlng]
+  (apply u/format "Location: %1.2f %2.2f" latlng))
 
 (defn check-in-btn
   [owner]
@@ -40,19 +32,21 @@
     :onClick #(async/put! (:event-bus (om/get-shared owner))
                 [:configure-resources])}])
 
-(defn unit-nav-view
-  [[data unit-data unit] owner]
-  (om/build c/drawer-nav-panel
-    [(-> data :view :drawer)
-     (om/build c/banner [(om/build unit-nav unit-data)
-                         (fn [] (om/transact! unit #(dissoc % :selected)))])
-     (case (:path unit-data)
-       :info      [(check-in-btn owner)]
-       :resources [(configure-resources-btn owner)
-                   (check-in-btn owner)])]))
+(defn unit-nav-menu
+  [path owner]
+  (om/component
+    (om/build c/dropdown-select-list [{:name "unit :info"
+                                       :path :info
+                                       :active (= :info path)}
+                                      {:name "unit :resources"
+                                       :path :resources
+                                       :active (= :resources path)}]
+      {:opts {:id "page-select"
+              :action #(async/put! (:event-bus (om/get-shared owner))
+                         [:set-unit-path (:path %)])}})))
 
-(defn unit-view
-  [[unit-view-data unit] owner]
+(defn unit-info-view
+  [unit owner]
   (om/component
     (html [:div.info
            [:div#name-editable.editable
@@ -63,7 +57,8 @@
              (:title unit)]]
 
            [:div#point-content.info-content
-            [:div.origin (:timestamp unit)]
+            [:div.origin
+             (format-timestamp (:timestamp unit))]
             [:div.location
              [:span
               {:class "img icon-pin status"
@@ -79,21 +74,21 @@
            [:div.unit-resource-count-box
             [:span.unit-resource-count (:count resource)]]])))
 
-(defn unit-resources
-  [[unit] owner]
+(defn unit-resources-view
+  [unit owner]
   (om/component
     (html
       (om/build c/simple-list (vals (:resources unit))
         {:opts {:item-comp unit-resource
                 :keyfn #(-> % :name (str/upper-case))}}))))
 
-(defn unit-resources-config-controls
+(defn unit-resources-edit-nav-view
   [[resources] owner]
   (om/component
     (html (c/done!-btn #(async/put! (:event-bus (om/get-shared owner))
                           [:return-to-resources])))))
 
-(defn unit-resources-config
+(defn unit-resources-edit-view
   [[resource-types unit-resources] owner]
   (om/component
     (let [resources (map #(assoc % :active (contains? unit-resources (:id %)))
@@ -103,3 +98,26 @@
                 :action (fn [rsc-type] (async/put! (:event-bus (om/get-shared owner))
                                          [:update-unit :resources rsc-type]))
                 :keyfn #(-> % :title (str/upper-case))}}))))
+
+(defn unit-nav-view
+  [[drawer path unit] owner]
+  (om/component
+    (om/build c/drawer-nav-panel
+      [drawer
+       (om/build c/banner [(om/build unit-nav-menu path)
+                           (fn [] (om/transact! unit #(dissoc % :selected)))])
+       (case path
+         :info      [(check-in-btn owner)]
+         :resources [(configure-resources-btn owner)
+                     (check-in-btn owner)])])))
+
+(defn unit-view
+  [path unit]
+  (case path
+    :info      (om/build unit-info-view unit)
+    :resources (om/build unit-resources-view unit)))
+
+(defn unit-views
+  [drawer unit-view-data unit]
+  [(om/build unit-nav-view [drawer (:path unit-view-data) unit])
+   (unit-view (:path unit-view-data) unit)])

@@ -2,6 +2,7 @@
   (:require
    [clojure.string :as string]
    [goog.string :as gstring]
+   [goog.string.format]
    [cljs-uuid-utils :as uuid]))
 
 ;; add to system data
@@ -44,9 +45,6 @@
 (defn get-units [collections]
   (reduce into {}
     (map :units (vals collections))))
-
-(defn get-selected [data]
-  (first (filter :selected (vals data))))
 
 (defn mmap [f m]
   (into {} (for [[k v] m]

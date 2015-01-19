@@ -74,7 +74,7 @@
     [:add-unit [(.-lat (.-latlng evt))
                 (.-lng (.-latlng evt))]]))
 
-(defn l-map [[selected units] owner]
+(defn l-map [[path units] owner]
   (reify
     om/IInitState
     (init-state [_]
@@ -96,8 +96,9 @@
         ;(when-let [u-id (-> next-props :route :opts :u-id)]
          ; (activate-marker owner u-id))
 
+        ; if a collection is selected, allow map context menu
         (let [cm (.-contextmenu (om/get-state owner :map))]
-          (if (first next-props)
+          (if (= (ffirst next-props) :collection)
             (.addHooks cm)
             (.removeHooks cm)))))
 

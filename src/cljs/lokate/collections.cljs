@@ -7,9 +7,6 @@
             [lokate.components :as c]
             [lokate.unit :as unit]))
 
-(defn selected? [items]
-  (first (filter :selected items)))
-
 (def add-unit-btn
   [:div#add-point-btn
    {:class "btn icon-pin"
@@ -25,7 +22,8 @@
     (om/build c/drawer-nav-panel
       [drawer
        (om/build c/title-banner ["collection"
-                                 (fn [] (om/transact! collection #(dissoc % :selected)))])])))
+                                 #(async/put! (:event-bus (om/get-shared owner))
+                                    [:set-path :collections])])])))
 
 (defn collection-drawer-view
   [collection owner]
@@ -34,15 +32,12 @@
            [:div#name-editable.editable
             {:ref "editable"
              :on-click (fn []
-                         (.log js/console (om/get-node owner "editable"))
-                         (.blur (om/get-node owner "editable"))
-                         (c/render-input-overlay
+                         (c/display-input
                            "Collection name"
                            "Untitled collection"
                            (:title collection)
-                           (fn [title]
-                             (om/transact! collection #(assoc % :title title))
-                             (om/detach-root (.getElementById js/document "overlay-root")))))}
+                           (fn [res]
+                             (om/transact! collection #(assoc % :title res)))))}
             [:span.editable-title
              {:data-ph "Collection Name"} (:title collection)]]
            [:div.info-content
@@ -63,14 +58,14 @@
                  [:add-collection])}))
 
 (defn collections-nav-view
-  [data owner]
+  [drawer owner]
   (om/component
     (om/build c/drawer-nav-panel
-      [(-> data :view :drawer)
+      [drawer
        (om/build c/title-banner
          ["collections"
           #(async/put! (:event-bus (om/get-shared owner))
-             [:set-app-path :home])])
+             [:set-path :home])])
        [(add-collection-btn owner)]])))
 
 (defn collections-drawer-view
@@ -78,18 +73,17 @@
   (om/component
     (html [:div#collections
            (om/build c/link-list
-             collections
+             (vals collections)
              {:opts {:class "btn-"
                      :name-default "Untitled_Collection"
-                     :action #(om/update! % :selected true)
+                     :action #(async/put! (:event-bus (om/get-shared owner))
+                                [:set-path :collection (:id %)])
                      :keyfn #(-> % :title (str/upper-case))}})])))
 
-(defn collections-views [data]
-  (let [collections (-> data :model :collections vals)]
-    (if-let [collection (selected? collections)]
-      (if-let [unit (selected? (-> collection :units vals))]
-        []
-        [(om/build collection-nav-view [(-> data :view :drawer) collection])
-         (om/build collection-drawer-view collection)])
-      [(om/build collections-nav-view data)
-       (om/build collections-drawer-view collections)])))
+(defn collections-views [drawer collections]
+  [(om/build collections-nav-view drawer)
+   (om/build collections-drawer-view collections)])
+
+(defn collection-views [drawer collection]
+  [(om/build collection-nav-view [drawer collection])
+   (om/build collection-drawer-view collection)])
