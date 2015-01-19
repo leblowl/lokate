@@ -20,7 +20,7 @@
                               :path        [:home]}
                  :drawer     {:open?       false
                               :maximized?  false}
-                 :unit       {:path        :info}}}))
+                 :unit       {:path        [:info]}}}))
 
 (def event-bus (async/chan))
 (def event-bus-pub (async/pub event-bus first))
@@ -49,9 +49,9 @@
     (recur (<! events))))
 
 (defn set-path
-  ([path & args]
+  ([k path & args]
    (swap! app-state
-     #(assoc-in % [:view :app :path] [path args]))))
+     #(assoc-in % [:view k :path] [path args]))))
 
 (let [events (async/sub event-bus-pub :set-path (async/chan))]
   (go-loop [e (<! events)]
@@ -74,7 +74,7 @@
       "Collection name"
       "Untitled collection"
       #(let [collection (add-collection %)]
-         (set-path :collection (:id collection))))
+         (set-path :app :collection (:id collection))))
     (recur (<! events))))
 
 (defn add-unit [cid latlng title]
@@ -98,7 +98,7 @@
       "Untitled unit"
       #(let [selected-cid (-> @app-state :view :app :path second first)
              unit (add-unit selected-cid latlng %)]
-         (set-path :unit selected-cid (:id unit))))
+         (set-path :app :unit selected-cid (:id unit))))
     (recur (<! events))))
 
 (defn get-collections [data]
@@ -120,7 +120,7 @@
       :collection  (collections/collection-views drawer
                      (apply get-collection data args))
       :unit        (unit/unit-views drawer
-                     (-> data :view :unit)
+                     (-> data :view :unit :path first)
                      (apply get-unit data args))
       :resources   "do something"
       :settings    "do something")))

@@ -43,7 +43,7 @@
                                        :active (= :resources path)}]
       {:opts {:id "page-select"
               :action #(async/put! (:event-bus (om/get-shared owner))
-                         [:set-unit-path (:path %)])}})))
+                         [:set-path :unit (:path %)])}})))
 
 (defn unit-info-view
   [unit owner]
@@ -105,7 +105,8 @@
     (om/build c/drawer-nav-panel
       [drawer
        (om/build c/banner [(om/build unit-nav-menu path)
-                           (fn [] (om/transact! unit #(dissoc % :selected)))])
+                           #(async/put! (:event-bus (om/get-shared owner))
+                              [:set-path :app :collection (:cid unit)])])
        (case path
          :info      [(check-in-btn owner)]
          :resources [(configure-resources-btn owner)
@@ -118,6 +119,6 @@
     :resources (om/build unit-resources-view unit)))
 
 (defn unit-views
-  [drawer unit-view-data unit]
-  [(om/build unit-nav-view [drawer (:path unit-view-data) unit])
-   (unit-view (:path unit-view-data) unit)])
+  [drawer path unit]
+  [(om/build unit-nav-view [drawer path unit])
+   (unit-view path unit)])

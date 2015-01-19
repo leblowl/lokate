@@ -23,7 +23,7 @@
       [drawer
        (om/build c/title-banner ["collection"
                                  #(async/put! (:event-bus (om/get-shared owner))
-                                    [:set-path :collections])])])))
+                                    [:set-path :app :collections])])])))
 
 (defn collection-drawer-view
   [collection owner]
@@ -65,7 +65,7 @@
        (om/build c/title-banner
          ["collections"
           #(async/put! (:event-bus (om/get-shared owner))
-             [:set-path :home])])
+             [:set-path :app :home])])
        [(add-collection-btn owner)]])))
 
 (defn collections-drawer-view
@@ -77,7 +77,7 @@
              {:opts {:class "btn-"
                      :name-default "Untitled_Collection"
                      :action #(async/put! (:event-bus (om/get-shared owner))
-                                [:set-path :collection (:id %)])
+                                [:set-path :app :collection (:id %)])
                      :keyfn #(-> % :title (str/upper-case))}})])))
 
 (defn collections-views [drawer collections]

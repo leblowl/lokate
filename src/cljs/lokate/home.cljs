@@ -6,7 +6,7 @@
 
 (defn set-path [owner path]
   (async/put! (:event-bus (om/get-shared owner))
-    [:set-path path]))
+    [:set-path :app path]))
 
 (defn home-drawer-view [menu-items owner]
   (om/component
