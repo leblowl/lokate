@@ -84,12 +84,6 @@
                        :title title}]
     (om/update! data [:model :resource-types (:id resource-type)] resource-type :resource)))
 
-(defn update-resource-type [data id k fn]
-  (om/transact! data [:model :resource-types id k] fn :resource))
-
-(defn remove-resource-type [data id]
-  (om/transact! data [:model :resource-types] #(dissoc % id)))
-
 (defn get-collections [data]
   (get-in data [:model :collections]))
 
@@ -184,7 +178,8 @@
                                                                   [:model :collections (-> m :new-value :cid)])]
                                                  (db/add "collection" collection))
                                          :collection (db/add "collection" (-> m :new-value))
-                                         :resource (db/add "resource-type" (-> m :new-value))))}))
+                                         :resource (db/add "resource-type" (-> m :new-value))
+                                         nil))}))
 
 (defn go! []
   (set-orientation)
