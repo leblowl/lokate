@@ -46,7 +46,8 @@
               (om/build c/link-list (vals (:units collection))
                 {:opts {:class "btn-"
                         :name-default "Untitled_Unit"
-                        :action #(assoc % :selected true)
+                        :action #(async/put! (:event-bus (om/get-shared owner))
+                                   [:set-path :app :unit (:cid %) (:id %)])
                         :keyfn #(-> % :title (str/upper-case))}}))]])))
 
 (defn add-collection-btn

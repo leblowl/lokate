@@ -3,6 +3,7 @@
             [om.core :as om :include-macros true]
             [sablono.core :as html :refer-macros [html]]
             [lokate.util :as u]
+            [lokate.db :as db]
             [lokate.components :as c]
             [lokate.core :as core]
             [lokate.home :as home]
@@ -58,26 +59,15 @@
     (apply set-path (rest e))
     (recur (<! events))))
 
-(defn add-collection [title]
+(defn add-collection [data title]
   (let [collection {:id (u/uuid)
                     :title title
                     :timestamp (u/now)
                     :units {}}]
-    (swap! app-state
-      #(assoc-in % [:model :collections (:id collection)]
-         collection))
+    (om/update! data [:model :collections (:id collection)] collection :collection)
     collection))
 
-(let [events (async/sub event-bus-pub :add-collection (async/chan))]
-  (go-loop [e (<! events)]
-    (c/display-input
-      "Collection name"
-      "Untitled collection"
-      #(let [collection (add-collection %)]
-         (set-path :app :collection (:id collection))))
-    (recur (<! events))))
-
-(defn add-unit [cid latlng title]
+(defn add-unit [data cid latlng title]
   (let [unit {:id (u/uuid)
               :title title
               :timestamp (u/now)
@@ -85,21 +75,19 @@
               :status "green"
               :resources {}
               :cid cid}]
-    (swap! app-state
-      #(assoc-in % [:model :collections cid :units (:id unit)]
-         unit))
+    (om/update! data [:model :collections cid :units (:id unit)] unit :unit)
     unit))
 
-; adds unit to the currently selected collection
-(let [events (async/sub event-bus-pub :add-unit (async/chan))]
-  (go-loop [[topic latlng] (<! events)]
-    (c/display-input
-      "Unit name"
-      "Untitled unit"
-      #(let [selected-cid (-> @app-state :view :app :path second first)
-             unit (add-unit selected-cid latlng %)]
-         (set-path :app :unit selected-cid (:id unit))))
-    (recur (<! events))))
+(defn add-resource-type [data title]
+  (let [resource-type {:id (u/uuid)
+                       :title title}]
+    (om/update! data [:model :resource-types (:id resource-type)] resource-type :resource)))
+
+(defn update-resource-type [data id k fn]
+  (om/transact! data [:model :resource-types id k] fn :resource))
+
+(defn remove-resource-type [data id]
+  (om/transact! data [:model :resource-types] #(dissoc % id)))
 
 (defn get-collections [data]
   (get-in data [:model :collections]))
@@ -126,20 +114,68 @@
       :settings    "do something")))
 
 (defn app [data owner]
-  (om/component
-    (let [[nav-view drawer-view] (get-views data)]
-      (om/build core/window [data nav-view drawer-view]))))
+  (reify
+    om/IWillMount
+    (will-mount [_]
+      (let [events (async/sub event-bus-pub :add-collection (async/chan))]
+        (go-loop [e (<! events)]
+          (c/display-input
+            "Collection name"
+            "Untitled collection"
+            #(let [collection (add-collection data %)]
+               (set-path :app :collection (:id collection))))
+          (recur (<! events))))
+
+      ; adds unit to the currently selected collection
+      (let [events (async/sub event-bus-pub :add-unit (async/chan))]
+        (go-loop [[topic latlng] (<! events)]
+          (c/display-input
+            "Unit name"
+            "Untitled unit"
+            #(let [selected-cid (-> @app-state :view :app :path second first)
+                   unit (add-unit data selected-cid latlng %)]
+               (set-path :app :unit selected-cid (:id unit))))
+          (recur (<! events))))
+
+      (let [events (async/sub event-bus-pub :add-resource (async/chan))]
+        (go-loop [[topic latlng] (<! events)]
+          (c/display-input
+            "Resource name"
+            "Untitled resource"
+            #()))))
+
+    om/IRender
+    (render [_]
+      (let [[nav-view drawer-view] (get-views data)]
+        (om/build core/window [data nav-view drawer-view])))))
+
+
+(defn populate-model [key result]
+  (swap! app-state
+    (fn [m]
+      (assoc-in m [:model key (keyword (.-key result))]
+        (js->clj (.-value result) :keywordize-keys true)))))
+
+(defn init-app-state [cb]
+ (db/new
+   (->> cb
+     (partial db/get-all "resource-type" #(populate-model :resource-types %))
+     (partial db/get-all "resource" #(populate-model :resources %))
+     (partial db/get-all "collection" #(populate-model :collections %)))))
 
 (defn render []
   (om/root app app-state {:target (.getElementById js/document "root")
-                          :shared {:event-bus event-bus}}))
-
-(defn init []
-  (set-orientation)
-  (.addEventListener js/window "resize" set-orientation))
+                          :shared {:event-bus event-bus}
+                          :tx-listen (fn [m root-cursor]
+                                       (case (:tag m)
+                                         :unit (let [collection (get-in @app-state
+                                                                  [:model :collections (-> m :new-value :cid)])]
+                                                 (db/add "collection" collection))
+                                         :collection (db/add "collection" (-> m :new-value))))}))
 
 (defn go! []
-  (init)
-  (render))
+  (set-orientation)
+  (.addEventListener js/window "resize" set-orientation)
+  (init-app-state render))
 
 (go!)

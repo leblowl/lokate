@@ -5,8 +5,7 @@
             [sablono.core :as html :refer-macros [html]]
             [clojure.string :as str]
             [goog.string :as gstring]
-            [lokate.util :as u]
-            [lokate.db :refer [db-add]]))
+            [lokate.util :as u]))
 
 ;; div with effect on click
 
