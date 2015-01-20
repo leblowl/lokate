@@ -1,9 +1,10 @@
 (ns lokate.util
-  (:require
-   [clojure.string :as string]
-   [goog.string :as gstring]
-   [goog.string.format]
-   [cljs-uuid-utils :as uuid]))
+  (:require [cljs.core.async :as async]
+            [clojure.string :as string]
+            [goog.string :as gstring]
+            [goog.string.format]
+            [cljs-uuid-utils :as uuid])
+  (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
 ;; add to system data
 (def status-colors
@@ -52,3 +53,8 @@
 
 (defn mfilter [f m]
   (select-keys m (for [[k v] m :when (f v)] k)))
+
+(defn sub-go-loop [ch topic fn]
+  (let [events (async/sub ch topic (async/chan))]
+    (go-loop [e (<! events)]
+      (fn e))))

@@ -6,7 +6,7 @@
             [lokate.components :as c]
             [lokate.db :as db]))
 
-(defn resources-controls
+(defn rsc-types-nav-view
   [drawer owner]
   (om/component
     (om/build c/drawer-nav-panel
@@ -19,16 +19,16 @@
         [:div#add-resource-cluster-btn
          {:class "btn icon-flow-tree"}]]])))
 
-(defn resources-view
-  [resources owner]
+(defn rsc-types-drawer-view
+  [[view-data resources] owner]
   (om/component
     (html [:div.resources
            (om/build c/link-list (vals resources)
              {:opts {:class "btn-"
-                     :action #()
+                     :action #(om/update! view-data :selected (:id %))
                      :keyfn #(-> % :name (str/upper-case))}})])))
 
-(defn resource-view
+(defn rsc-type-drawer-view
   [resource owner]
   (om/component
     (html [:div.info
@@ -39,3 +39,10 @@
              {:data-ph "Untitled Resource"}
              (:title resource)]
             [:div.info-content]]])))
+
+(defn resource-types-views [drawer view-data resources]
+  (if-let [id (:selected view-data)]
+    [nil
+     (om/build rsc-type-drawer-view (get resources id))]
+    [(om/build rsc-types-nav-view drawer)
+     (om/build rsc-types-drawer-view [view-data resources])]))

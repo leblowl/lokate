@@ -8,20 +8,21 @@
             [lokate.core :as core]
             [lokate.home :as home]
             [lokate.collections :as collections]
-            [lokate.unit :as unit])
+            [lokate.unit :as unit]
+            [lokate.resources :as resources])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
 (enable-console-print!)
 
 (def app-state
   (atom {:model {:collections    {}
-                 :resources      {}
                  :resource-types {}}
          :view  {:app        {:orientation ""
                               :path        [:home]}
                  :drawer     {:open?       false
                               :maximized?  false}
-                 :unit       {:path        [:info]}}}))
+                 :unit       {:path        [:info]}
+                 :resources  {:selected    nil}}}))
 
 (def event-bus (async/chan))
 (def event-bus-pub (async/pub event-bus first))
@@ -93,12 +94,13 @@
   (get-in data [:model :collections]))
 
 (defn get-collection [data cid]
-  (.log js/console cid)
-  (.log js/console (pr-str (-> data :model :collections)))
   (get-in data [:model :collections cid]))
 
 (defn get-unit [data cid uid]
   (get-in data [:model :collections cid :units uid]))
+
+(defn get-resource-types [data]
+  (get-in data [:model :resource-types]))
 
 (defn get-views [data]
   (let [drawer (-> data :view :drawer)
@@ -112,39 +114,39 @@
       :unit        (unit/unit-views drawer
                      (-> data :view :unit :path first)
                      (apply get-unit data args))
-      :resources   "do something"
+      :resources   (resources/resource-types-views drawer
+                     (-> data :view :resources)
+                     (get-resource-types data))
       :settings    "do something")))
 
 (defn app [data owner]
   (reify
     om/IWillMount
     (will-mount [_]
-      (let [events (async/sub event-bus-pub :add-collection (async/chan))]
-        (go-loop [e (<! events)]
+      (u/sub-go-loop event-bus-pub :add-collection
+        (fn [e]
           (c/display-input
             "Collection name"
             "Untitled collection"
             #(let [collection (add-collection data %)]
-               (set-path :app :collection (:id collection))))
-          (recur (<! events))))
+               (set-path :app :collection (:id collection))))))
 
       ; adds unit to the currently selected collection
-      (let [events (async/sub event-bus-pub :add-unit (async/chan))]
-        (go-loop [[topic latlng] (<! events)]
+      (u/sub-go-loop event-bus-pub :add-unit
+        (fn [e]
           (c/display-input
             "Unit name"
             "Untitled unit"
             #(let [selected-cid (-> @app-state :view :app :path second first)
-                   unit (add-unit data selected-cid latlng %)]
-               (set-path :app :unit selected-cid (:id unit))))
-          (recur (<! events))))
+                   unit (add-unit data selected-cid (second e) %)]
+               (set-path :app :unit selected-cid (:id unit))))))
 
-      (let [events (async/sub event-bus-pub :add-resource (async/chan))]
-        (go-loop [[topic latlng] (<! events)]
+      (u/sub-go-loop event-bus-pub :add-resource
+        (fn [e]
           (c/display-input
             "Resource name"
             "Untitled resource"
-            #()))))
+            #(add-resource-type data %)))))
 
     om/IRender
     (render [_]
@@ -171,7 +173,6 @@
  (db/new
    (->> cb
      (partial db/get-all "resource-type" #(populate-model :resource-types %))
-     (partial db/get-all "resource" #(populate-model :resources %))
      (partial db/get-all "collection" #(populate-model :collections %)))))
 
 (defn render []
@@ -182,7 +183,8 @@
                                          :unit (let [collection (get-in @app-state
                                                                   [:model :collections (-> m :new-value :cid)])]
                                                  (db/add "collection" collection))
-                                         :collection (db/add "collection" (-> m :new-value))))}))
+                                         :collection (db/add "collection" (-> m :new-value))
+                                         :resource (db/add "resource-type" (-> m :new-value))))}))
 
 (defn go! []
   (set-orientation)
