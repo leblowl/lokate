@@ -7,11 +7,6 @@
             [lokate.components :as c]
             [lokate.unit :as unit]))
 
-(def add-unit-btn
-  [:div#add-point-btn
-   {:class "btn icon-pin"
-    :onClick #()}])
-
 (def collection-tip
   [:p.collection-tip-msg
    "Right click or long press on the map to add a unit to your collection!"])

@@ -60,7 +60,7 @@
     (recur (<! events))))
 
 (defn add-collection [data title]
-  (let [collection {:id (u/uuid)
+  (let [collection {:id (keyword (u/uuid))
                     :title title
                     :timestamp (u/now)
                     :units {}}]
@@ -68,7 +68,7 @@
     collection))
 
 (defn add-unit [data cid latlng title]
-  (let [unit {:id (u/uuid)
+  (let [unit {:id (keyword (u/uuid))
               :title title
               :timestamp (u/now)
               :latlng latlng
@@ -79,7 +79,7 @@
     unit))
 
 (defn add-resource-type [data title]
-  (let [resource-type {:id (u/uuid)
+  (let [resource-type {:id (keyword (u/uuid))
                        :title title}]
     (om/update! data [:model :resource-types (:id resource-type)] resource-type :resource)))
 
@@ -93,6 +93,8 @@
   (get-in data [:model :collections]))
 
 (defn get-collection [data cid]
+  (.log js/console cid)
+  (.log js/console (pr-str (-> data :model :collections)))
   (get-in data [:model :collections cid]))
 
 (defn get-unit [data cid uid]
@@ -149,12 +151,21 @@
       (let [[nav-view drawer-view] (get-views data)]
         (om/build core/window [data nav-view drawer-view])))))
 
+(defn ends-with? [str suffix]
+  (not= (.indexOf str suffix (- (count str) (count suffix))) -1))
+
+(defn keywordize-ids
+  "Recursively transforms all ids from strings to keywords."
+  [m]
+  (let [f (fn [[k v]] (if (ends-with? (name k) "id") [k (keyword v)] [k v]))]
+    ;; only apply to maps
+    (clojure.walk.postwalk (fn [x] (if (map? x) (into {} (map f x)) x)) m)))
 
 (defn populate-model [key result]
   (swap! app-state
     (fn [m]
       (assoc-in m [:model key (keyword (.-key result))]
-        (js->clj (.-value result) :keywordize-keys true)))))
+        (keywordize-ids (js->clj (.-value result) :keywordize-keys true))))))
 
 (defn init-app-state [cb]
  (db/new
