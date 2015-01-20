@@ -50,8 +50,13 @@
   (om/component
     (html [:div.info
            [:div#name-editable.editable
-            {:on-click #(async/put! (:event-bus (om/get-shared owner))
-                          [:edit-unit-title])}
+            {:on-click (fn []
+                         (c/display-input
+                           "Collection name"
+                           "Untitled collection"
+                           (:title unit)
+                           (fn [res]
+                             (om/transact! unit [] #(assoc % :title res) :unit))))}
             [:span.editable-title
              {:data-ph "Unit Name"}
              (:title unit)]]

@@ -32,7 +32,7 @@
                            "Untitled collection"
                            (:title collection)
                            (fn [res]
-                             (om/transact! collection #(assoc % :title res)))))}
+                             (om/transact! collection [] #(assoc % :title res) :collection))))}
             [:span.editable-title
              {:data-ph "Collection Name"} (:title collection)]]
            [:div.info-content
