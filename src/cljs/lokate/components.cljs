@@ -53,19 +53,19 @@
 (defn link
   [item owner {:keys [class name-default action] :as opts}]
   (om/component
-    (dom/a #js {:className (str class "link")
-                :onClick #(action item)}
-      (dom/span #js {:className "link-title"}
-        (or (u/blankf (:title item)) name-default)))))
+    (html [:a {:class (str class "link")
+               :on-click #(action item (:event-bus (om/get-shared owner)))}
+           [:span.link-title
+            (or (u/blankf (:title item)) name-default)]])))
 
 (defn select
   [item owner {:keys [class name-default action] :as opts}]
   (om/component
-    (dom/div #js {:className (str class "select"
-                               (when (:active item) " active"))
-                  :onClick #(action item)}
-      (dom/span #js {:className "select-title"}
-        (or (u/blankf (:name item)) name-default)))))
+    (html [:div {:class (str class "select"
+                          (when (:active item) " active"))
+                 :on-click #(action item (:event-bus (om/get-shared owner)))}
+           [:span.select-title
+            (or (u/blankf (:title item)) name-default)]])))
 
 (defn input-list
   [items owner {:keys [id class item-comp] :as opts}]
@@ -93,17 +93,17 @@
                                        false))))))})}))))
 
 (defn link-list
-  [items owner {:keys [id class name-default action] :as opts}]
+  [items owner opts]
   (om/component
     (om/build simple-list items {:opts (merge opts {:item-comp link})})))
 
 (defn select-list
-  [items owner {:keys [id class name-default action] :as opts}]
+  [items owner opts]
   (om/component
     (om/build simple-list items {:opts (merge opts {:item-comp select})})))
 
 (defn dropdown-select-list
-  [items owner {:keys [id class item-comp action] :as opts}]
+  [items owner {:keys [id class action] :as opts}]
   (reify
     om/IInitState
     (init-state [_]
@@ -111,19 +111,19 @@
 
     om/IRenderState
     (render-state [_ {:keys [open]}]
-      (dom/div #js {:id id}
-        (dom/div #js {:className "current-select-wrap"}
-          (dom/a #js {:className "current-select"
-                      :onClick #(om/update-state! owner :open not)}
-           (dom/span #js {:className (str class " current-select-title")}
-             (:name (first (filter :active items)))))
-          (dom/div #js {:className "drop-down"}))
-        (when open
-          (om/build select-list items
-            {:opts (update-in opts [:action]
-                     #(fn [sel]
-                        (om/set-state! owner :open false)
-                        (% sel)))}))))))
+      (html [:div {:id id}
+             [:div.current-select-wrap
+              [:a.current-select
+               {:on-click #(om/update-state! owner :open not)}
+               [:span {:class (str class " current-select-title")}
+                (:title (first (filter :active items)))]]
+              [:div.drop-down]]
+             (when open
+               (om/build select-list items
+                 {:opts (update-in opts [:action]
+                          #(fn [x evt-bus]
+                             (om/set-state! owner :open false)
+                             (% x evt-bus)))}))]))))
 
 ;; modals
 
@@ -223,7 +223,7 @@
   (om/component
     (html [:div.banner-container
            (if back-action
-             (back-btn back-action)
+             (back-btn #(back-action (:event-bus (om/get-shared owner))))
              home-icon)
            child])))
 
@@ -231,6 +231,13 @@
   [[title back-action] owner]
   (om/component
     (om/build banner [[:span.banner-title title] back-action])))
+
+(defn simple-nav-panel
+  [controls owner]
+  (om/component
+    (html [:div.navigation-container
+           [:div.control-panel
+            (for [control controls] control)]])))
 
 (defn drawer-nav-panel
   [[drawer banner controls] owner]
@@ -254,14 +261,18 @@
 (defn tip [tip-msg]
   [:div.tip-wrapper [:div.tip tip-msg]])
 
-(defn cancel-btn [action]
-  [:div#cancel-btn-wrapper
-   [:div#cancel-btn
-    {:className "btn icon-cancel"
-     :onClick action}]])
+(defn cancel-btn
+  [action owner]
+  (om/component
+    (html [:div#cancel-btn-wrapper
+           [:div#cancel-btn
+            {:class "btn icon-cancel"
+             :on-click #(action (:event-bus (om/get-shared owner)))}]])))
 
-(defn done!-btn [action]
-  [:div#done-btn-wrapper
-   [:div#done-btn
-    {:className "btn icon-done"
-     :onClick action}]])
+(defn done!-btn
+  [action owner]
+  (om/component
+    (html [:div#done-btn-wrapper
+           [:div#done-btn
+            {:class "btn icon-done"
+             :on-click #(action (:event-bus (om/get-shared owner)))}]])))

@@ -16,7 +16,7 @@
       [drawer
        (om/build c/title-banner ["resources"
                                  #(async/put! (:event-bus (om/get-shared owner))
-                                    [:set-path :app :home])])
+                                    [:set-path :home])])
        [[:div#add-resource-btn
          {:class "btn icon-flow-line"
           :on-click #(async/put! (:event-bus (om/get-shared owner))

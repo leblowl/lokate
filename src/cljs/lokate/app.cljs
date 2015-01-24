@@ -21,7 +21,6 @@
                               :path        [:home]}
                  :drawer     {:open?       false
                               :maximized?  false}
-                 :unit       {:path        [:info]}
                  :resources  {:selected    nil}}}))
 
 (def event-bus (async/chan))
@@ -51,9 +50,9 @@
     (recur (<! events))))
 
 (defn set-path
-  ([k path & args]
+  ([path & args]
    (swap! app-state
-     #(assoc-in % [:view k :path] [path args]))))
+     #(assoc-in % [:view :app :path] [path args]))))
 
 (let [events (async/sub event-bus-pub :set-path (async/chan))]
   (go-loop [e (<! events)]
@@ -106,8 +105,9 @@
       :collection  (collections/collection-views drawer
                      (apply get-collection data args))
       :unit        (unit/unit-views drawer
-                     (-> data :view :unit :path first)
-                     (apply get-unit data args))
+                     (-> data :view :app :path second last)
+                     (apply get-unit data args)
+                     (get-resource-types data))
       :resources   (resources/resource-types-views drawer
                      (-> data :view :resources)
                      (get-resource-types data))
@@ -171,7 +171,8 @@
 
 (defn render []
   (om/root app app-state {:target (.getElementById js/document "root")
-                          :shared {:event-bus event-bus}
+                          :shared {:event-bus event-bus
+                                   :event-bus-pub event-bus-pub}
                           :tx-listen (fn [m root-cursor]
                                        (case (:tag m)
                                          :unit (let [collection (get-in @app-state

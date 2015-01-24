@@ -18,7 +18,7 @@
       [drawer
        (om/build c/title-banner ["collection"
                                  #(async/put! (:event-bus (om/get-shared owner))
-                                    [:set-path :app :collections])])])))
+                                    [:set-path :collections])])])))
 
 (defn collection-drawer-view
   [collection owner]
@@ -42,16 +42,16 @@
                 {:opts {:class "btn-"
                         :name-default "Untitled_Unit"
                         :action #(async/put! (:event-bus (om/get-shared owner))
-                                   [:set-path :app :unit (:cid %) (:id %)])
+                                   [:set-path :unit (:cid %) (:id %) :info])
                         :keyfn #(-> % :title (str/upper-case))}}))]])))
 
 (defn add-collection-btn
   [owner]
   (om/build c/cdiv
     {:id "nav-add-btn"
-    :class "btn icon-plus"
-    :on-click #(async/put! (:event-bus (om/get-shared owner))
-                 [:add-collection])}))
+     :class "btn icon-plus"
+     :on-click #(async/put! (:event-bus (om/get-shared owner))
+                  [:add-collection])}))
 
 (defn collections-nav-view
   [drawer owner]
@@ -61,7 +61,7 @@
        (om/build c/title-banner
          ["collections"
           #(async/put! (:event-bus (om/get-shared owner))
-             [:set-path :app :home])])
+             [:set-path :home])])
        [(add-collection-btn owner)]])))
 
 (defn collections-drawer-view
@@ -73,7 +73,7 @@
              {:opts {:class "btn-"
                      :name-default "Untitled_Collection"
                      :action #(async/put! (:event-bus (om/get-shared owner))
-                                [:set-path :app :collection (:id %)])
+                                [:set-path :collection (:id %)])
                      :keyfn #(-> % :title (str/upper-case))}})])))
 
 (defn collections-views [drawer collections]
