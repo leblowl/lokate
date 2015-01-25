@@ -205,25 +205,23 @@
   [:span.banner-icon
    (gstring/unescapeEntities "&#11041;")])
 
-(defn resize-btn [maximized? owner]
+(defn resize-btn [drawer owner]
   (om/build cdiv
     {:id "resize-btn"
-     :class (str "btn icon-resize-" (if maximized? "shrink" "enlarge"))
-     :on-click #(put! (:event-bus (om/get-shared owner))
-                  [:toggle-drawer :maximized])}))
+     :class (str "btn icon-resize-" (if (:maximized? drawer) "shrink" "enlarge"))
+     :on-click #(om/transact! drawer :maximized? not)}))
 
-(defn navicon [open? owner]
+(defn navicon [drawer owner]
   [:div
-   {:class (str "navicon" (when open? " active"))
-    :on-click #(put! (:event-bus (om/get-shared owner))
-                 [:toggle-drawer :open])}])
+   {:class (str "navicon" (when (:open? drawer) " active"))
+    :on-click #(om/transact! drawer :open? not)}])
 
 (defn banner
   [[child back-action] owner]
   (om/component
     (html [:div.banner-container
            (if back-action
-             (back-btn #(back-action (:event-bus (om/get-shared owner))))
+             (back-btn #(back-action (om/get-shared owner :event-bus)))
              home-icon)
            child])))
 
@@ -253,8 +251,8 @@
                (when open?
                  [:div#drawer-sub-control.inline-control-group
                   (for [control controls] control)
-                  (resize-btn (:maximized? drawer) owner)])]
-              (navicon open? owner)]]))))
+                  (resize-btn drawer owner)])]
+              (navicon drawer owner)]]))))
 
 ;; etc
 

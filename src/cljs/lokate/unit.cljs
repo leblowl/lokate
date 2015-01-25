@@ -105,20 +105,27 @@
       {:opts {:item-comp unit-resource
               :keyfn #(-> % :name (str/upper-case))}})))
 
-(defn toggle-drawer-maximized [owner]
-  (async/put! (:event-bus (om/get-shared owner))
-    [:toggle-drawer :maximized]))
+(defn update-unit-rscs [unit x evt-bus]
+  (if (:active x)
+    (update-unit unit :resources
+      #(dissoc % (:id x)))
+    (update-unit unit :resources
+      #(assoc % (:id x)
+         (merge (select-keys x [:id :title])
+           {:count 0})))))
 
 (defn unit-edit-view
   [[rsc-types unit] owner]
   (reify
     om/IWillMount
     (will-mount [_]
-      (toggle-drawer-maximized owner))
+      (async/put! (:event-bus (om/get-shared owner))
+        [:drawer :set :maximized? true]))
 
     om/IWillUnmount
     (will-unmount [_]
-      (toggle-drawer-maximized owner))
+      (async/put! (:event-bus (om/get-shared owner))
+        [:drawer :set :maximized? false]))
 
     om/IRender
     (render [_]
@@ -126,13 +133,7 @@
                         (vals rsc-types))]
         (om/build c/select-list resources
           {:opts {:class "btn-"
-                  :action (fn [x evt-bus]
-                            (if (:active x)
-                              (update-unit unit :resources
-                                #(dissoc % (:id x)))
-                              (update-unit unit :resources
-                                #(assoc % (:id x)
-                                   (merge x {:count 0})))))
+                  :action (partial update-unit-rscs unit)
                   :keyfn #(-> % :title (str/upper-case))}})))))
 
 (defn unit-views
@@ -147,7 +148,6 @@
                                      (om/build check-in-btn unit)]])
                 (om/build unit-resources-view unit)]
 
-    ;; need nav panel css
     :edit      [(om/build c/simple-nav-panel
                   [(om/build c/done!-btn
                      (fn [evt-bus]

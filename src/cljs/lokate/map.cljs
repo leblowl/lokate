@@ -38,23 +38,25 @@
           (.panTo l-map (.getLatLng (:marker active)))))))
 
 (defn mark-it!
-  [data owner map unit]
-  (let [pos (:pos unit)
-        icon green-ico
+  [unit drawer lmap evt-bus]
+  (let [icon green-ico
         marker (-> js/L
-                   (.marker (clj->js pos) #js {:icon icon})
-                   (.addTo map))]
+                 (.marker (clj->js (:latlng unit)) #js {:icon icon})
+                 (.addTo lmap))]
 
     (.on marker "click"
-      #(async/put! (om/get-shared owner :nav)
-         [:select-unit unit]))
+      #(do
+         (om/update! drawer :open? true)
+         (async/put! evt-bus
+           [:set-path :unit (:cid unit) (:id unit) :info])))
 
     (assoc unit :marker marker :icon icon)))
 
-(defn add-markers [data owner units]
-  (let [map (om/get-state owner :map)]
-    (om/update-state! owner :markers
-      #(merge % (u/mmap (partial mark-it! data owner map) units)))))
+(defn add-markers [drawer units owner]
+  (let [lmap (om/get-state owner :map)
+        evt-bus (om/get-shared owner :event-bus)]
+    (om/update-state! owner :units
+      (fn [m] (merge m (u/mmap #(mark-it! % drawer lmap evt-bus) units))))))
 
 (defn delete-markers [owner keys]
   (let [l-map (om/get-state owner :map)]
@@ -74,13 +76,13 @@
     [:add-unit [(.-lat (.-latlng evt))
                 (.-lng (.-latlng evt))]]))
 
-(defn l-map [[path units] owner]
+(defn l-map [[drawer path units] owner]
   (reify
     om/IInitState
     (init-state [_]
       {:center #js [0 0]
        :evt-timeout nil
-       :markers {}
+       :units {}
        :map nil})
 
     om/IWillReceiveProps
@@ -134,9 +136,7 @@
 
 
         (om/set-state! owner :map l-map)
-        ;(add-markers data owner (mfilter :pos
-         ;                         (u/get-units collections)))
-        ))
+        (add-markers drawer units owner)))
 
     om/IRenderState
     (render-state [_ {:keys [markers]}]

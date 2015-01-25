@@ -43,10 +43,6 @@
 (defn blankf [s]
   (when (not (string/blank? s)) s))
 
-(defn get-units [collections]
-  (reduce into {}
-    (map :units (vals collections))))
-
 (defn mmap [f m]
   (into {} (for [[k v] m]
              [k (f v)])))
@@ -58,3 +54,6 @@
   (let [events (async/sub ch topic (async/chan))]
     (go-loop [e (<! events)]
       (fn e))))
+
+(defn ends-with? [str suffix]
+  (not= (.indexOf str suffix (- (count str) (count suffix))) -1))

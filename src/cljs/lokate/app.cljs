@@ -34,19 +34,19 @@
          "portrait"
          "landscape"))))
 
-(defn toggle-drawer-open []
+(defn set-drawer [k v]
   (swap! app-state
-    #(update-in % [:view :drawer :open?] not)))
+    #(assoc-in % [:view :drawer k] v)))
 
-(defn toggle-drawer-maximized []
+(defn update-drawer [k fun]
   (swap! app-state
-    #(update-in % [:view :drawer :maximized?] not)))
+    #(update-in % [:view :drawer k] fun)))
 
-(let [events (async/sub event-bus-pub :toggle-drawer (async/chan))]
+(let [events (async/sub event-bus-pub :drawer (async/chan))]
   (go-loop [e (async/<! events)]
     (case (second e)
-      :open (toggle-drawer-open)
-      :maximized (toggle-drawer-maximized))
+      :set (apply set-drawer (drop 2 e))
+      :update (apply update-drawer (drop 2 e)))
     (recur (<! events))))
 
 (defn set-path
@@ -147,13 +147,10 @@
       (let [[nav-view drawer-view] (get-views data)]
         (om/build core/window [data nav-view drawer-view])))))
 
-(defn ends-with? [str suffix]
-  (not= (.indexOf str suffix (- (count str) (count suffix))) -1))
-
 (defn keywordize-ids
   "Recursively transforms all ids from strings to keywords."
   [m]
-  (let [f (fn [[k v]] (if (ends-with? (name k) "id") [k (keyword v)] [k v]))]
+  (let [f (fn [[k v]] (if (u/ends-with? (name k) "id") [k (keyword v)] [k v]))]
     ;; only apply to maps
     (clojure.walk.postwalk (fn [x] (if (map? x) (into {} (map f x)) x)) m)))
 
