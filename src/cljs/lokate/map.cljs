@@ -25,9 +25,9 @@
   icon)
 
 (defn reset-markers [owner]
-  (let [markers (om/get-state owner :markers)]
+  (let [units (om/get-state owner :units)]
     (dorun
-      (map #(.setIcon (:marker %) (reset-ico (:icon %))) (vals markers)))))
+      (map #(.setIcon (:marker %) (reset-ico (:icon %))) (vals units)))))
 
 (defn activate-marker
   [owner id]
@@ -98,6 +98,8 @@
         ;(reset-markers owner)
         ;(when-let [u-id (-> next-props :route :opts :u-id)]
          ;(activate-marker owner u-id))
+
+        (reset-markers owner)
 
         (let [[route args] (first next-props)]
           (when (= route :unit)
