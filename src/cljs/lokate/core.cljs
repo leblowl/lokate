@@ -27,7 +27,6 @@
              nav-view
              [:div {:class (str "flex-container " (:orientation app))}
               [:div.flex-content
-               (om/build map/l-map [drawer
-                                    (-> data :view :app :path)
+               (om/build map/l-map [(-> data :view :app :path)
                                     (get-units (-> data :model :collections))])
                (om/build drawer-panel [app drawer drawer-view])]]]))))

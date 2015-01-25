@@ -32,13 +32,13 @@
 (defn activate-marker
   [owner id]
   (let [l-map (om/get-state owner :map)
-        active (om/get-state owner [:markers id])]
+        active (om/get-state owner [:units id])]
     (when active
       (do (.setIcon (:marker active) (activate-ico (:icon active)))
           (.panTo l-map (.getLatLng (:marker active)))))))
 
 (defn mark-it!
-  [unit drawer lmap evt-bus]
+  [unit lmap evt-bus]
   (let [icon green-ico
         marker (-> js/L
                  (.marker (clj->js (:latlng unit)) #js {:icon icon})
@@ -46,17 +46,18 @@
 
     (.on marker "click"
       #(do
-         (om/update! drawer :open? true)
+         (async/put! evt-bus
+           [:drawer :set :open? true])
          (async/put! evt-bus
            [:set-path :unit (:cid unit) (:id unit) :info])))
 
     (assoc unit :marker marker :icon icon)))
 
-(defn add-markers [drawer units owner]
+(defn add-markers [units owner]
   (let [lmap (om/get-state owner :map)
         evt-bus (om/get-shared owner :event-bus)]
     (om/update-state! owner :units
-      (fn [m] (merge m (u/mmap #(mark-it! % drawer lmap evt-bus) units))))))
+      (fn [m] (merge m (u/mmap #(mark-it! % lmap evt-bus) units))))))
 
 (defn delete-markers [owner keys]
   (let [l-map (om/get-state owner :map)]
@@ -76,7 +77,7 @@
     [:add-unit [(.-lat (.-latlng evt))
                 (.-lng (.-latlng evt))]]))
 
-(defn l-map [[drawer path units] owner]
+(defn l-map [[path units] owner]
   (reify
     om/IInitState
     (init-state [_]
@@ -96,7 +97,12 @@
         ;(add-markers data owner to-add)
         ;(reset-markers owner)
         ;(when-let [u-id (-> next-props :route :opts :u-id)]
-         ; (activate-marker owner u-id))
+         ;(activate-marker owner u-id))
+
+        (let [[route args] (first next-props)]
+          (when (= route :unit)
+            (let [[cid uid page] args]
+              (activate-marker owner uid))))
 
         ; if a collection is selected, allow map context menu
         (let [cm (.-contextmenu (om/get-state owner :map))]
@@ -136,7 +142,7 @@
 
 
         (om/set-state! owner :map l-map)
-        (add-markers drawer units owner)))
+        (add-markers units owner)))
 
     om/IRenderState
     (render-state [_ {:keys [markers]}]
