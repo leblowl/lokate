@@ -72,8 +72,8 @@
 (defn add-group [owner places opts]
   (map #({:name (:name %) :group (js/L.MarkerClusterGroup.)})))
 
-(defn add-unit [owner evt]
-  (async/put! (:event-bus (om/get-shared owner))
+(defn add-unit [evt-bus evt]
+  (async/put! evt-bus
     [:add-unit [(.-lat (.-latlng evt))
                 (.-lng (.-latlng evt))]]))
 
@@ -87,28 +87,31 @@
        :map nil})
 
     om/IWillReceiveProps
-    (will-receive-props [this next-props]
-      (let [next-units    (set next-props)
-            current-units (set (om/get-props owner))
+    (will-receive-props [this [path units]]
+      (.log js/console (pr-str units))
+      (let [next-units    (set units)
+            current-units (set (second (om/get-props owner)))
             to-add (set/difference next-units current-units)
             to-delete (set/difference current-units next-units)]
 
+        ;(.log js/console (pr-str to-add))
         ;(delete-markers owner (keys to-delete))
-        ;(add-markers data owner to-add)
+
         ;(reset-markers owner)
         ;(when-let [u-id (-> next-props :route :opts :u-id)]
          ;(activate-marker owner u-id))
 
+        (add-markers to-add owner)
         (reset-markers owner)
 
-        (let [[route args] (first next-props)]
+        (let [[route args] path]
           (when (= route :unit)
             (let [[cid uid page] args]
               (activate-marker owner uid))))
 
         ; if a collection is selected, allow map context menu
         (let [cm (.-contextmenu (om/get-state owner :map))]
-          (if (= (ffirst next-props) :collection)
+          (if (= (first path) :collection)
             (.addHooks cm)
             (.removeHooks cm)))))
 
@@ -122,8 +125,10 @@
                                 :contextmenu true
                                 :contextmenuWidth 140
                                 :contextmenuAnchor [-70 -35]
-                                :contextmenuItems [{:text "Add unit"
-                                                    :callback #(add-unit owner %)}]}))
+                                :contextmenuItems [
+                                  {:text "Add unit"
+                                   :callback #(add-unit (om/get-shared owner :event-bus) %)}
+                                ]}))
                     (.setView (om/get-state owner :center) 9))]
 
         (-> l-map .-contextmenu .removeHooks)

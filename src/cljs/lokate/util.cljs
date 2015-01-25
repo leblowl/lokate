@@ -50,10 +50,11 @@
 (defn mfilter [f m]
   (select-keys m (for [[k v] m :when (f v)] k)))
 
-(defn sub-go-loop [ch topic fn]
+(defn sub-go-loop [ch topic fun]
   (let [events (async/sub ch topic (async/chan))]
     (go-loop [e (<! events)]
-      (fn e))))
+      (fun e)
+      (recur (<! events)))))
 
 (defn ends-with? [str suffix]
   (not= (.indexOf str suffix (- (count str) (count suffix))) -1))

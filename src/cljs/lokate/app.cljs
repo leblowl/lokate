@@ -123,7 +123,7 @@
             "Collection name"
             "Untitled collection"
             #(let [collection (add-collection data %)]
-               (set-path :app :collection (:id collection))))))
+               (set-path :collection (:id collection))))))
 
       ; adds unit to the currently selected collection
       (u/sub-go-loop event-bus-pub :add-unit
@@ -133,7 +133,7 @@
             "Untitled unit"
             #(let [selected-cid (-> @app-state :view :app :path second first)
                    unit (add-unit data selected-cid (second e) %)]
-               (set-path :app :unit selected-cid (:id unit))))))
+               (set-path :unit selected-cid (:id unit) :info)))))
 
       (u/sub-go-loop event-bus-pub :add-resource
         (fn [e]
