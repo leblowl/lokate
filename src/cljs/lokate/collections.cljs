@@ -47,11 +47,8 @@
 
 (defn add-collection-btn
   [owner]
-  (om/build c/cdiv
-    {:id "nav-add-btn"
-     :class "btn icon-plus"
-     :on-click #(async/put! (:event-bus (om/get-shared owner))
-                  [:add-collection])}))
+  (om/build c/btn ["icon-add"
+                   #(async/put! % [:add-collection])]))
 
 (defn collections-nav-view
   [drawer owner]
@@ -64,17 +61,42 @@
              [:set-path :home])])
        [(add-collection-btn owner)]])))
 
+(defn set-status [owner status]
+  (om/set-state! owner :status status))
+
+(defn warn-or-delete [owner status collection]
+  (case status
+    :ok (set-status owner :warn)
+    :warn (do
+            (set-status owner :delete)
+            (.setTimeout js/window
+              (fn []
+                (u/share owner [:delete-collection (:id collection)])
+                (set-status owner :ok))
+              500))))
+
+(defn clink
+  [collection owner]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:status :ok})
+
+    om/IRenderState
+    (render-state [_ {:keys [status]}]
+      (html [:a {:class (str "btn-link " (name status))
+                 :on-click #(u/share owner [:set-path :collection (:id collection)])
+                 :on-context-menu (fn [e]
+                                    (warn-or-delete owner status collection)
+                                    (.preventDefault e))}
+             [:span.link-title
+              (or (u/blankf (:title collection)) "Untitled_Collection")]]))))
+
 (defn collections-drawer-view
   [collections owner]
   (om/component
     (html [:div#collections
-           (om/build c/link-list
-             (vals collections)
-             {:opts {:class "btn-"
-                     :name-default "Untitled_Collection"
-                     :action #(async/put! (:event-bus (om/get-shared owner))
-                                [:set-path :collection (:id %)])
-                     :keyfn #(-> % :title (str/upper-case))}})])))
+           (om/build c/simple-list (vals collections) {:opts {:item-comp clink}})])))
 
 (defn collections-views [drawer collections]
   [(om/build collections-nav-view drawer)

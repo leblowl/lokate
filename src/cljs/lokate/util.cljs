@@ -1,5 +1,6 @@
 (ns lokate.util
   (:require [cljs.core.async :as async]
+            [om.core :as om :include-macros true]
             [clojure.string :as string]
             [goog.string :as gstring]
             [goog.string.format]
@@ -58,3 +59,7 @@
 
 (defn ends-with? [str suffix]
   (not= (.indexOf str suffix (- (count str) (count suffix))) -1))
+
+(defn share [owner msg]
+  (async/put! (:event-bus (om/get-shared owner))
+    msg))

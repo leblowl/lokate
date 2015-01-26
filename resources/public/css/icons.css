@@ -1,33 +1,24 @@
 @font-face {
-	font-family: 'icomoon';
-	src:url('/fonts/icomoon/icomoon.eot?q1s9kp');
-	src:url('/fonts/icomoon/icomoon.eot?#iefixq1s9kp') format('embedded-opentype'),
-            url('/fonts/icomoon/icomoon.woff?q1s9kp') format('woff'),
-	    url('/fonts/icomoon/icomoon.ttf?q1s9kp') format('truetype'),
-	    url('/fonts/icomoon/icomoon.svg?q1s9kp#icomoon') format('svg');
-	font-weight: normal;
-	font-style: normal;
+    font-family: 'icomoon';
+    src:url('/fonts/icomoon/icomoon.eot?q1s9kp');
+    src:url('/fonts/icomoon/icomoon.eot?#iefixq1s9kp') format('embedded-opentype'),
+        url('/fonts/icomoon/icomoon.woff?q1s9kp') format('woff'),
+	url('/fonts/icomoon/icomoon.ttf?q1s9kp') format('truetype'),
+	url('/fonts/icomoon/icomoon.svg?q1s9kp#icomoon') format('svg');
+    font-weight: normal;
+    font-style: normal;
 }
 
 @font-face {
     font-family: 'goog-material';
     src: url('/fonts/goog-material/icomoon.woff?w1eobz') format('woff'),
          url('/fonts/goog-material/icomoon.svg?w1eobz#icomoon') format('svg');
-                     
-	font-weight: normal;
-	font-style: normal;
-}
-
-@font-face {
-    font-family: 'goog-material-radio';
-    src: url('/fonts/goog-material/radio/icomoon.woff?rdq68z') format('woff'),
-         url('/fonts/goog-material/radio/icomoon.svg?rdq68z#icomoon') format('svg');
     font-weight: normal;
     font-style: normal;
 }
 
 [class^="icon-"], [class*=" icon-"] {
-    font-family: 'icomoon', 'goog-material', 'goog-material-radio';
+    font-family: 'icomoon', 'goog-material';
     speak: none;
     font-style: normal;
     font-weight: normal;
@@ -124,6 +115,34 @@
     content: "\f371";
 }
 
+.icon-exit-to-app:before {
+	content: "\e629";
+}
+
+.icon-input:before {
+	content: "\e630";
+}
+
+.icon-system-update-tv:before {
+	content: "\e631";
+}
+
+.icon-lens:before {
+	content: "\e616";
+}
+
+.icon-panorama-fisheye:before {
+	content: "\e617";
+}
+
+.icon-radio-button-off:before {
+	content: "\e618";
+}
+
+.icon-radio-button-on:before {
+	content: "\e619";
+}
+
 .icon-done:before {
 	content: "\e613";
 }
@@ -136,18 +155,38 @@
 	content: "\e615";
 }
 
-.icon-lens:before {
-    content: "\e616";
+.icon-add:before {
+	content: "\e628";
 }
 
-.icon-panorama-fisheye:before {
-    content: "\e617";
+.icon-place:before {
+	content: "\e621";
 }
 
-.icon-radio-button-off:before {
-    content: "\e618";
+.icon-arrow-back:before {
+	content: "\e622";
 }
 
-.icon-radio-button-on:before {
-    content: "\e619";
+.icon-arrow-drop-down:before {
+	content: "\e623";
+}
+
+.icon-expand-less:before {
+	content: "\e624";
+}
+
+.icon-expand-more:before {
+	content: "\e625";
+}
+
+.icon-fullscreen:before {
+	content: "\e626";
+}
+
+.icon-fullscreen-exit:before {
+	content: "\e627";
+}
+
+.icon-menu:before {
+	content: "\e620";
 }

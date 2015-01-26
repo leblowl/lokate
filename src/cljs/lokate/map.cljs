@@ -88,18 +88,12 @@
 
     om/IWillReceiveProps
     (will-receive-props [this [path units]]
-      (.log js/console (pr-str units))
       (let [next-units    (set units)
             current-units (set (second (om/get-props owner)))
             to-add (set/difference next-units current-units)
             to-delete (set/difference current-units next-units)]
 
-        ;(.log js/console (pr-str to-add))
         ;(delete-markers owner (keys to-delete))
-
-        ;(reset-markers owner)
-        ;(when-let [u-id (-> next-props :route :opts :u-id)]
-         ;(activate-marker owner u-id))
 
         (add-markers to-add owner)
         (reset-markers owner)

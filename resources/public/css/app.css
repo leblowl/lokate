@@ -243,6 +243,7 @@ a {
     width: 100%;
     height: 100%;
     display: flex;
+    padding: .3em;
 }
 
 .tip {
@@ -356,7 +357,17 @@ a {
     box-sizing: border-box;
     border-radius: 3px;
     display: flex;
-    border: 1px solid rgba(33, 150, 255, 0.9);
+    border: 1px solid rgba(136, 136, 136, 0.9);
+    background-color: rgba(33, 33, 33, 0.6);
+    transition: border .3s;
+}
+
+.btn-link.warn {
+    border: 1px solid rgba(255, 201, 145, 0.9);
+}
+
+.btn-link.delete {
+    border: 1px solid rgba(255, 142, 127, 0.9);
 }
 
 .unit-resource {
@@ -449,13 +460,8 @@ input[type=number]::-webkit-outer-spin-button {
     min-width: 233px;
     height: 45px;
     display: flex;
-    flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-}
-
-#resize-btn {
-    transform: scale(-1, 1);
+    justify-content: flex-end;
 }
 
 #drawer-control {
@@ -502,18 +508,29 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .btn {
-    width: 20px;
-    font-size: 1.3em;
-    margin-left: .3em;
-    color: #888;
-}
-
-.btn:hover {
-    cursor: pointer;
+    display: flex;
+    height: 45px;
+    width: 45px;
+    padding: .3em;
 }
 
 .btn.effect {
     color: rgb(33, 255, 150);
+    background-color: rgb(51, 51, 51);
+}
+
+.btn-icon {
+    font-size: 1.5em;
+    margin: auto;
+    color: #888;
+}
+
+.btn-icon:hover {
+    cursor: pointer;
+}
+
+.navicon {
+    color: white;
 }
 
 .img {
@@ -558,32 +575,6 @@ input[type=number]::-webkit-outer-spin-button {
     color: rgba(33, 150, 255, 0.9);
 }
 
-.navicon {
-    position: relative;
-    padding-left: 2em;
-    margin-left: .5em;
-}
-
-.navicon.active::after {
-    border-top: 0.5em double rgba(33, 150, 255, 0.9);
-    border-bottom: 0.2em solid rgba(33, 150, 255, 0.9);
-}
-
-.navicon::after {
-    content: "";
-    position: absolute;
-    top: -0.38em;
-    left: 0;
-    width: 1.5em;
-    height: 0.125em;
-    border-top: 0.5em double rgba(256, 256, 256, 0.9);
-    border-bottom: 0.2em solid rgba(256, 256, 256, 0.9);
-}
-
-.navicon:hover::after {
-    cursor: pointer;
-}
-
 .awesome-marker i {
     font-size: 2em;
     margin-top: 5px;
@@ -613,6 +604,7 @@ input[type=number]::-webkit-outer-spin-button {
 }
 .name-input-wrap {
     display: flex;
+    align-items: center;
     height: 60%;
 }
 
@@ -628,11 +620,4 @@ input[type=number]::-webkit-outer-spin-button {
 
 input:focus {
     outline: none;
-}
-
-.name-input-ok {
-    margin: auto;
-    margin-left: .8em;
-    margin-right: .5em;
-    /*color: lightgreen;*/
 }

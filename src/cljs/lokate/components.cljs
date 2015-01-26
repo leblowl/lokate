@@ -16,7 +16,7 @@
   (om/set-state! owner :effect false))
 
 (defn cdiv
-  [props owner]
+  [[props contents] owner]
   (reify
     om/IInitState
     (init-state [_]
@@ -31,24 +31,32 @@
                 :on-touch-end   #(release-effect owner)
                 :on-mouse-down  #(set-effect owner)
                 :on-mouse-up    #(release-effect owner)
-                :on-mouse-out   #(release-effect owner)})]))))
+                :on-mouse-out   #(release-effect owner)})
+             contents]))))
+
+(defn btn
+  [[icon-class action] owner]
+  (om/component
+    (om/build cdiv [{:class "btn"}
+                    [:div {:class (str "btn-icon " icon-class)
+                           :on-click #(-> (om/get-shared owner)
+                                          :event-bus
+                                          action)}]])))
 
 ;; lists && list-items
 
 (defn list-item
   [item owner {:keys [item-comp] :as opts}]
   (om/component
-    (dom/li #js {:className "list-item"}
-      (om/build item-comp item {:opts opts}))))
+    (html [:li.list-item
+           (om/build item-comp item {:opts opts})])))
 
 (defn simple-list
-  [items owner {:keys [id class item-comp action keyfn fn] :as opts}]
+  [items owner {:keys [id class item-comp action] :as opts}]
   (om/component
-    (apply dom/ol #js {:id id
-                       :className (str class "list")}
-      (om/build-all list-item (if keyfn (sort-by keyfn items) items)
-        {:opts opts
-         :fn fn}))))
+    (html [:ol {:id id
+                :class (str class "list")}
+           (om/build-all list-item items {:opts opts})])))
 
 (defn link
   [item owner {:keys [class name-default action] :as opts}]
@@ -170,10 +178,10 @@
                                (on-edit (.-value (om/get-node owner "input")))
                                (.preventDefault %))
                 ; empty onChange allows uncontrolled input
-                :onChange #()}]
-              (om/build cdiv
-                {:class "name-input-ok btn icon-done"
-                 :on-click #(on-edit (.-value (om/get-node owner "input")))})]]))))
+                :on-change #()}]
+              (om/build btn
+                ["icon-done"
+                 #(on-edit (.-value (om/get-node owner "input")))])]]))))
 
 (defn mount-overlay [overlay]
   (om/root (fn [overlay owner]
@@ -206,15 +214,12 @@
    (gstring/unescapeEntities "&#11041;")])
 
 (defn resize-btn [drawer owner]
-  (om/build cdiv
-    {:id "resize-btn"
-     :class (str "btn icon-resize-" (if (:maximized? drawer) "shrink" "enlarge"))
-     :on-click #(om/transact! drawer :maximized? not)}))
+  (om/build btn [(str "icon-fullscreen" (when (:maximized? drawer) "-exit"))
+                 #(om/transact! drawer :maximized? not)]))
 
 (defn navicon [drawer owner]
-  [:div
-   {:class (str "navicon" (when (:open? drawer) " active"))
-    :on-click #(om/transact! drawer :open? not)}])
+  (om/build btn [(str "navicon icon-menu" (when (:open? drawer) " active"))
+                 #(om/transact! drawer :open? not)]))
 
 (defn banner
   [[child back-action] owner]
@@ -246,12 +251,10 @@
                banner
                (om/build title-banner ["lokate"]))
              [:div.control-panel
-              [:div#drawer-control
-               {:style (u/fade-in open?)}
-               (when open?
-                 [:div#drawer-sub-control.inline-control-group
-                  (for [control controls] control)
-                  (resize-btn drawer owner)])]
+              (when open?
+                [:div#drawer-control
+                 (resize-btn drawer owner)
+                 (for [control controls] control)])
               (navicon drawer owner)]]))))
 
 ;; etc

@@ -125,6 +125,10 @@
             #(let [collection (add-collection data %)]
                (set-path :collection (:id collection))))))
 
+      (u/sub-go-loop event-bus-pub :delete-collection
+        (fn [[topic id]]
+          (om/transact! data [:model :collections] #(dissoc % id))))
+
       ; adds unit to the currently selected collection
       (u/sub-go-loop event-bus-pub :add-unit
         (fn [e]
