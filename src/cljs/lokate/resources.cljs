@@ -3,8 +3,7 @@
             [om.core :as om :include-macros true]
             [sablono.core :as html :refer-macros [html]]
             [clojure.string :as str]
-            [lokate.components :as c]
-            [lokate.db :as db]))
+            [lokate.components :as c]))
 
 (defn update-rsc [rsc k v]
   (om/transact! rsc [] (fn [m] (assoc m k v)) :resource))
@@ -15,14 +14,11 @@
     (om/build c/drawer-nav-panel
       [drawer
        (om/build c/title-banner ["resources"
-                                 #(async/put! (:event-bus (om/get-shared owner))
-                                    [:set-path :home])])
-       [[:div#add-resource-btn
-         {:class "btn icon-flow-line"
-          :on-click #(async/put! (:event-bus (om/get-shared owner))
-                       [:add-resource])}]
-        [:div#add-resource-cluster-btn
-         {:class "btn icon-flow-tree"}]]])))
+                                 #(async/put! % [:set-path :home])])
+       [(om/build c/btn ["icon-flow-line rsc-btn"
+                         #(async/put! % [:add-resource])])
+        (om/build c/btn ["icon-flow-tree rsc-btn"
+                         #(async/put! % [:add-resource-cluster])])]])))
 
 (defn rsc-types-drawer-view
   [[view-data resources] owner]

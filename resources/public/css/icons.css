@@ -190,3 +190,7 @@
 .icon-menu:before {
 	content: "\e620";
 }
+
+.icon-navigate-before:before {
+	content: "\e633";
+}

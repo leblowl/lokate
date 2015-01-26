@@ -206,8 +206,8 @@
 ;; navigation panel components
 
 (defn back-btn [back-action]
-  [:div#nav-back-btn.icon-arrow-left
-   {:on-click back-action}])
+  (om/build btn ["icon-navigate-before back-btn"
+                 back-action]))
 
 (def home-icon
   [:span.banner-icon
@@ -226,7 +226,9 @@
   (om/component
     (html [:div.banner-container
            (if back-action
-             (back-btn #(back-action (om/get-shared owner :event-bus)))
+             (back-btn #(-> (om/get-shared owner)
+                            :event-bus
+                            back-action))
              home-icon)
            child])))
 

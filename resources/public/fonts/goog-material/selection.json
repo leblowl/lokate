@@ -22,7 +22,7 @@
 				"name": "exit-to-app"
 			},
 			"setIdx": 0,
-			"iconIdx": 38
+			"iconIdx": 0
 		},
 		{
 			"icon": {
@@ -45,7 +45,7 @@
 				"name": "input"
 			},
 			"setIdx": 0,
-			"iconIdx": 58
+			"iconIdx": 1
 		},
 		{
 			"icon": {
@@ -68,7 +68,7 @@
 				"name": "system-update-tv"
 			},
 			"setIdx": 0,
-			"iconIdx": 128
+			"iconIdx": 2
 		},
 		{
 			"icon": {
@@ -90,8 +90,8 @@
 				"code": 58902,
 				"name": "lens"
 			},
-			"setIdx": 1,
-			"iconIdx": 0
+			"setIdx": 0,
+			"iconIdx": 3
 		},
 		{
 			"icon": {
@@ -113,8 +113,8 @@
 				"code": 58903,
 				"name": "panorama-fisheye"
 			},
-			"setIdx": 1,
-			"iconIdx": 1
+			"setIdx": 0,
+			"iconIdx": 4
 		},
 		{
 			"icon": {
@@ -136,8 +136,8 @@
 				"code": 58904,
 				"name": "radio-button-off"
 			},
-			"setIdx": 1,
-			"iconIdx": 2
+			"setIdx": 0,
+			"iconIdx": 5
 		},
 		{
 			"icon": {
@@ -159,8 +159,8 @@
 				"code": 58905,
 				"name": "radio-button-on"
 			},
-			"setIdx": 1,
-			"iconIdx": 3
+			"setIdx": 0,
+			"iconIdx": 6
 		},
 		{
 			"icon": {
@@ -182,8 +182,8 @@
 				"code": 58899,
 				"name": "done"
 			},
-			"setIdx": 1,
-			"iconIdx": 4
+			"setIdx": 0,
+			"iconIdx": 7
 		},
 		{
 			"icon": {
@@ -205,8 +205,8 @@
 				"code": 58900,
 				"name": "done-all"
 			},
-			"setIdx": 1,
-			"iconIdx": 5
+			"setIdx": 0,
+			"iconIdx": 8
 		},
 		{
 			"icon": {
@@ -228,8 +228,8 @@
 				"code": 58901,
 				"name": "settings"
 			},
-			"setIdx": 1,
-			"iconIdx": 6
+			"setIdx": 0,
+			"iconIdx": 9
 		},
 		{
 			"icon": {
@@ -251,8 +251,8 @@
 				"code": 58920,
 				"name": "add"
 			},
-			"setIdx": 1,
-			"iconIdx": 7
+			"setIdx": 0,
+			"iconIdx": 10
 		},
 		{
 			"icon": {
@@ -274,8 +274,8 @@
 				"code": 58913,
 				"name": "place"
 			},
-			"setIdx": 1,
-			"iconIdx": 8
+			"setIdx": 0,
+			"iconIdx": 11
 		},
 		{
 			"icon": {
@@ -297,8 +297,8 @@
 				"code": 58914,
 				"name": "arrow-back"
 			},
-			"setIdx": 1,
-			"iconIdx": 9
+			"setIdx": 0,
+			"iconIdx": 12
 		},
 		{
 			"icon": {
@@ -320,8 +320,8 @@
 				"code": 58915,
 				"name": "arrow-drop-down"
 			},
-			"setIdx": 1,
-			"iconIdx": 10
+			"setIdx": 0,
+			"iconIdx": 13
 		},
 		{
 			"icon": {
@@ -343,8 +343,8 @@
 				"code": 58916,
 				"name": "expand-less"
 			},
-			"setIdx": 1,
-			"iconIdx": 11
+			"setIdx": 0,
+			"iconIdx": 14
 		},
 		{
 			"icon": {
@@ -366,8 +366,8 @@
 				"code": 58917,
 				"name": "expand-more"
 			},
-			"setIdx": 1,
-			"iconIdx": 12
+			"setIdx": 0,
+			"iconIdx": 15
 		},
 		{
 			"icon": {
@@ -389,8 +389,8 @@
 				"code": 58918,
 				"name": "fullscreen"
 			},
-			"setIdx": 1,
-			"iconIdx": 13
+			"setIdx": 0,
+			"iconIdx": 16
 		},
 		{
 			"icon": {
@@ -412,8 +412,8 @@
 				"code": 58919,
 				"name": "fullscreen-exit"
 			},
-			"setIdx": 1,
-			"iconIdx": 14
+			"setIdx": 0,
+			"iconIdx": 17
 		},
 		{
 			"icon": {
@@ -435,8 +435,31 @@
 				"code": 58912,
 				"name": "menu"
 			},
+			"setIdx": 0,
+			"iconIdx": 18
+		},
+		{
+			"icon": {
+				"paths": [
+					"M657.707 316.373l-60.373-60.373-256 256 256 256 60.373-60.373-195.627-195.627z"
+				],
+				"attrs": [],
+				"isMulticolor": false,
+				"tags": [
+					"navigate-before"
+				],
+				"grid": 24
+			},
+			"attrs": [],
+			"properties": {
+				"id": 579,
+				"order": 22,
+				"prevSize": 24,
+				"code": 58931,
+				"name": "navigate-before"
+			},
 			"setIdx": 1,
-			"iconIdx": 15
+			"iconIdx": 579
 		}
 	],
 	"height": 1024,
