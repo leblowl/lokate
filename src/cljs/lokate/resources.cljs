@@ -24,10 +24,10 @@
   [[view-data resources] owner]
   (om/component
     (html [:div.resources
-           (om/build c/link-list (vals resources)
-             {:opts {:class "btn-"
-                     :action #(om/update! view-data :selected (:id %))
-                     :keyfn #(-> % :title (str/upper-case))}})])))
+           (c/item-list
+             {:class "btn-"
+              :action #(om/update! view-data :selected (:id %))}
+             (vals resources))])))
 
 (defn rsc-type-nav-view
   [[drawer view-data] owner]

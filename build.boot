@@ -2,16 +2,14 @@
         :target-path "target"
         :resource-paths #{"resources"}
         :source-paths #{"src/clj" "src/cljs"}
-        :dependencies '[[adzerk/boot-cljs "0.0-2411-5"]
-                        [adzerk/boot-cljs-repl "0.1.7"]
-                        [adzerk/boot-reload "0.2.1"]
+        :dependencies '[[adzerk/boot-cljs "0.0-2629-9"]
+                        [adzerk/boot-cljs-repl "0.1.8"]
+                        [adzerk/boot-reload "0.2.4"]
                         [org.clojure/clojure "1.6.0"]
-                        [org.clojure/clojurescript "0.0-2511"]
+                        [org.clojure/clojurescript "0.0-2727"]
                         [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-                        [org.om/om "0.8.0"]
-                        [datascript "0.7.2"]
-                        [sablono "0.2.22"]
-                        [com.domkm/silk "0.0.2"]
+                        [org.omcljs/om "0.8.6"]
+                        [sablono "0.3.1"]
                         [org.clojars.leanpixel/cljs-uuid-utils "1.0.0-SNAPSHOT"]
                         [ring "1.3.1"]
                         [compojure "1.2.1"]
@@ -37,7 +35,6 @@
 (comp (watch)
       (speak)
       (reload :on-jsload (symbol "lokate.app/go!"))
-      (cljs-repl)
       (cljs :source-map true
             :optimizations :none
             :output-to "public/js/main.js")))
