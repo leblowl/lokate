@@ -1,5 +1,6 @@
 (ns lokate.app
   (:require [cljs.core.async :as async]
+            [clojure.set :as set]
             [om.core :as om :include-macros true]
             [sablono.core :as html :refer-macros [html]]
             [lokate.util :as u]
@@ -64,7 +65,7 @@
                     :title title
                     :timestamp (u/now)
                     :units {}}]
-    (om/update! data [:model :collections (:id collection)] collection :collection)
+    (om/transact! data [:model :collections] #(assoc % (:id collection) collection) :collection)
     collection))
 
 (defn add-unit [data cid latlng title]
@@ -127,7 +128,7 @@
 
       (u/sub-go-loop event-bus-pub :delete-collection
         (fn [[topic id]]
-          (om/transact! data [:model :collections] #(dissoc % id))))
+          (om/transact! data [:model :collections] #(dissoc % id) :collection)))
 
       ; adds unit to the currently selected collection
       (u/sub-go-loop event-bus-pub :add-unit
@@ -170,6 +171,19 @@
      (partial db/get-all "resource-type" #(populate-model :resource-types %))
      (partial db/get-all "collection" #(populate-model :collections %)))))
 
+(defn keyset [m]
+  (set (keys m)))
+
+(defn update-db [old-state new-state]
+  (let [old (set (-> old-state :model :collections))
+        new (set (-> new-state :model :collections))
+        to-add (set/difference new old)
+        to-delete (set/difference (keyset old) (keyset new))]
+    (.log js/console (str "to delete " (pr-str to-delete)))
+    (.log js/console (str "to add " (pr-str to-add)))
+    (dorun (map #(db/delete "collection" %) to-delete))
+    (dorun (map #(db/add "collection" (second %)) to-add))))
+
 (defn render []
   (om/root app app-state {:target (.getElementById js/document "root")
                           :shared {:event-bus event-bus
@@ -179,7 +193,7 @@
                                          :unit (let [collection (get-in @app-state
                                                                   [:model :collections (-> m :new-value :cid)])]
                                                  (db/add "collection" collection))
-                                         :collection (db/add "collection" (-> m :new-value))
+                                         :collection (update-db (:old-state m) (:new-state m))
                                          :resource (db/add "resource-type" (-> m :new-value))
                                          nil))}))
 

@@ -194,3 +194,7 @@
 .icon-navigate-before:before {
 	content: "\e633";
 }
+
+.icon-home:before {
+    content: "\2B21";
+}

@@ -7,7 +7,7 @@
             [goog.string :as gstring]
             [lokate.util :as u]))
 
-;; div with effect on click
+;; clickables
 
 (defn set-effect [owner]
   (om/set-state! owner :effect true))
@@ -15,12 +15,15 @@
 (defn release-effect [owner]
   (om/set-state! owner :effect false))
 
+;; div with effect on click
+;; for some reason this doesn't re-render inside modal input
 (defn cdiv
   [[props contents] owner]
   (reify
     om/IInitState
     (init-state [_]
       {:effect false})
+
     om/IRenderState
     (render-state [_ {:keys [effect]}]
       (html [:div
@@ -35,9 +38,9 @@
              contents]))))
 
 (defn btn
-  [[icon-class action] owner]
+  [[icon-class action] owner opts]
   (om/component
-    (om/build cdiv [{:class "btn"}
+    (om/build cdiv [(merge {:class "btn"} opts)
                     [:div {:class (str "btn-icon " icon-class)
                            :on-click #(-> (om/get-shared owner)
                                           :event-bus
@@ -46,69 +49,83 @@
 ;; lists && list-items
 
 (defn list-item
-  [item owner {:keys [item-comp] :as opts}]
+  [[{:keys [item-comp] :as props} item]]
   (om/component
     (html [:li.list-item
-           (om/build item-comp item {:opts opts})])))
+           (om/build item-comp [props item])])))
 
 (defn simple-list
-  [items owner {:keys [id class item-comp action] :as opts}]
+  [[{:keys [id class] :as props} items] owner]
   (om/component
     (html [:ol {:id id
                 :class (str class "list")}
-           (om/build-all list-item items {:opts opts})])))
+           (om/build-all list-item items {:fn #(conj [props] %)})])))
 
-(defn link
-  [item owner {:keys [class name-default action] :as opts}]
-  (om/component
-    (html [:a {:class (str class "link")
-               :on-click #(action item (:event-bus (om/get-shared owner)))}
-           [:span.link-title
-            (or (u/blankf (:title item)) name-default)]])))
+;; generic item, has some action on click and optional right click
+(defn item
+  [[{:keys [class action alt-action name-default]} item] owner]
+  (let [evt-bus (:event-bus (om/get-shared owner))]
+    (om/component
+      (html [:div
+             {:class (str class "item")
+              :on-click #(action item evt-bus)
+              :on-context-menu (fn [e]
+                                 (when alt-action
+                                   (alt-action item evt-bus))
+                                 (.preventDefault e))}
+             [:span.item-title
+              (or (u/blankf (:title item)) name-default)]]))))
 
-(defn select
-  [item owner {:keys [class name-default action] :as opts}]
-  (om/component
-    (html [:div {:class (str class "select"
-                          (when (:active item) " active"))
-                 :on-click #(action item (:event-bus (om/get-shared owner)))}
-           [:span.select-title
-            (or (u/blankf (:title item)) name-default)]])))
+(defn set-status [owner status]
+  (om/set-state! owner :status status))
 
-(defn input-list
-  [items owner {:keys [id class item-comp] :as opts}]
+(defn warn-or-remove [owner remove-action item evt-bus]
+  (case (om/get-state owner :status)
+    :ok (set-status owner :warn)
+    :warn (do
+            (set-status owner :remove)
+            (.setTimeout js/window
+              (fn []
+                (remove-action item evt-bus)
+                (set-status owner :ok))
+              500))))
+
+;; removable item that calls a remove-action on 2nd right click
+(defn removable-item
+  [[{:keys [action remove-action name-default]} r-item] owner]
   (reify
     om/IInitState
     (init-state [_]
-      {:children-loaded 0})
+      {:status :ok})
 
-    om/IRender
-    (render [_]
-      (om/build simple-list items
-        {:opts (merge opts
-                 {:item-comp item-comp
-                  :on-mount (fn []
-                             (om/update-state! owner :children-mounted inc)
-                             (when (= (om/get-state owner :children-mounted) (count items))
-                               (let [children (.getElementsByTagName (om/get-node owner) "input")]
-                                 (.select (.item children 0))
-                                 ; also could have tab direct to next page or add hover effect to done!-btn
-                                 (.addEventListener (.item children (dec (count items))) "keydown"
-                                   (fn [e]
-                                     (when (= (.-keyCode e) 9)
-                                       (.select (.item children 0))
-                                       (.preventDefault e)
-                                       false))))))})}))))
+    om/IRenderState
+    (render-state [_ {:keys [status]}]
+      (om/build item [{:class (str (name status) " removable ")
+                       :action action
+                       :alt-action (partial warn-or-remove owner remove-action)
+                       :name-default name-default}
+                      r-item]))))
 
-(defn link-list
-  [items owner opts]
+;; selectable item that has active/inactive state
+(defn selectable-item
+  [[{:keys [class action name-default]} s-item] owner]
   (om/component
-    (om/build simple-list items {:opts (merge opts {:item-comp link})})))
+    (om/build item [{:class (str (when (:active s-item) "active ") class)
+                     :action action
+                     :name-default name-default}
+                    s-item])))
+
+(defn item-list
+  [props items]
+  (om/build simple-list [(assoc props :item-comp item) items]))
+
+(defn r-item-list
+  [props r-items]
+  (om/build simple-list [(assoc props :item-comp removable-item) r-items]))
 
 (defn select-list
-  [items owner opts]
-  (om/component
-    (om/build simple-list items {:opts (merge opts {:item-comp select})})))
+  [props s-items]
+  (om/build simple-list [(assoc props :item-comp selectable-item) s-items]))
 
 (defn dropdown-select-list
   [items owner {:keys [id class action] :as opts}]
@@ -123,39 +140,41 @@
              [:div.current-select-wrap
               [:a.current-select
                {:on-click #(om/update-state! owner :open not)}
-               [:span {:class (str class " current-select-title")}
+               [:span.current-select-title
                 (:title (first (filter :active items)))]]
               [:div.drop-down]]
              (when open
-               (om/build select-list items
-                 {:opts (update-in opts [:action]
-                          #(fn [x evt-bus]
-                             (om/set-state! owner :open false)
-                             (% x evt-bus)))}))]))))
+               (select-list (update-in opts [:action]
+                              #(fn [x evt-bus]
+                                 (om/set-state! owner :open false)
+                                 (% x evt-bus)))
+                 items))]))))
 
-;; modals
-
-(defn modal-editable
-  [data owner {:keys [id className edit-key on-edit on-key-down] :as opts}]
+(defn input-list
+  [items owner opts]
   (reify
-    om/IDidMount
-    (did-mount [_]
-      (.focus (om/get-node owner (str edit-key))))
+    om/IInitState
+    (init-state [_]
+      {:children-loaded 0})
 
     om/IRender
     (render [_]
-      (dom/div #js {:id "input-wrapper"}
-        (dom/div #js {:id id
-                      :ref (str edit-key)
-                      :className className
-                      :contentEditable "true"
-                      :onKeyDown on-key-down
-                      :dangerouslySetInnerHTML #js {:__html (edit-key data)}})
-        (om/build cdiv
-          {:id "input-ok"
-           :onClick #(on-edit (.-innerHTML (om/get-node owner (str edit-key))))}
-          (dom/span #js {:id "input-ok-mark"}
-            (gstring/unescapeEntities "&#10003;")))))))
+      (om/build simple-list items
+        {:opts (merge opts
+                 {:on-mount (fn []
+                              (om/update-state! owner :children-mounted inc)
+                              (when (= (om/get-state owner :children-mounted) (count items))
+                                (let [children (.getElementsByTagName (om/get-node owner) "input")]
+                                  (.select (.item children 0))
+                                        ; also could have tab direct to next page or add hover effect to done!-btn
+                                  (.addEventListener (.item children (dec (count items))) "keydown"
+                                    (fn [e]
+                                      (when (= (.-keyCode e) 9)
+                                        (.select (.item children 0))
+                                        (.preventDefault e)
+                                        false))))))})}))))
+
+;; modal
 
 (defn modal-input
   [[title placeholder value on-edit] owner]
@@ -181,7 +200,8 @@
                 :on-change #()}]
               (om/build btn
                 ["icon-done"
-                 #(on-edit (.-value (om/get-node owner "input")))])]]))))
+                 #(on-edit (.-value (om/get-node owner "input")))]
+                {:opts {:id "ok-btn"}})]]))))
 
 (defn mount-overlay [overlay]
   (om/root (fn [overlay owner]
@@ -205,37 +225,59 @@
 
 ;; navigation panel components
 
+(defn icon
+  [icon-class]
+  [:div.icon-wrapper
+   [:div {:class (str "icon " icon-class)}
+    [:div {:class (str "icon " icon-class)}]]])
+
+(def home-icon
+  (icon "icon-home"))
+
 (defn back-btn [back-action]
   (om/build btn ["icon-navigate-before back-btn"
                  back-action]))
 
-(def home-icon
-  [:span.banner-icon
-   (gstring/unescapeEntities "&#11041;")])
-
-(defn resize-btn [drawer owner]
+(defn resize-btn [drawer]
   (om/build btn [(str "icon-fullscreen" (when (:maximized? drawer) "-exit"))
                  #(om/transact! drawer :maximized? not)]))
 
-(defn navicon [drawer owner]
+(defn navicon [drawer]
   (om/build btn [(str "navicon icon-menu" (when (:open? drawer) " active"))
                  #(om/transact! drawer :open? not)]))
 
+(defn cancel-btn [action]
+  (om/build btn ["icon-cancel"
+                 action]))
+
+(defn done!-btn [action]
+  (om/build btn ["icon-done"
+                 action]))
+
 (defn banner
-  [[child back-action] owner]
+  [children owner]
   (om/component
     (html [:div.banner-container
-           (if back-action
-             (back-btn #(-> (om/get-shared owner)
-                            :event-bus
-                            back-action))
-             home-icon)
-           child])))
+           (for [child children] child)])))
 
 (defn title-banner
-  [[title back-action] owner]
+  [title child]
+  (om/build banner [child [:span.banner-title title]]))
+
+(defn return-title-banner
+  [[title return-action] owner]
   (om/component
-    (om/build banner [[:span.banner-title title] back-action])))
+    (title-banner title (back-btn #(-> (om/get-shared owner)
+                                       :event-bus
+                                       return-action)))))
+
+(defn return-banner
+  [[return-action child] owner]
+  (om/component
+    (om/build banner [(back-btn #(-> (om/get-shared owner)
+                                     :event-bus
+                                     return-action))
+                      child])))
 
 (defn simple-nav-panel
   [controls owner]
@@ -251,31 +293,15 @@
       (html [:div.navigation-container
              (if open?
                banner
-               (om/build title-banner ["lokate"]))
+               (title-banner "lokate" home-icon))
              [:div.control-panel
               (when open?
-                [:div#drawer-control
-                 (resize-btn drawer owner)
+                [:div.drawer-control
+                 (resize-btn drawer)
                  (for [control controls] control)])
-              (navicon drawer owner)]]))))
+              (navicon drawer)]]))))
 
 ;; etc
 
 (defn tip [tip-msg]
   [:div.tip-wrapper [:div.tip tip-msg]])
-
-(defn cancel-btn
-  [action owner]
-  (om/component
-    (html [:div#cancel-btn-wrapper
-           [:div#cancel-btn
-            {:class "btn icon-cancel"
-             :on-click #(action (:event-bus (om/get-shared owner)))}]])))
-
-(defn done!-btn
-  [action owner]
-  (om/component
-    (html [:div#done-btn-wrapper
-           [:div#done-btn
-            {:class "btn icon-done"
-             :on-click #(action (:event-bus (om/get-shared owner)))}]])))

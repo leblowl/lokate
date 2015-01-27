@@ -33,13 +33,15 @@
 (defn unit-nav-menu
   [[path unit] owner]
   (om/component
-    (om/build c/dropdown-select-list [{:title "unit :info"
-                                       :path :info
-                                       :active (= :info path)}
-                                      {:title "unit :resources"
-                                       :path :resources
-                                       :active (= :resources path)}]
+    (om/build c/dropdown-select-list
+      [{:title "unit :info"
+        :path :info
+        :active (= :info path)}
+       {:title "unit :resources"
+        :path :resources
+        :active (= :resources path)}]
       {:opts {:id "page-select"
+              :class "title-select-"
               :action (fn [x evt-bus]
                         (async/put! evt-bus
                           [:set-path :unit (:cid unit) (:id unit) (:path x)]))}})))
@@ -49,16 +51,14 @@
   (om/component
     (om/build c/drawer-nav-panel
       [drawer
-       (om/build c/banner [(om/build unit-nav-menu [path unit])
-                           (fn [evt-bus]
-                             (async/put! evt-bus
-                               [:set-path :collection (:cid unit)]))])
+       (om/build c/return-banner [#(async/put! % [:set-path :collection (:cid unit)])
+                                  (om/build unit-nav-menu [path unit])])
        controls])))
 
 (defn unit-info-view
   [unit owner]
   (om/component
-    (html [:div.info
+    (html [:div#unit-info.info
            [:div#name-editable.editable
             {:on-click (fn []
                          (c/display-input
@@ -70,7 +70,7 @@
              {:data-ph "Unit Name"}
              (:title unit)]]
 
-           [:div#point-content.info-content
+           [:div.info-content
             [:div.origin
              (format-timestamp (:timestamp unit))]
             [:div.location
@@ -81,7 +81,7 @@
               (format-latlng (:latlng unit))]]]])))
 
 (defn unit-resource
-  [resource owner]
+  [[props resource] owner]
   (om/component
     (html [:div.unit-resource
            [:span.unit-resource-title (:title resource)]
@@ -91,9 +91,9 @@
 (defn unit-resources-view
   [unit owner]
   (om/component
-    (om/build c/simple-list (vals (:resources unit))
-      {:opts {:item-comp unit-resource
-              :keyfn #(-> % :name (str/upper-case))}})))
+    (om/build c/simple-list
+      [{:item-comp unit-resource}
+       (vals (:resources unit))])))
 
 (defn update-unit-rscs [unit x evt-bus]
   (if (:active x)
@@ -121,10 +121,10 @@
     (render [_]
       (let [resources (map #(assoc % :active (contains? (:resources unit) (:id %)))
                         (vals rsc-types))]
-        (om/build c/select-list resources
-          {:opts {:class "btn-"
-                  :action (partial update-unit-rscs unit)
-                  :keyfn #(-> % :title (str/upper-case))}})))))
+        (c/select-list
+          {:class "border-select-"
+           :action (partial update-unit-rscs unit)}
+          resources)))))
 
 (defn unit-views
   [drawer path unit rsc-types]
@@ -139,8 +139,7 @@
                 (om/build unit-resources-view unit)]
 
     :edit      [(om/build c/simple-nav-panel
-                  [(om/build c/done!-btn
-                     (fn [evt-bus]
-                       (async/put! evt-bus
-                         [:set-path :unit (:cid unit) (:id unit) :resources])))])
+                  [(c/done!-btn
+                     #(async/put! %
+                        [:set-path :unit (:cid unit) (:id unit) :resources]))])
                 (om/build unit-edit-view [rsc-types unit])]))

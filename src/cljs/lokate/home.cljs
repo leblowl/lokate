@@ -11,13 +11,11 @@
 (defn home-drawer-view [menu-items owner]
   (om/component
     (html [:div#home
-           (om/build c/link-list menu-items
-             {:opts {:class "btn-"
-                     :action #(set-path owner (:path %))}})])))
+           (c/item-list {:action #(set-path owner (:path %))} menu-items)])))
 
 (defn home-views [drawer]
   [(om/build c/drawer-nav-panel [drawer
-                                 (om/build c/title-banner ["home"])])
+                                 (c/title-banner "home" c/home-icon)])
    (om/build home-drawer-view [{:title "Collections"
                                 :path  :collections}
                                {:title "Resources"

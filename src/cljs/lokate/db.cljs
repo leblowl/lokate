@@ -27,7 +27,7 @@
 (defn delete [db-name key]
   (let [transaction (.transaction @db #js [db-name] "readwrite")
         store (.objectStore transaction db-name)
-        request (.delete store key)]
+        request (.delete store (if (keyword? key) (name key) key))]
     (set! (.-onerror request) error)))
 
 (defn get-all [db-name for-each cb]

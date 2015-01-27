@@ -51,6 +51,15 @@ a {
     text-decoration: none;
 }
 
+.list::-webkit-scrollbar,
+[class*="-list"]::-webkit-scrollbar {
+    display: none;
+}
+
+.title, [class*="-title"] {
+    font-size: 1em;
+}
+
 #overlay {
     position: fixed;
     width: 100%;
@@ -59,14 +68,94 @@ a {
     z-index: 5;
 }
 
-#content {
-    position: absolute;
-    top: 45px;
-    left: 0;
-    right: 0;
-    bottom: 0;
+.navigation-container {
     width: 100%;
-    overflow: hidden;
+    height: 45px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #444;
+}
+
+.control-panel {
+    position: fixed;
+    z-index: 3;
+    top: 0;
+    right: 0;
+    width: 38.1%;
+    min-width: 233px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.drawer-control {
+    height: 45px;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    flex-direction: row-reverse;
+}
+
+.banner-container {
+    height: 45px;
+    display: flex;
+    align-items: center;
+}
+
+.banner-title {
+    font-size: 1.3em;
+    color: white;
+    position: relative;
+    top: -0.5px;
+}
+
+.icon-wrapper {
+    width: 33px;
+    height: 45px;
+    display: flex;
+}
+
+.icon {
+    margin: auto;
+}
+
+.icon.icon-home {
+    padding-bottom: 5.5px;
+    font-size: 1.7em;
+    color: rgba(33, 150, 255, 0.9);
+}
+
+.btn {
+    display: flex;
+    height: 45px;
+    width: 45px;
+    padding: .3em;
+}
+
+.btn.effect {
+    background-color: rgb(51, 51, 51);
+}
+
+.btn-icon {
+    font-size: 1.5em;
+    margin: auto;
+    color: #888;
+}
+
+.btn-icon:hover {
+    cursor: pointer;
+}
+
+.back-btn {
+    color: white;
+    font-size: 2em;
+}
+
+.navicon {
+    color: white;
 }
 
 .flex-container {
@@ -102,22 +191,6 @@ a {
 #map {
     width: 100%;
     height: 100%;
-}
-
-.leaflet-contextmenu {
-    background-color: #444;
-    border-radius: 0;
-}
-
-.leaflet-contextmenu a.leaflet-contextmenu-item {
-    color: white;
-}
-
-.leaflet-contextmenu a.leaflet-contextmenu-item.over {
-    background-color: #444;
-    border-top: 1px solid #444;
-    border-bottom: 1px solid #444;
-    cursor: pointer;
 }
 
 #drawer-wrapper {
@@ -172,8 +245,6 @@ a {
 }
 
 .show {
-    /* transition-delay: .37s; */
-    /* transition-duration: 1s; */
     transition-duration: .3s;
     transition-property: transform;
     transform: translate3d(0, 0, 0);
@@ -201,19 +272,6 @@ a {
     flex-direction: column;
 }
 
-#point-content {
-    padding: .5em;
-}
-
-.location {
-    position: relative;
-    right: 2px;
-}
-
-.location-lat-lng {
-    padding-left: 3px;
-}
-
 #name-editable {
     height: 33px;
     display: flex;
@@ -228,10 +286,8 @@ a {
     white-space: nowrap;
 }
 
-.editable:hover {
+#name-editable:hover {
     cursor: pointer;
-/*#5599ff*/
-    box-shadow: 0px 0px 0pt 1pt rgba(33, 150, 255, 0.9);
 }
 
 .editable-title:empty:not(:focus):before {
@@ -254,33 +310,12 @@ a {
     justify-content: center;
 }
 
-#commit-wrapper {
-    display: flex;
-    width: 100%;
-    height: 100%;
+.img {
+    width: 20px;
+    font-size: 1.3em;
+    color: #888;
 }
 
-#commit {
-    margin: auto;
-}
-
-#commit-status-wrapper {
-    display: flex;
-    flex-direction: row;
-}
-
-.status-select-wrapper {
-    padding: 1em;
-    opacity: 0.3;
-}
-
-.status-select-wrapper.active {
-    opacity: 1;
-}
-
-.status-select {
-    font-size: 2em;
-}
 
 .list, [class*="-list"] {
     position: relative;
@@ -294,45 +329,98 @@ a {
     overflow-x: hidden;
 }
 
-.list::-webkit-scrollbar,
-[class*="-list"]::-webkit-scrollbar {
-    display: none;
+.item {
+    width: 100%;
+    height: 33px;
+    margin-top: .5em;
+    margin-bottom: .5em;
+    box-sizing: border-box;
+    border-radius: 3px;
+    display: flex;
+    border: 1px solid rgba(136, 136, 136, 0.9);
+    background-color: rgba(33, 33, 33, 0.6);
 }
 
-.title, [class*="-title"] {
-    font-size: 1em;
+.item:hover {
+    cursor: pointer;
 }
 
+.item-title {
+    margin: auto;
+    font-size: 1.1em;
+}
+
+.title-select-item:hover {
+    cursor: pointer;
+}
+
+.title-select-item.active {
+    color: rgba(33, 150, 255, 0.9)
+}
+
+.title-select-item .item-title {
+    font-size: 1.05em;
+}
+
+.border-select-item {
+    width: 100%;
+    height: 33px;
+    margin-top: .5em;
+    margin-bottom: .5em;
+    box-sizing: border-box;
+    border-radius: 3px;
+    display: flex;
+    border: 1px solid #888;
+}
+
+.border-select-item:hover {
+    cursor: pointer;
+}
+
+.border-select-item.active {
+    border: 1px solid rgba(33, 150, 255, 0.9);
+}
+
+.removable {
+    transition: border .3s;
+}
+
+.removable.warn {
+    border: 1px solid rgba(255, 201, 145, 0.9);
+}
+
+.removable.remove {
+    border: 1px solid rgba(255, 142, 127, 0.9);
+}
 
 .drop-down {
     width: 0;
     height: 0; 
     border-top: 5px solid transparent;
     border-bottom: 5px solid transparent;
-    border-left: 5px solid rgb(33, 255, 150);
+    border-left: 5px solid rgba(33, 150, 255, 0.9);;
     transform: rotate(45deg);
     position: absolute;
     right: 0;
     bottom: 0;
 }
 
-#page-select .list {
+#page-select .title-select-list {
     position: absolute;
     height: auto;
     top: 45px;
     left: 0;
     z-index: 5;
-    padding-left: 30px;
-    padding-right: 30px;
+    padding-left: 45px;
+    padding-right: 54px;
     background-color: rgba(33, 33, 33, 0.9);
-    /*background-image: -webkit-gradient(linear, left top, right top, from(rgba(33, 33, 33, 0.9)), to(rgba(33, 33, 33, .8)));*/
 }
 
 .current-select-wrap {
     position: relative;
     padding-right: 1em;
     position: relative;
-    top: -1px;
+    top: -0.5px;
 }
 
 .current-select:hover {
@@ -343,33 +431,19 @@ a {
     font-size: 1.3em;
 }
 
-.select:hover {
-    cursor: pointer;
+/* unit specific */
+
+#unit-info .info-content {
+    padding: .5em;
 }
 
-.select.active {
-    color: rgb(33, 255, 150);
+.location {
+    position: relative;
+    right: 2px;
 }
 
-.btn-link {
-    width: 100%;
-    height: 33px;
-    margin-top: .5em;
-    margin-bottom: .5em;
-    box-sizing: border-box;
-    border-radius: 3px;
-    display: flex;
-    border: 1px solid rgba(136, 136, 136, 0.9);
-    background-color: rgba(33, 33, 33, 0.6);
-    transition: border .3s;
-}
-
-.btn-link.warn {
-    border: 1px solid rgba(255, 201, 145, 0.9);
-}
-
-.btn-link.delete {
-    border: 1px solid rgba(255, 142, 127, 0.9);
+.location-lat-lng {
+    padding-left: 3px;
 }
 
 .unit-resource {
@@ -420,135 +494,43 @@ input[type=number]::-webkit-outer-spin-button {
   margin: 0; 
 }
 
-.btn-link:hover {
-    cursor: pointer;
-}
+/* check-in  */
 
-.btn-link .link-title {
-    margin: auto;
-    font-size: 1.1em;
-}
-
-.btn-select {
-    width: 100%;
-    height: 33px;
-    margin-top: .5em;
-    margin-bottom: .5em;
-    box-sizing: border-box;
-    border-radius: 3px;
+#commit-wrapper {
     display: flex;
-    border: 1px solid #888;
-}
-
-.btn-select:hover {
-    cursor: pointer;
-}
-
-.btn-select.active {
-    border: 1px solid rgba(33, 150, 255, 0.9);
-}
-
-.btn-select .select-title {
-    margin: auto;
-    font-size: 1.1em;
-}
-
-.control-panel {
-    position: fixed;
-    z-index: 3;
-    top: 0;
-    right: 0;
-    width: 38.1%;
-    min-width: 233px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-}
-
-#drawer-control {
-    height: 45px;
-    flex: 1 1 auto;
-    display: flex;
-    align-items: center;
-    flex-direction: row-reverse;
-}
-
-#nav-label {
-    color: white;
-    height: 33px;
-    line-height: 33px;
-    border: 1px solid black;
-    border-radius: 2px;
-    padding-left: .5em;
-    flex: 1 1 auto;
-    background: #333;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-#collection-controls {
-    display: flex;
-    margin-right: .3em;
-}
-
-#resources-controls {
-    display: flex;
-    flex-direction: row;
-    margin-right: .3em;
-}
-
-.resources {
     width: 100%;
     height: 100%;
 }
 
-.btn {
-    display: flex;
-    height: 45px;
-    width: 45px;
-    padding: .3em;
-}
-
-.btn.effect {
-    color: rgb(33, 255, 150);
-    background-color: rgb(51, 51, 51);
-}
-
-.btn-icon {
-    font-size: 1.5em;
+#commit {
     margin: auto;
-    color: #888;
 }
 
-.btn-icon:hover {
-    cursor: pointer;
+#commit-status-wrapper {
+    display: flex;
+    flex-direction: row;
 }
+
+.status-select-wrapper {
+    padding: 1em;
+    opacity: 0.3;
+}
+
+.status-select-wrapper.active {
+    opacity: 1;
+}
+
+.status-select {
+    font-size: 2em;
+}
+
+/* resources */
 
 .rsc-btn {
     font-size: 1.2em;
 }
 
-.back-btn {
-    color: white;
-    font-size: 2em;
-}
-
-.navicon {
-    color: white;
-}
-
-.img {
-    width: 20px;
-    font-size: 1.3em;
-    color: #888;
-}
-
-.awesome-marker i {
-    font-size: 2em;
-    margin-top: 5px;
-}
+/* modal input */
 
 .name-input {
     width: 80%;
@@ -590,4 +572,27 @@ input[type=number]::-webkit-outer-spin-button {
 
 input:focus {
     outline: none;
+}
+
+/* leaflet */
+
+.awesome-marker i {
+    font-size: 2em;
+    margin-top: 5px;
+}
+
+.leaflet-contextmenu {
+    background-color: #444;
+    border-radius: 0;
+}
+
+.leaflet-contextmenu a.leaflet-contextmenu-item {
+    color: white;
+}
+
+.leaflet-contextmenu a.leaflet-contextmenu-item.over {
+    background-color: #444;
+    border-top: 1px solid #444;
+    border-bottom: 1px solid #444;
+    cursor: pointer;
 }
