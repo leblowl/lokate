@@ -63,3 +63,7 @@
 (defn share [owner msg]
   (async/put! (:event-bus (om/get-shared owner))
     msg))
+
+(defn get-units [collections]
+  (reduce into {}
+    (map :units (vals collections))))

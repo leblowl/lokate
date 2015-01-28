@@ -4,10 +4,6 @@
             [lokate.util :as u]
             [lokate.map :as map]))
 
-(defn get-units [collections]
-  (reduce into {}
-    (map :units (vals collections))))
-
 (defn drawer-panel
   [[app drawer drawer-view] owner]
   (om/component
@@ -28,5 +24,5 @@
              [:div {:class (str "flex-container " (:orientation app))}
               [:div.flex-content
                (om/build map/l-map [(-> data :view :app :path)
-                                    (get-units (-> data :model :collections))])
+                                    (u/get-units (-> data :model :collections))])
                (om/build drawer-panel [app drawer drawer-view])]]]))))

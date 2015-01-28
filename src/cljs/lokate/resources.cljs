@@ -23,8 +23,10 @@
   [[view-data resources] owner]
   (om/component
     (html [:div.info
-           (c/item-list
-             {:action #(om/update! view-data :selected (:id %))}
+           (c/r-item-list
+             {:action #(om/update! view-data :selected (:id %))
+              :remove-action (fn [x evt-bus]
+                               (async/put! evt-bus [:delete-resource (:id x)]))}
              (vals resources))])))
 
 (defn rsc-type-nav-view

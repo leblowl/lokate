@@ -145,7 +145,17 @@
           (c/display-input
             "Resource name"
             "Untitled resource"
-            #(add-resource-type data %)))))
+            #(add-resource-type data %))))
+
+      (u/sub-go-loop event-bus-pub :delete-resource
+        (fn [[topic id]]
+          (om/transact! data [:model :resource-types] #(dissoc % id) :resource)
+          ; remove all instances of deleted resource in units
+          (let [units (u/get-units (-> data :model :collections))]
+            (u/mmap (fn [unit]
+                      (om/transact! unit []
+                        #(update-in % [:resources] dissoc id) :unit))
+              units)))))
 
     om/IRender
     (render [_]
@@ -174,15 +184,11 @@
 (defn keyset [m]
   (set (keys m)))
 
-(defn update-db [old-state new-state]
-  (let [old (set (-> old-state :model :collections))
-        new (set (-> new-state :model :collections))
-        to-add (set/difference new old)
+(defn update-db [db-name old new]
+  (let [to-add (set/difference (set new) (set old))
         to-delete (set/difference (keyset old) (keyset new))]
-    (.log js/console (str "to delete " (pr-str to-delete)))
-    (.log js/console (str "to add " (pr-str to-add)))
-    (dorun (map #(db/delete "collection" %) to-delete))
-    (dorun (map #(db/add "collection" (second %)) to-add))))
+    (dorun (map #(db/delete db-name %) to-delete))
+    (dorun (map #(db/add db-name (second %)) to-add))))
 
 (defn render []
   (om/root app app-state {:target (.getElementById js/document "root")
@@ -193,8 +199,12 @@
                                          :unit (let [collection (get-in @app-state
                                                                   [:model :collections (-> m :new-value :cid)])]
                                                  (db/add "collection" collection))
-                                         :collection (update-db (:old-state m) (:new-state m))
-                                         :resource (db/add "resource-type" (-> m :new-value))
+                                         :collection (update-db "collection"
+                                                       (-> m :old-state get-collections)
+                                                       (-> m :new-state get-collections))
+                                         :resource (update-db "resource-type"
+                                                     (-> m :old-state get-resource-types)
+                                                     (-> m :new-state get-resource-types))
                                          nil))}))
 
 (defn go! []
