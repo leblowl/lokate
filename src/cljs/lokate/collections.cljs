@@ -15,7 +15,7 @@
    "Right click or long press on the map to add a unit to your collection!"])
 
 (defn collection-banner []
-  (om/build c/return-title-banner ["collection" #(async/put! % [:set-path :collections])]))
+  (c/title-return-banner "collection" #(async/put! % [:set-path :collections])))
 
 (defn collection-nav-view
   [[drawer collection] owner]
@@ -48,8 +48,7 @@
                 (vals (:units collection))))]])))
 
 (defn collections-banner []
-  (om/build c/return-title-banner
-    ["collections" #(async/put! % [:set-path :home])]))
+  (c/title-return-banner "collections" #(async/put! % [:set-path :home])))
 
 (defn add-collection-btn []
   (om/build c/btn ["icon-add" #(async/put! % [:add-collection])]))
@@ -63,7 +62,7 @@
 (defn collections-drawer-view
   [collections owner]
   (om/component
-    (html [:div#collections
+    (html [:div.info
            (c/r-item-list
              {:action (fn [x evt-bus]
                         (async/put! evt-bus

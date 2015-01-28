@@ -51,8 +51,8 @@
   (om/component
     (om/build c/drawer-nav-panel
       [drawer
-       (om/build c/return-banner [#(async/put! % [:set-path :collection (:cid unit)])
-                                  (om/build unit-nav-menu [path unit])])
+       (om/build c/return-banner [(om/build unit-nav-menu [path unit])
+                                  #(async/put! % [:set-path :collection (:cid unit)])])
        controls])))
 
 (defn unit-info-view

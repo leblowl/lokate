@@ -250,12 +250,6 @@ a {
     transform: translate3d(0, 0, 0);
 }
 
-#home, #collections {
-    width: 100%;
-    height: 100%;
-    padding: .5em;
-}
-
 .info {
     width: 100%;
     height: 100%;

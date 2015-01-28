@@ -264,20 +264,18 @@
   [title child]
   (om/build banner [child [:span.banner-title title]]))
 
-(defn return-title-banner
-  [[title return-action] owner]
-  (om/component
-    (title-banner title (back-btn #(-> (om/get-shared owner)
-                                       :event-bus
-                                       return-action)))))
-
 (defn return-banner
-  [[return-action child] owner]
+  [[child return-action] owner]
   (om/component
     (om/build banner [(back-btn #(-> (om/get-shared owner)
                                      :event-bus
                                      return-action))
                       child])))
+
+(defn title-return-banner
+  [title return-action]
+  (om/build return-banner
+    [[:span.banner-title title] return-action]))
 
 (defn simple-nav-panel
   [controls owner]

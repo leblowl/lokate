@@ -10,7 +10,7 @@
 
 (defn home-drawer-view [menu-items owner]
   (om/component
-    (html [:div#home
+    (html [:div.info
            (c/item-list {:action #(set-path owner (:path %))} menu-items)])))
 
 (defn home-views [drawer]

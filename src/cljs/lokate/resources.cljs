@@ -13,8 +13,7 @@
   (om/component
     (om/build c/drawer-nav-panel
       [drawer
-       (om/build c/title-banner ["resources"
-                                 #(async/put! % [:set-path :home])])
+       (c/title-return-banner "resources" #(async/put! % [:set-path :home]))
        [(om/build c/btn ["icon-flow-line rsc-btn"
                          #(async/put! % [:add-resource])])
         (om/build c/btn ["icon-flow-tree rsc-btn"
@@ -23,10 +22,9 @@
 (defn rsc-types-drawer-view
   [[view-data resources] owner]
   (om/component
-    (html [:div.resources
+    (html [:div.info
            (c/item-list
-             {:class "btn-"
-              :action #(om/update! view-data :selected (:id %))}
+             {:action #(om/update! view-data :selected (:id %))}
              (vals resources))])))
 
 (defn rsc-type-nav-view
@@ -34,9 +32,8 @@
   (om/component
     (om/build c/drawer-nav-panel
       [drawer
-       (om/build c/title-banner ["resources"
-                                 #(om/transact! view-data
-                                    (fn [m] (dissoc m :selected)))])])))
+       (c/title-return-banner "resources" #(om/transact! view-data
+                                             (fn [m] (dissoc m :selected))))])))
 
 (defn rsc-type-drawer-view
   [resource owner]
