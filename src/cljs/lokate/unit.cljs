@@ -24,7 +24,7 @@
 
 (defn check-in-btn [unit]
   (om/build c/btn ["icon-system-update-tv"
-                   #(async/put! % [:set-path :check-in (:cid unit) (:id unit)])]))
+                   #(async/put! % [:set-path :check-in (:cid unit) (:id unit) :resources])]))
 
 (defn edit-resources-btn [unit]
   (om/build c/btn ["icon-settings"
@@ -127,14 +127,14 @@
           resources)))))
 
 (defn unit-views
-  [drawer path unit rsc-types]
-  (case path
+  [drawer page unit rsc-types]
+  (case page
     :info      [(om/build unit-nav-view
-                  [drawer path unit [(check-in-btn unit)]])
+                  [drawer page unit [(check-in-btn unit)]])
                 (om/build unit-info-view unit)]
 
     :resources [(om/build unit-nav-view
-                  [drawer path unit [(check-in-btn unit)
+                  [drawer page unit [(check-in-btn unit)
                                      (edit-resources-btn unit)]])
                 (om/build unit-resources-view unit)]
 

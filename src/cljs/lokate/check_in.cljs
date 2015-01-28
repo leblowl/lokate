@@ -22,15 +22,6 @@
                       :style #js {:color (get u/status-colors (:color data))}
                       :onClick #(om/set-state! owner :active (:color data))})))))
 
-(defn check-in-controls
-  [[check-in-view-data] owner]
-  (om/component
-    (html
-      (case (:path check-in-view-data)
-        :resources (c/done!-btn #())
-
-        :commit    (c/done!-btn #())))))
-
 (defn scroll-to-active []
   (let [active (.-activeElement js/document)]
     (when (= (.-tagName active) "input")
@@ -68,19 +59,58 @@
                 :value 0
                 :onChange #()}]]]))))
 
-(defn check-in
-  [[check-in-view-data unit] owner {:keys [c-id u-id] :as opts}]
-  (om/component
-    (dom/div #js {:id "check-in"}
-      (case (:path check-in-view-data)
-        :resources (om/build c/input-list (vals (:resources unit))
-                     {:opts {:item-comp unit-resource-editable
-                             :keyfn #(-> % :name (str/upper-case))}})
+(defn check-in-rscs-view
+  [unit owner]
+  (reify
+    om/IWillMount
+    (will-mount [_]
+      (async/put! (:event-bus (om/get-shared owner))
+        [:drawer :set :maximized? true]))
 
-        :commit    (dom/div #js {:id "commit-wrapper"}
-                     (dom/div #js {:id "commit"}
-                       (apply dom/div #js {:id "commit-status-wrapper"}
-                         (om/build-all status-select [{:color "green"}
-                                                      {:color "yellow"}
-                                                      {:color "red"}]
-                           {:state {:active (:status unit)}}))))))()))
+    om/IRender
+    (render [_]
+      (om/build c/input-list [{:item-comp unit-resource-editable}
+                              (vals (:resources unit))]))))
+
+(defn check-in-commit-view
+  [unit owner]
+  (reify
+    om/IWillMount
+    (will-mount [_]
+      (async/put! (:event-bus (om/get-shared owner))
+        [:drawer :set :maximized? true]))
+
+    om/IWillUnmount
+    (will-unmount [_]
+      (async/put! (:event-bus (om/get-shared owner))
+        [:drawer :set :maximized? false]))
+
+    om/IRender
+    (render [_]
+      (html [:div#commit-wrapper
+             [:div#commit
+              [:div#commit-status-wrapper
+               (om/build-all status-select [{:color "green"}
+                                            {:color "yellow"}
+                                            {:color "red"}]
+                 {:state {:active (:status unit)}})]]]))))
+
+(defn check-in-rscs-nav [unit]
+  (om/build c/simple-nav-panel
+    [(c/done!-btn
+       #(async/put! %
+          [:set-path :check-in (:cid unit) (:id unit) :commit]))]))
+
+(defn check-in-commit-nav [unit]
+  (om/build c/simple-nav-panel
+    [(c/done!-btn
+       #(async/put! %
+          [:set-path :unit (:cid unit) (:id unit) :info]))]))
+
+(defn check-in-views
+  [page unit]
+  (case page
+    :resources [(check-in-rscs-nav unit)
+                (om/build check-in-rscs-view unit)]
+    :commit    [(check-in-commit-nav unit)
+                (om/build check-in-commit-view unit)]))

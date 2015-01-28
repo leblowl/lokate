@@ -10,6 +10,7 @@
             [lokate.home :as home]
             [lokate.collections :as collections]
             [lokate.unit :as unit]
+            [lokate.check-in :as check-in]
             [lokate.resources :as resources])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
@@ -109,6 +110,9 @@
                      (-> data :view :app :path second last)
                      (apply get-unit data args)
                      (get-resource-types data))
+      :check-in    (check-in/check-in-views
+                     (-> data :view :app :path second last)
+                     (apply get-unit data args))
       :resources   (resources/resource-types-views drawer
                      (-> data :view :resources)
                      (get-resource-types data))
