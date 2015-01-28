@@ -28,7 +28,7 @@
       (set! (.-scrollTop (.-offsetParent active)) (- (.-offsetTop active) 14)))))
 
 (defn unit-resource-editable
-  [resource owner]
+  [[props resource] owner]
   (reify
     om/IWillMount
     (will-mount [_]
@@ -49,8 +49,9 @@
 
     om/IRender
     (render [_]
+      (.log js/console (pr-str resource))
       (html [:div.unit-resource
-             [:span.unit-resource-title (-> resource :type :title)]
+             [:span.unit-resource-title (-> resource :title)]
              [:div.unit-resource-count-box
               [:input.unit-resource-count-input
                {:type "number"

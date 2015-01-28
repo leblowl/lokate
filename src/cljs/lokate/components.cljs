@@ -151,7 +151,7 @@
                  items))]))))
 
 (defn input-list
-  [items owner opts]
+  [[props items] owner]
   (reify
     om/IInitState
     (init-state [_]
@@ -159,20 +159,21 @@
 
     om/IRender
     (render [_]
-      (om/build simple-list items
-        {:opts (merge opts
-                 {:on-mount (fn []
-                              (om/update-state! owner :children-mounted inc)
-                              (when (= (om/get-state owner :children-mounted) (count items))
-                                (let [children (.getElementsByTagName (om/get-node owner) "input")]
-                                  (.select (.item children 0))
+      (om/build simple-list
+        [(merge props
+           {:on-mount (fn []
+                        (om/update-state! owner :children-mounted inc)
+                        (when (= (om/get-state owner :children-mounted) (count items))
+                          (let [children (.getElementsByTagName (om/get-node owner) "input")]
+                            (.select (.item children 0))
                                         ; also could have tab direct to next page or add hover effect to done!-btn
-                                  (.addEventListener (.item children (dec (count items))) "keydown"
-                                    (fn [e]
-                                      (when (= (.-keyCode e) 9)
-                                        (.select (.item children 0))
-                                        (.preventDefault e)
-                                        false))))))})}))))
+                            (.addEventListener (.item children (dec (count items))) "keydown"
+                              (fn [e]
+                                (when (= (.-keyCode e) 9)
+                                  (.select (.item children 0))
+                                  (.preventDefault e)
+                                  false))))))})
+         items]))))
 
 ;; modal
 
