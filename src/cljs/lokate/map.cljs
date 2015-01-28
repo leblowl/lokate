@@ -63,7 +63,7 @@
   (let [l-map (om/get-state owner :map)]
     (dorun
       (map #(->>
-              (om/get-state owner [:markers % :marker])
+              (om/get-state owner [:units % :marker])
               (.removeLayer l-map))
         keys)))
   (om/update-state! owner :markers
@@ -93,8 +93,7 @@
             to-add (set/difference next-units current-units)
             to-delete (set/difference current-units next-units)]
 
-        ;(delete-markers owner (keys to-delete))
-
+        (delete-markers owner (keys to-delete))
         (add-markers to-add owner)
         (reset-markers owner)
 

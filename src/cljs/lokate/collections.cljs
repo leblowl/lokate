@@ -4,8 +4,7 @@
             [sablono.core :as html :refer-macros [html]]
             [clojure.string :as str]
             [lokate.util :as u]
-            [lokate.components :as c]
-            [lokate.unit :as unit]))
+            [lokate.components :as c]))
 
 (defn update-collection [collection k v]
   (om/transact! collection [] #(assoc % k v) :collection))
@@ -44,6 +43,8 @@
                 {:action (fn [x evt-bus]
                            (async/put! evt-bus
                              [:set-path :unit (:cid x) (:id x) :info]))
+                 :remove-action (fn [x evt-bus]
+                                  (om/transact! collection [] #(update-in % [:units] dissoc (:id x)) :collection))
                  :name-default "Untitled_Unit"}
                 (vals (:units collection))))]])))
 
