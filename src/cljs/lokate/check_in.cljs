@@ -49,7 +49,6 @@
 
     om/IRender
     (render [_]
-      (.log js/console (pr-str resource))
       (html [:div.unit-resource
              [:span.unit-resource-title (-> resource :title)]
              [:div.unit-resource-count-box

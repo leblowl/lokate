@@ -89,11 +89,13 @@
             [:span.unit-resource-count (:count resource)]]])))
 
 (defn unit-resources-view
-  [unit owner]
+  [[unit rsc-types] owner]
   (om/component
-    (om/build c/simple-list
-      [{:item-comp unit-resource}
-       (vals (:resources unit))])))
+    (let [resources (map #(merge % (get rsc-types (:id %)))
+                      (vals (:resources unit)))]
+      (om/build c/simple-list
+        [{:item-comp unit-resource}
+         resources]))))
 
 (defn update-unit-rscs [unit x evt-bus]
   (if (:active x)
@@ -101,11 +103,12 @@
       #(dissoc % (:id x)))
     (update-unit unit :resources
       #(assoc % (:id x)
-         (merge (select-keys x [:id :title])
+         (merge
+           (select-keys x [:id])
            {:count 0})))))
 
 (defn unit-edit-view
-  [[rsc-types unit] owner]
+  [[unit rsc-types] owner]
   (reify
     om/IWillMount
     (will-mount [_]
@@ -138,9 +141,9 @@
       :resources [(om/build unit-nav-view
                     [drawer page unit [(check-in-btn unit)
                                        (edit-resources-btn unit)]])
-                  (om/build unit-resources-view unit)]
+                  (om/build unit-resources-view [unit rsc-types])]
 
       :edit      [(om/build c/simple-nav-panel
                     [(c/done!-btn
                        #(async/put! % [:window :set :page :resources]))])
-                  (om/build unit-edit-view [rsc-types unit])])))
+                  (om/build unit-edit-view [unit rsc-types])])))
