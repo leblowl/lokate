@@ -24,35 +24,35 @@
 
 (defn check-in-btn [unit]
   (om/build c/btn ["icon-system-update-tv"
-                   #(async/put! % [:set-path :check-in (:cid unit) (:id unit) :resources])]))
+                   #(u/route! % :check-in (:cid unit) (:id unit))]))
 
 (defn edit-resources-btn [unit]
   (om/build c/btn ["icon-settings"
-                   #(async/put! % [:set-path :unit (:cid unit) (:id unit) :edit])]))
+                   #(async/put! % [:window :set :page :edit])]))
 
 (defn unit-nav-menu
-  [[path unit] owner]
+  [[page unit] owner]
   (om/component
     (om/build c/dropdown-select-list
       [{:title "unit :info"
-        :path :info
-        :active (= :info path)}
+        :page :info
+        :active (= :info page)}
        {:title "unit :resources"
-        :path :resources
-        :active (= :resources path)}]
+        :page :resources
+        :active (= :resources page)}]
       {:opts {:id "page-select"
               :class "title-select-"
               :action (fn [x evt-bus]
                         (async/put! evt-bus
-                          [:set-path :unit (:cid unit) (:id unit) (:path x)]))}})))
+                          [:window :set :page (:page x)]))}})))
 
 (defn unit-nav-view
-  [[drawer path unit controls] owner]
+  [[drawer page unit controls] owner]
   (om/component
     (om/build c/drawer-nav-panel
       [drawer
-       (om/build c/return-banner [(om/build unit-nav-menu [path unit])
-                                  #(async/put! % [:set-path :collection (:cid unit)])])
+       (om/build c/return-banner [(om/build unit-nav-menu [page unit])
+                                  #(u/route! % :collection (:cid unit))])
        controls])))
 
 (defn unit-info-view
@@ -127,19 +127,20 @@
           resources)))))
 
 (defn unit-views
-  [drawer page unit rsc-types]
-  (case page
-    :info      [(om/build unit-nav-view
-                  [drawer page unit [(check-in-btn unit)]])
-                (om/build unit-info-view unit)]
+  [{:keys [drawer location]} data {:keys [page]}]
+  (let [unit (apply u/get-unit data (second location))
+        rsc-types (u/get-resource-types data)]
+    (case page
+      :info      [(om/build unit-nav-view
+                    [drawer page unit [(check-in-btn unit)]])
+                  (om/build unit-info-view unit)]
 
-    :resources [(om/build unit-nav-view
-                  [drawer page unit [(check-in-btn unit)
-                                     (edit-resources-btn unit)]])
-                (om/build unit-resources-view unit)]
+      :resources [(om/build unit-nav-view
+                    [drawer page unit [(check-in-btn unit)
+                                       (edit-resources-btn unit)]])
+                  (om/build unit-resources-view unit)]
 
-    :edit      [(om/build c/simple-nav-panel
-                  [(c/done!-btn
-                     #(async/put! %
-                        [:set-path :unit (:cid unit) (:id unit) :resources]))])
-                (om/build unit-edit-view [rsc-types unit])]))
+      :edit      [(om/build c/simple-nav-panel
+                    [(c/done!-btn
+                       #(async/put! % [:window :set :page :resources]))])
+                  (om/build unit-edit-view [rsc-types unit])])))

@@ -19,18 +19,19 @@
 (def app-state
   (atom {:model {:collections    {}
                  :resource-types {}}
-         :view  {:app        {:orientation ""
-                              :path        [:home]}
-                 :drawer     {:open?       false
-                              :maximized?  false}
-                 :resources  {:selected    nil}}}))
+         :view  {:window {:orientation ""
+                          :location    []
+                          :views-fn    home/home-views
+                          :views-state {}
+                          :drawer      {:open?       false
+                                        :maximized?  false}}}}))
 
 (def event-bus (async/chan))
 (def event-bus-pub (async/pub event-bus first))
 
 (defn set-orientation []
   (swap! app-state
-    #(assoc-in % [:view :app :orientation]
+    #(assoc-in % [:view :window :orientation]
        (if (> (.-height (.-screen js/window))
               (.-width (.-screen js/window)))
          "portrait"
@@ -38,27 +39,17 @@
 
 (defn set-drawer [k v]
   (swap! app-state
-    #(assoc-in % [:view :drawer k] v)))
+    #(assoc-in % [:view :window :drawer k] v)))
 
 (defn update-drawer [k fun]
   (swap! app-state
-    #(update-in % [:view :drawer k] fun)))
+    #(update-in % [:view :window :drawer k] fun)))
 
 (let [events (async/sub event-bus-pub :drawer (async/chan))]
   (go-loop [e (async/<! events)]
     (case (second e)
       :set (apply set-drawer (drop 2 e))
       :update (apply update-drawer (drop 2 e)))
-    (recur (<! events))))
-
-(defn set-path
-  ([path & args]
-   (swap! app-state
-     #(assoc-in % [:view :app :path] [path args]))))
-
-(let [events (async/sub event-bus-pub :set-path (async/chan))]
-  (go-loop [e (<! events)]
-    (apply set-path (rest e))
     (recur (<! events))))
 
 (defn add-collection [data title]
@@ -85,38 +76,40 @@
                        :title title}]
     (om/update! data [:model :resource-types (:id resource-type)] resource-type :resource)))
 
-(defn get-collections [data]
-  (get-in data [:model :collections]))
+(defn set-location [route]
+  (swap! app-state
+    #(assoc-in % [:view :window :location] route)))
 
-(defn get-collection [data cid]
-  (get-in data [:model :collections cid]))
+(defn get-views-data [path]
+  (case path
+    :home        [home/home-views]
+    :collections [collections/collections-views]
+    :collection  [collections/collection-views]
+    :unit        [unit/unit-views {:page :info}]
+    :check-in    [check-in/check-in-views {:page :resources
+                                           :commit {}}]
+    :resources   [resources/resource-types-views {:selected nil}]))
 
-(defn get-unit [data cid uid]
-  (get-in data [:model :collections cid :units uid]))
+(defn set-views
+  ([fn]
+   (set-views fn {}))
+  ([fn state]
+   (swap! app-state
+     #(update-in % [:view :window] merge {:views-fn fn
+                                          :views-state state}))))
+(defn set-route [path & args]
+  (set-location [path args])
+  (apply set-views (get-views-data path)))
 
-(defn get-resource-types [data]
-  (get-in data [:model :resource-types]))
+(u/sub-go-loop event-bus-pub :set-route
+  (fn [[topic route]]
+    (apply set-route route)))
 
-(defn get-views [data]
-  (let [drawer (-> data :view :drawer)
-        [path args] (-> data :view :app :path)]
-    (case path
-      :home        (home/home-views drawer)
-      :collections (collections/collections-views drawer
-                     (get-collections data))
-      :collection  (collections/collection-views drawer
-                     (apply get-collection data args))
-      :unit        (unit/unit-views drawer
-                     (-> data :view :app :path second last)
-                     (apply get-unit data args)
-                     (get-resource-types data))
-      :check-in    (check-in/check-in-views
-                     (-> data :view :app :path second last)
-                     (apply get-unit data args))
-      :resources   (resources/resource-types-views drawer
-                     (-> data :view :resources)
-                     (get-resource-types data))
-      :settings    "do something")))
+(u/sub-go-loop event-bus-pub :window
+  (fn [[topic cmd k vorfn]]
+    (case cmd
+      :set (swap! app-state #(assoc-in % [:view :window :views-state k] vorfn))
+      :update (swap! app-state #(update-in % [:view :window :views-state k] vorfn)))))
 
 (defn app [data owner]
   (reify
@@ -128,7 +121,7 @@
             "Collection name"
             "Untitled collection"
             #(let [collection (add-collection data %)]
-               (set-path :collection (:id collection))))))
+               (set-route :collection (:id collection))))))
 
       (u/sub-go-loop event-bus-pub :delete-collection
         (fn [[topic id]]
@@ -140,9 +133,9 @@
           (c/display-input
             "Unit name"
             "Untitled unit"
-            #(let [selected-cid (-> @app-state :view :app :path second first)
+            #(let [selected-cid (-> @app-state :view :window :location second first)
                    unit (add-unit data selected-cid (second e) %)]
-               (set-path :unit selected-cid (:id unit) :info)))))
+               (set-route :unit selected-cid (:id unit))))))
 
       (u/sub-go-loop event-bus-pub :add-resource
         (fn [e]
@@ -163,8 +156,7 @@
 
     om/IRender
     (render [_]
-      (let [[nav-view drawer-view] (get-views data)]
-        (om/build core/window [data nav-view drawer-view])))))
+      (om/build core/window [(-> data :view :window) data]))))
 
 (defn keywordize-ids
   "Recursively transforms all ids from strings to keywords."
@@ -194,22 +186,24 @@
     (dorun (map #(db/delete db-name %) to-delete))
     (dorun (map #(db/add db-name (second %)) to-add))))
 
+(defn tx-listen [m root-cursor]
+  (case (:tag m)
+    :unit (let [collection (get-in @app-state
+                             [:model :collections (-> m :new-value :cid)])]
+            (db/add "collection" collection))
+    :collection (update-db "collection"
+                  (-> m :old-state u/get-collections)
+                  (-> m :new-state u/get-collections))
+    :resource (update-db "resource-type"
+                (-> m :old-state u/get-resource-types)
+                (-> m :new-state u/get-resource-types))
+    nil))
+
 (defn render []
   (om/root app app-state {:target (.getElementById js/document "root")
                           :shared {:event-bus event-bus
                                    :event-bus-pub event-bus-pub}
-                          :tx-listen (fn [m root-cursor]
-                                       (case (:tag m)
-                                         :unit (let [collection (get-in @app-state
-                                                                  [:model :collections (-> m :new-value :cid)])]
-                                                 (db/add "collection" collection))
-                                         :collection (update-db "collection"
-                                                       (-> m :old-state get-collections)
-                                                       (-> m :new-state get-collections))
-                                         :resource (update-db "resource-type"
-                                                     (-> m :old-state get-resource-types)
-                                                     (-> m :new-state get-resource-types))
-                                         nil))}))
+                          :tx-listen tx-listen}))
 
 (defn go! []
   (set-orientation)

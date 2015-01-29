@@ -5,24 +5,22 @@
             [lokate.map :as map]))
 
 (defn drawer-panel
-  [[app drawer drawer-view] owner]
+  [[orientation drawer drawer-view] owner]
   (om/component
     (html [:div#drawer-wrapper
            [:div#drawer
-            {:class (str (:orientation app)
+            {:class (str orientation
                       (if (:open? drawer) " show" " hide")
                       (when (:maximized? drawer) " maximized"))}
             [:div#drawer-content drawer-view]]])))
 
 (defn window
-  [[data nav-view drawer-view] owner]
+  [[{:keys [orientation location drawer views-fn views-state] :as window} data] owner]
   (om/component
-    (let [app (-> data :view :app)
-          drawer (-> data :view :drawer)]
+    (let [[nav-view drawer-view] (views-fn window data views-state)]
       (html [:div#app
              nav-view
-             [:div {:class (str "flex-container " (:orientation app))}
+             [:div {:class (str "flex-container " orientation)}
               [:div.flex-content
-               (om/build map/l-map [(-> data :view :app :path)
-                                    (u/get-units (-> data :model :collections))])
-               (om/build drawer-panel [app drawer drawer-view])]]]))))
+               (om/build map/l-map [location (-> data u/get-collections u/get-units)])
+               (om/build drawer-panel [orientation drawer drawer-view])]]]))))

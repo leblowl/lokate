@@ -2,18 +2,16 @@
   (:require [cljs.core.async :as async]
             [om.core :as om :include-macros true]
             [sablono.core :as html :refer-macros [html]]
+            [lokate.util :as u]
             [lokate.components :as c]))
-
-(defn set-path [owner path]
-  (async/put! (:event-bus (om/get-shared owner))
-    [:set-path path]))
 
 (defn home-drawer-view [menu-items owner]
   (om/component
     (html [:div.info
-           (c/item-list {:action #(set-path owner (:path %))} menu-items)])))
+           (c/item-list {:action (fn [x evt-bus] (u/route! evt-bus (:path x)))}
+             menu-items)])))
 
-(defn home-views [drawer]
+(defn home-views [{:keys [drawer]} data state]
   [(om/build c/drawer-nav-panel [drawer
                                  (c/title-banner "home" c/home-icon)])
    (om/build home-drawer-view [{:title "Collections"

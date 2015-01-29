@@ -46,10 +46,8 @@
 
     (.on marker "click"
       #(do
-         (async/put! evt-bus
-           [:drawer :set :open? true])
-         (async/put! evt-bus
-           [:set-path :unit (:cid unit) (:id unit) :info])))
+         (async/put! evt-bus [:drawer :set :open? true])
+         (u/route! evt-bus :unit (:cid unit) (:id unit) :info)))
 
     (assoc unit :marker marker :icon icon)))
 

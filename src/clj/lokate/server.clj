@@ -8,7 +8,7 @@
   (:gen-class))
 
 (defroutes routes
-  (GET "/" [] (io/resource "index.html"))
+  (GET "/" [] (resp/resource-response "index.html" {:root "public"}))
   (route/resources "/" {:root "public"})
   (route/not-found "Page not found."))
 

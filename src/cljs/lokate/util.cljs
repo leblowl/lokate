@@ -64,6 +64,21 @@
   (async/put! (:event-bus (om/get-shared owner))
     msg))
 
+(defn get-collections [data]
+  (get-in data [:model :collections]))
+
+(defn get-collection [data cid]
+  (get-in data [:model :collections cid]))
+
 (defn get-units [collections]
   (reduce into {}
     (map :units (vals collections))))
+
+(defn get-unit [data cid uid]
+  (get-in data [:model :collections cid :units uid]))
+
+(defn get-resource-types [data]
+  (get-in data [:model :resource-types]))
+
+(defn route! [evt-bus & route]
+  (async/put! evt-bus (conj [:set-route] route)))
