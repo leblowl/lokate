@@ -190,6 +190,7 @@
   (case (:tag m)
     :unit (let [collection (get-in @app-state
                              [:model :collections (-> m :new-value :cid)])]
+            (.log js/console (pr-str collection))
             (db/add "collection" collection))
     :collection (update-db "collection"
                   (-> m :old-state u/get-collections)
