@@ -37,7 +37,7 @@
       [{:title "unit :info"
         :page :info
         :active (= :info page)}
-       {:title "unit :resources"
+       {:title "unit :rscs"
         :page :resources
         :active (= :resources page)}]
       {:opts {:id "page-select"
