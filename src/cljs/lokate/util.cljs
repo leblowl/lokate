@@ -80,5 +80,8 @@
 (defn get-resource-types [data]
   (get-in data [:model :resource-types]))
 
+(defn get-resource-type [data rid]
+  (get-in data [:model :resource-types rid]))
+
 (defn route! [evt-bus & route]
   (async/put! evt-bus (conj [:set-route] route)))

@@ -3,6 +3,7 @@
             [om.core :as om :include-macros true]
             [sablono.core :as html :refer-macros [html]]
             [clojure.string :as str]
+            [lokate.util :as u]
             [lokate.components :as c]))
 
 (defn update-rsc [rsc k v]
@@ -13,7 +14,7 @@
   (om/component
     (om/build c/drawer-nav-panel
       [drawer
-       (c/title-return-banner "resources" #(async/put! % [:set-path :home]))
+       (c/title-return-banner "resources" #(u/route! % :home))
        [(om/build c/btn ["icon-flow-line rsc-btn"
                          #(async/put! % [:add-resource])])
         (om/build c/btn ["icon-flow-tree rsc-btn"
@@ -30,11 +31,11 @@
              (vals resources))])))
 
 (defn rsc-type-nav-view
-  [[drawer view-data] owner]
+  [[drawer state] owner]
   (om/component
     (om/build c/drawer-nav-panel
       [drawer
-       (c/title-return-banner "resources" #(om/transact! view-data
+       (c/title-return-banner "resources" #(om/transact! state
                                              (fn [m] (dissoc m :selected))))])))
 
 (defn rsc-type-drawer-view
@@ -52,9 +53,9 @@
              (:title resource)]]
            [:div.info-content]])))
 
-(defn resource-types-views [drawer view-data resources]
-  (if-let [id (:selected view-data)]
-    [(om/build rsc-type-nav-view [drawer view-data])
-     (om/build rsc-type-drawer-view (get resources id))]
+(defn resource-types-views [{:keys [drawer]} data {:keys [selected] :as state}]
+  (if selected
+    [(om/build rsc-type-nav-view [drawer state])
+     (om/build rsc-type-drawer-view (u/get-resource-type data selected))]
     [(om/build rsc-types-nav-view drawer)
-     (om/build rsc-types-drawer-view [view-data resources])]))
+     (om/build rsc-types-drawer-view [state (u/get-resource-types data)])]))
