@@ -60,4 +60,4 @@
             :output-to "public/js/main.js")
       (aot :all true)
       (uber)
-      (jar :main 'lokate.server)))
+      (jar :file "lokate.jar" :main 'lokate.server)))

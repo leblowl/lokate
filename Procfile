@@ -1,1 +1,1 @@
-web: java $JVM_OPTS -cp target/hivez.jar clojure.main -m hivez.server
+web: java $JVM_OPTS -jar target/lokate.jar $PORT
