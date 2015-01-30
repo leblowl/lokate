@@ -15,10 +15,10 @@
     (om/build c/drawer-nav-panel
       [drawer
        (c/title-return-banner "resources" #(u/route! % :home))
-       [(om/build c/btn ["icon-flow-line rsc-btn"
-                         #(async/put! % [:add-resource])])
-        (om/build c/btn ["icon-flow-tree rsc-btn"
-                         #(async/put! % [:add-resource-cluster])])]])))
+       [(om/build c/btn ["icon-flow-tree rsc-btn"
+                         #(async/put! % [:add-resource-cluster])])
+        (om/build c/btn ["icon-flow-line rsc-btn"
+                         #(async/put! % [:add-resource])])]])))
 
 (defn rsc-types-drawer-view
   [[view-data resources] owner]
