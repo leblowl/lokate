@@ -624,7 +624,7 @@ input:focus {
     font-size: 1.1em;
     line-height: 23px;
     padding-left: .5em;
-    font-family: 'Open Sans'
+    font-family: 'Open Sans';
 }
 
 .leaflet-contextmenu a.leaflet-contextmenu-item.over {
