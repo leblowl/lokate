@@ -166,7 +166,7 @@
                         (when (= (om/get-state owner :children-mounted) (count items))
                           (let [children (.getElementsByTagName (om/get-node owner) "input")]
                             (.select (.item children 0))
-                                        ; also could have tab direct to next page or add hover effect to done!-btn
+                            ; also could have tab direct to next page or add hover effect to done!-btn
                             (.addEventListener (.item children (dec (count items))) "keydown"
                               (fn [e]
                                 (when (= (.-keyCode e) 9)

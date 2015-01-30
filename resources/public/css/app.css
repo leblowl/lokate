@@ -51,6 +51,12 @@ a {
     text-decoration: none;
 }
 
+textarea {
+    border: none;
+    overflow: hidden;
+    outline: none;
+}
+
 .list::-webkit-scrollbar,
 [class*="-list"]::-webkit-scrollbar {
     display: none;
@@ -498,11 +504,18 @@ input[type=number]::-webkit-outer-spin-button {
 
 #commit {
     margin: auto;
+    width: 90%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 #commit-status-wrapper {
     display: flex;
     flex-direction: row;
+    justify-content: center;
 }
 
 .status-select-wrapper {
@@ -514,8 +527,25 @@ input[type=number]::-webkit-outer-spin-button {
     opacity: 1;
 }
 
+.status-select:hover {
+    cursor: pointer;
+}
+
 .status-select {
     font-size: 2em;
+}
+
+.multi-line-input {
+    background-color: transparent;
+    resize: none;
+    border: 1px solid #888;
+    border-radius: 3px;
+    width: 100%;
+    height: 100%;
+    max-width: 555px;
+    max-height: 333px;
+    padding: .5em;
+    margin: 1em;
 }
 
 /* resources */
