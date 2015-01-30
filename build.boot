@@ -1,8 +1,8 @@
 (set-env!
         :target-path "target"
         :resource-paths #{"resources"}
-        :source-paths #{"src/clj" "src/cljs"}
-        :dependencies '[[adzerk/boot-cljs "0.0-2629-9"]
+        :source-paths #{"src/clj" "src/cljs" "../boot-cljs/src"}
+        :dependencies '[;[adzerk/boot-cljs "0.0-2629-9"]
                         [adzerk/boot-cljs-repl "0.1.8"]
                         [adzerk/boot-reload "0.2.4"]
                         [org.clojure/clojure "1.6.0"]
