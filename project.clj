@@ -23,16 +23,11 @@
   :main lokate.server
 
   :cljsbuild {:builds [{:source-paths ["src/cljs"]
-                        :compiler {:main          lokate.app
-                                   :output-to     "resources/public/js/main.js"
+                        :compiler {:output-to     "resources/public/js/main.js"
+                                   :output-dir    "resources/public/js/out"
                                    :optimizations :none
                                    :pretty-print  false}}]}
 
   :profiles {:uberjar {:hooks [leiningen.cljsbuild]
-                       :cljsbuild {:builds [{:source-paths ["src/cljs"]
-                                             :compiler {:main lokate.app
-                                                        :output-to "resources/public/js/main.js"
-                                                        :optimizations :none
-                                                        :pretty-print false}}]}
                        :omit-source true
-                       :aot :all }})
+                       :aot :all}})
