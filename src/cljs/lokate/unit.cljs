@@ -94,7 +94,8 @@
     (let [resources (map #(merge % (get rsc-types (:id %)))
                       (vals (:resources unit)))]
       (om/build c/simple-list
-        [{:item-comp unit-resource}
+        [{:id "unit-rscs"
+          :item-comp unit-resource}
          resources]))))
 
 (defn update-unit-rscs [unit x evt-bus]
@@ -125,7 +126,8 @@
       (let [resources (map #(assoc % :active (contains? (:resources unit) (:id %)))
                         (vals rsc-types))]
         (c/select-list
-          {:class "border-select-"
+          {:id "unit-edit-rscs"
+           :class "border-select-"
            :action (partial update-unit-rscs unit)}
           resources)))))
 

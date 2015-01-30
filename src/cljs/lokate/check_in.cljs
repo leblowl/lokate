@@ -77,7 +77,8 @@
     (render [_]
       (let [resources (map #(merge % (get rsc-types (:id %)))
                         (vals (:resources unit)))]
-        (om/build c/input-list [{:item-comp unit-resource-editable}
+        (om/build c/input-list [{:id "check-in-rscs"
+                                 :item-comp unit-resource-editable}
                                 resources])))))
 
 (defn check-in-commit-view
