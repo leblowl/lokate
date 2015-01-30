@@ -85,7 +85,7 @@ textarea {
 }
 
 .control-panel {
-    position: fixed;
+    position: fixmed;
     z-index: 3;
     top: 0;
     right: 0;
@@ -220,7 +220,15 @@ textarea {
     height: 100%;
     max-width: 666px;
     margin: auto;
-    border: 1px solid #212121;
+    border-top: 1px solid rgba(33, 33, 33, 1);
+    border-left: 1px solid rgba(33, 33, 33, 0);
+    border-right: 1px solid rgba(33, 33, 33, 0);
+    border-bottom: 1px solid rgba(33, 33, 33, 0);
+    transition: border .3s;
+}
+
+#drawer.maximized #drawer-content {
+    border: 1px solid rgba(33, 33, 33, 1);
 }
 
 #drawer.portrait {
@@ -637,4 +645,3 @@ input:focus {
 .icon-pin:hover {
     cursor: pointer;
 }
-
