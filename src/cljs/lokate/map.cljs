@@ -118,7 +118,7 @@
                                 :contextmenuAnchor [-70 -35]
                                 :contextmenuItems [
                                   {:text "Add unit"
-                                   :iconCls "icon-pin"
+                                   ;:iconCls "icon-pin"
                                    :callback #(add-unit (om/get-shared owner :event-bus) %)}
                                 ]}))
                     (.setView (om/get-state owner :center) 9))]
