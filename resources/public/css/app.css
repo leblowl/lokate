@@ -638,7 +638,7 @@ input:focus {
     cursor: pointer;
 }
 
-.icon-pin {
+.leaflet-contextmenu .icon-pin {
     font-size: 1.5em;
     margin: auto;
     color: #bbf970;
