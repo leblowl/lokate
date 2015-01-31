@@ -16,6 +16,12 @@
 (def red-ico    (-> js/L .-AwesomeMarkers (.icon #js {:icon "radio-button-off"
                                                       :markerColor "lightred"
                                                       :iconColor "#444444"})))
+
+(def ico-map
+  {"green"  green-ico
+   "yellow" yellow-ico
+   "red"    red-ico})
+
 (defn reset-ico [icon]
   (-> icon .-options .-icon (set! "radio-button-off"))
   icon)
@@ -39,7 +45,7 @@
 
 (defn mark-it!
   [unit lmap evt-bus]
-  (let [icon green-ico
+  (let [icon (get ico-map (:status unit))
         marker (-> js/L
                  (.marker (clj->js (:latlng unit)) #js {:icon icon})
                  (.addTo lmap))]

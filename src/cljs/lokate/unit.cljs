@@ -76,7 +76,7 @@
             [:div.location
              [:span
               {:class "img icon-pin status"
-               :style #js {:color (get u/status-colors "green")}}]
+               :style #js {:color (get u/status-colors (:status unit))}}]
              [:span.location-lat-lng
               (format-latlng (:latlng unit))]]]])))
 
