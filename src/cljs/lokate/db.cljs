@@ -12,17 +12,23 @@
                                         (reset! db (.. e -target -result))
                                         (set! (.. e -target -transaction -onerror) error)
                                         (.createObjectStore @db "collection" #js {:keyPath "id"})
-                                        (.createObjectStore @db "resource-type" #js {:keyPath "id"})))
+                                        (.createObjectStore @db "resource-type" #js {:keyPath "id"})
+                                        (.createObjectStore @db "history")))
     (set! (.-onsuccess request) (fn [e]
                                   (reset! db (.. e -target -result))
                                   (cb)))
     (set! (.-onerror request) error)))
 
-(defn add [db-name data]
-  (let [transaction (.transaction @db #js [db-name] "readwrite")
-        store (.objectStore transaction db-name)
-        request (.put store (clj->js data))]
-    (set! (.-onerror request) error)))
+(defn add
+  ([db-name data]
+   (add db-name data nil))
+  ([db-name data key]
+   (let [transaction (.transaction @db #js [db-name] "readwrite")
+         store (.objectStore transaction db-name)
+         request (if key
+                   (.put store (clj->js data) key)
+                   (.put store (clj->js data)))]
+     (set! (.-onerror request) error))))
 
 (defn delete [db-name key]
   (let [transaction (.transaction @db #js [db-name] "readwrite")

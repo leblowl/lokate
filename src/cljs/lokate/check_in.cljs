@@ -121,7 +121,6 @@
   [{:keys [location]} data {:keys [page commit]}]
   (let [unit (apply u/get-unit data (second location))
         rsc-types (u/get-resource-types data)]
-    (.log js/console (pr-str commit))
     (case page
       :resources [(check-in-rscs-nav unit)
                   (om/build check-in-rscs-view (-> commit :data :resources))]

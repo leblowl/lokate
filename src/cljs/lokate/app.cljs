@@ -198,7 +198,8 @@
  (db/new
    (->> cb
      (partial db/get-all "resource-type" #(populate-model :resource-types %))
-     (partial db/get-all "collection" #(populate-model :collections %)))))
+     (partial db/get-all "collection" #(populate-model :collections %))
+     (partial db/get-all "history" #(populate-model :history %)))))
 
 (defn keyset [m]
   (set (keys m)))
@@ -220,6 +221,7 @@
     :resource (update-db "resource-type"
                 (-> m :old-state u/get-resource-types)
                 (-> m :new-state u/get-resource-types))
+    :history (db/add "history" (:new-value m) (-> m :new-value first :data :id name))
     nil))
 
 (defn render []

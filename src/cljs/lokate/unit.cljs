@@ -136,7 +136,6 @@
   (let [unit (apply u/get-unit data (second location))
         rsc-types (u/get-resource-types data)
         history (u/get-unit-history data (:id unit))]
-    (.log js/console (pr-str (peek history)))
     (case page
       :info      [(om/build unit-nav-view
                     [drawer page unit [(check-in-btn unit)]])
