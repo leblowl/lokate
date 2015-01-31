@@ -2,16 +2,17 @@
   (:require [cljs.core.async :as async]
             [om.core :as om :include-macros true]
             [sablono.core :as html :refer-macros [html]]
-            [clojure.string :as str]
+            [cljs-time.coerce :refer [from-long to-local-date-time]]
+            [cljs-time.format :as format]
             [lokate.util :as u]
             [lokate.components :as c]))
 
 (defn format-timestamp [timestamp]
   (str "Created: "
-    (-> timestamp
-      (js/Date.)
-      (.toJSON)
-      (.slice 0 10))))
+    (->> timestamp
+      from-long
+      to-local-date-time
+      (format/unparse (format/formatter "dd/MM/yyyy")))))
 
 (defn format-latlng [latlng]
   (apply u/format "Location: %1.2f %2.2f" latlng))
@@ -56,7 +57,7 @@
        controls])))
 
 (defn unit-info-view
-  [unit owner]
+  [[unit last-commit] owner]
   (om/component
     (html [:div#unit-info.info
            [:div#name-editable.editable
@@ -78,7 +79,10 @@
               {:class "img icon-pin status"
                :style #js {:color (get u/status-colors (:status unit))}}]
              [:span.location-lat-lng
-              (format-latlng (:latlng unit))]]]])))
+              (format-latlng (:latlng unit))]]
+            (when last-commit
+              [:div
+               [:div.last-commit]])]])))
 
 (defn unit-resource
   [[props resource] owner]
@@ -139,7 +143,7 @@
     (case page
       :info      [(om/build unit-nav-view
                     [drawer page unit [(check-in-btn unit)]])
-                  (om/build unit-info-view unit)]
+                  (om/build unit-info-view [unit (peek history)])]
 
       :resources [(om/build unit-nav-view
                     [drawer page unit [(check-in-btn unit)

@@ -4,7 +4,9 @@
             [clojure.string :as string]
             [goog.string :as gstring]
             [goog.string.format]
-            [cljs-uuid-utils :as uuid])
+            [cljs-uuid-utils :as uuid]
+            [cljs-time.core :as time]
+            [cljs-time.coerce :refer [to-long]])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
 ;; add to system data
@@ -17,7 +19,7 @@
   (str (uuid/make-random-uuid)))
 
 (defn now []
-  (.now js/Date))
+  (to-long (time/now)))
 
 (defn format [& args]
   (apply gstring/format args))
