@@ -83,5 +83,8 @@
 (defn get-resource-type [data rid]
   (get-in data [:model :resource-types rid]))
 
+(defn get-unit-history [data uid]
+  (get-in data [:model :history uid]))
+
 (defn route! [evt-bus & route]
   (async/put! evt-bus (conj [:set-route] route)))

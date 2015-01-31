@@ -18,7 +18,8 @@
 
 (def app-state
   (atom {:model {:collections    {}
-                 :resource-types {}}
+                 :resource-types {}
+                 :history        {}}
          :view  {:window {:orientation ""
                           :location    []
                           :views-fn    home/home-views
@@ -45,12 +46,11 @@
   (swap! app-state
     #(update-in % [:view :window :drawer k] fun)))
 
-(let [events (async/sub event-bus-pub :drawer (async/chan))]
-  (go-loop [e (async/<! events)]
-    (case (second e)
-      :set (apply set-drawer (drop 2 e))
-      :update (apply update-drawer (drop 2 e)))
-    (recur (<! events))))
+(u/sub-go-loop event-bus-pub :drawer
+  (fn [[topic cmd & args]]
+    (case cmd
+      :set (apply set-drawer args)
+      :update (apply update-drawer args))))
 
 (defn add-collection [data title]
   (let [collection {:id (keyword (u/uuid))
@@ -76,18 +76,34 @@
                        :title title}]
     (om/update! data [:model :resource-types (:id resource-type)] resource-type :resource)))
 
+(defn prep-commit-data [unit rsc-types]
+  ;; only commit tracked data
+  (-> (select-keys unit [:id :status :resources])
+      (update-in [:resources]
+        (fn [rscs]
+          (u/mmap #(merge % (get rsc-types (:id %))) rscs)))))
+
+(defn new-commit [unit rsc-types]
+  {:id (keyword (u/uuid))
+   :timestamp (u/now)
+   :message ""
+   :data (prep-commit-data unit rsc-types)})
+
 (defn set-location [route]
   (swap! app-state
     #(assoc-in % [:view :window :location] route)))
 
-(defn get-views-data [path]
+(defn get-views-data [[path args]]
   (case path
     :home        [home/home-views]
     :collections [collections/collections-views]
     :collection  [collections/collection-views]
     :unit        [unit/unit-views {:page :info}]
-    :check-in    [check-in/check-in-views {:page :resources
-                                           :commit {}}]
+    :check-in    [check-in/check-in-views
+                  {:page :resources
+                   :commit (new-commit
+                             (apply u/get-unit @app-state args)
+                             (u/get-resource-types @app-state))}]
     :resources   [resources/resource-types-views {:selected nil}]))
 
 (defn set-views
@@ -99,7 +115,7 @@
                                           :views-state state}))))
 (defn set-route [path & args]
   (set-location [path args])
-  (apply set-views (get-views-data path)))
+  (apply set-views (get-views-data [path args])))
 
 (u/sub-go-loop event-bus-pub :set-route
   (fn [[topic route]]
@@ -152,7 +168,14 @@
             (u/mmap (fn [unit]
                       (om/transact! unit []
                         #(update-in % [:resources] dissoc id) :unit))
-              units)))))
+              units))))
+
+      (u/sub-go-loop event-bus-pub :commit!
+        (fn [[topic cid uid commit]]
+          (om/transact! data [:model :history uid]
+            #(conj % commit) :history)
+          (om/transact! (u/get-unit data cid uid) []
+            #(merge % (-> commit :data)) :unit))))
 
     om/IRender
     (render [_]

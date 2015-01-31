@@ -8,19 +8,17 @@
             [lokate.components :as c]))
 
 (defn status-select
-  [data owner opts]
+  [{:keys [color]} owner opts]
   (reify
-    om/IInitState
-    (init-state [_]
-      {:active "green"})
-
     om/IRenderState
     (render-state [_ {:keys [active]}]
-      (dom/div #js {:className (str "status-select-wrapper"
-                                 (when (= active (:color data)) " active"))}
-        (dom/div #js {:className "status-select icon-pin"
-                      :style #js {:color (get u/status-colors (:color data))}
-                      :onClick #(om/set-state! owner :active (:color data))})))))
+      (html [:div {:class (str "status-select-wrapper"
+                            (when (= active color) " active"))}
+             [:div {:class "status-select icon-pin"
+                    :style #js {:color (get u/status-colors color)}
+                    :on-click #(async/put! (:event-bus (om/get-shared owner))
+                                 [:window :update :commit (fn [m]
+                                                            (assoc-in m [:data :status] color))])}]]))))
 
 (defn scroll-to-active []
   (let [active (.-activeElement js/document)]
@@ -52,21 +50,21 @@
     om/IRender
     (render [_]
       (html [:div.unit-resource
-             [:span.unit-resource-title (-> resource :title)]
+             [:span.unit-resource-title (:title resource)]
              [:div.unit-resource-count-box
               [:input.unit-resource-count-input
                {:ref "input"
                 :type "number"
                 :min 0
                 :max 100
-                :value 0
-                :onChange #(async/put! (:event-bus (om/get-shared owner))
-                             [:window :update :commit (fn [m]
-                                                        (assoc-in m [:resources (:id resource)]
-                                                          (assoc resource :count (.-value (om/get-node owner "input")))))])}]]]))))
+                :value (:count resource)
+                :on-change #(async/put! (:event-bus (om/get-shared owner))
+                              [:window :update :commit (fn [m]
+                                                         (assoc-in m [:data :resources (:id resource) :count]
+                                                           (.-value (om/get-node owner "input"))))])}]]]))))
 
 (defn check-in-rscs-view
-  [[unit rsc-types] owner]
+  [resources owner]
   (reify
     om/IWillMount
     (will-mount [_]
@@ -75,14 +73,12 @@
 
     om/IRender
     (render [_]
-      (let [resources (map #(merge % (get rsc-types (:id %)))
-                        (vals (:resources unit)))]
-        (om/build c/input-list [{:id "check-in-rscs"
-                                 :item-comp unit-resource-editable}
-                                resources])))))
+      (om/build c/input-list [{:id "check-in-rscs"
+                               :item-comp unit-resource-editable}
+                              (vals resources)]))))
 
 (defn check-in-commit-view
-  [unit owner]
+  [commit owner]
   (reify
     om/IWillMount
     (will-mount [_]
@@ -102,28 +98,32 @@
                (om/build-all status-select [{:color "red"}
                                             {:color "yellow"}
                                             {:color "green"}]
-                 {:state {:active (:status unit)}})]
+                 {:state {:active (-> commit :data :status)}})]
               [:textarea.multi-line-input
-               {:placeholder "Add and optional commit message..."}]]]))))
+               {:ref "input"
+                :placeholder "Add an optional commit message..."
+                :on-change #(om/update! commit :message
+                              (.-value (om/get-node owner "input")))}]]]))))
 
 (defn check-in-rscs-nav [unit]
   (om/build c/simple-nav-panel
     [(c/done!-btn
        (fn [evt-bus]
-         (async/put! evt-bus [:window :set :commit {}])
          (async/put! evt-bus [:window :set :page :commit])))]))
 
-(defn check-in-commit-nav [unit]
+(defn check-in-commit-nav [unit commit]
   (om/build c/simple-nav-panel
-    [(om/build c/btn ["icon-done-all" #(u/route! % :unit (:cid unit) (:id unit))])]))
+    [(om/build c/btn ["icon-done-all" (fn [evt-bus]
+                                        (async/put! evt-bus [:commit! (:cid unit) (:id unit) @commit])
+                                        (u/route! evt-bus :unit (:cid unit) (:id unit)))])]))
 
 (defn check-in-views
   [{:keys [location]} data {:keys [page commit]}]
-  (.log js/console (pr-str commit))
   (let [unit (apply u/get-unit data (second location))
         rsc-types (u/get-resource-types data)]
+    (.log js/console (pr-str commit))
     (case page
       :resources [(check-in-rscs-nav unit)
-                  (om/build check-in-rscs-view [unit rsc-types])]
-      :commit    [(check-in-commit-nav unit)
-                  (om/build check-in-commit-view unit)])))
+                  (om/build check-in-rscs-view (-> commit :data :resources))]
+      :commit    [(check-in-commit-nav unit commit)
+                  (om/build check-in-commit-view commit)])))
