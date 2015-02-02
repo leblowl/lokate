@@ -28,7 +28,7 @@
              {:action #(om/update! view-data :selected (:id %))
               :remove-action (fn [x evt-bus]
                                (async/put! evt-bus [:delete-resource (:id x)]))}
-             (vals resources))])))
+             resources)])))
 
 (defn rsc-type-nav-view
   [[drawer state] owner]
@@ -58,4 +58,7 @@
     [(om/build rsc-type-nav-view [drawer state])
      (om/build rsc-type-drawer-view (u/get-resource-type data selected))]
     [(om/build rsc-types-nav-view drawer)
-     (om/build rsc-types-drawer-view [state (u/get-resource-types data)])]))
+     (om/build rsc-types-drawer-view [state (->> data
+                                                 u/get-resource-types
+                                                 vals
+                                                 (sort-by :timestamp))])]))

@@ -43,7 +43,10 @@
                                   (om/transact! collection :units
                                     #(dissoc % (:id x)) :unit))
                  :name-default "Untitled_Unit"}
-                (vals (:units collection))))]])))
+                (->> collection
+                     :units
+                     vals
+                     (sort-by :timestamp))))]])))
 
 (defn collections-banner []
   (c/title-return-banner "collections" #(u/route! % :home)))
@@ -66,10 +69,13 @@
               :remove-action (fn [x evt-bus]
                                (async/put! evt-bus [:delete-collection (:id x)]))
               :name-default "Untitled_Collection"}
-             (vals collections))])))
+             collections)])))
 
 (defn collections-views [{:keys [drawer]} data state]
-  (let [collections (u/get-collections data)]
+  (let [collections (->> data
+                         u/get-collections
+                         vals
+                         (sort-by :timestamp))]
     [(om/build collections-nav-view drawer)
      (om/build collections-drawer-view collections)]))
 

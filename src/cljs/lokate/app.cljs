@@ -73,7 +73,8 @@
 
 (defn add-resource-type [data title]
   (let [resource-type {:id (keyword (u/uuid))
-                       :title title}]
+                       :title title
+                       :timestamp (u/now)}]
     (om/update! data [:model :resource-types (:id resource-type)] resource-type :resource)))
 
 (defn prep-commit-data [unit rsc-types]
