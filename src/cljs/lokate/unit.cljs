@@ -7,15 +7,20 @@
             [lokate.util :as u]
             [lokate.components :as c]))
 
-(defn format-timestamp [timestamp]
-  (str "Created: "
-    (->> timestamp
-      from-long
-      to-local-date-time
-      (format/unparse (format/formatter "dd/MM/yyyy")))))
+(defn format-date [timestamp]
+  (->> timestamp
+    from-long
+    to-local-date-time
+    (format/unparse (format/formatter "dd/MM/yyyy"))))
+
+(defn format-time [timestamp]
+  (->> timestamp
+    from-long
+    to-local-date-time
+    (format/unparse (format/formatter "HH:mm:ss"))))
 
 (defn format-latlng [latlng]
-  (apply u/format "Location: %1.2f %2.2f" latlng))
+  (apply u/format "%1.2f %2.2f" latlng))
 
 (defn set-unit [unit k v]
   (om/transact! unit [] (fn [m] (assoc m k v)) :unit))
@@ -73,16 +78,27 @@
 
            [:div.info-content
             [:div.origin
-             (format-timestamp (:timestamp unit))]
+             [:span.info-title "Created: "]
+             (format-date (:timestamp unit))]
             [:div.location
+             [:span.location-lat-lng
+              [:span.info-title "Location: "]
+              (format-latlng (:latlng unit))]
              [:span
               {:class "img icon-pin status"
-               :style #js {:color (get u/status-colors (:status unit))}}]
-             [:span.location-lat-lng
-              (format-latlng (:latlng unit))]]
+               :style #js {:color (get u/status-colors (:status unit))}}]]
             (when last-commit
-              [:div
-               [:div.last-commit]])]])))
+              [:div.last-check-in
+               [:span.info-title "Last check-in: "]
+               [:div.last-check-in-data
+                [:div.last-commit-time
+                 [:span.info-title " Authored on "]
+                 (format-date (:timestamp last-commit))
+                 [:span.info-title " @ "]
+                 (format-time (:timestamp last-commit))]
+                [:div.last-commit-msg
+                 [:span.hilight "> "]
+                 (:message last-commit)]]])]])))
 
 (defn unit-resource
   [[props resource] owner]
