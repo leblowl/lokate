@@ -174,7 +174,7 @@
         (fn [[topic cid uid commit]]
           (om/transact! data [:model :history uid]
             #(conj % commit) :history)
-          (om/transact! (u/get-unit data cid uid) []
+          (om/transact! data [:model :collections cid :units uid]
             #(merge % (-> commit :data)) :unit))))
 
     om/IRender
