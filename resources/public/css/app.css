@@ -515,6 +515,7 @@ input[type=number]::-webkit-outer-spin-button {
     border: 1px solid rgba(136, 136, 136, 0.9);
     border-radius: 3px;
     padding: .3em;
+    margin-top: .2em;
 }
 
 .last-commit-msg {
