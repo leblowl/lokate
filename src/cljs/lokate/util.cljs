@@ -79,11 +79,11 @@
 (defn get-unit [data cid uid]
   (get-in data [:model :collections cid :units uid]))
 
-(defn get-resource-types [data]
-  (get-in data [:model :resource-types]))
+(defn get-resources [data]
+  (get-in data [:model :resources]))
 
-(defn get-resource-type [data rid]
-  (get-in data [:model :resource-types rid]))
+(defn get-resource [data rid]
+  (get-in data [:model :resources rid]))
 
 (defn get-unit-history [data uid]
   (get-in data [:model :history uid]))

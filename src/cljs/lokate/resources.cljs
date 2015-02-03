@@ -9,18 +9,18 @@
 (defn update-rsc [rsc k v]
   (om/transact! rsc [] (fn [m] (assoc m k v)) :resource))
 
-(defn rsc-types-nav-view
+(defn rscs-nav-view
   [drawer owner]
   (om/component
     (om/build c/drawer-nav-panel
       [drawer
        (c/title-return-banner "resources" #(u/route! % :home))
        [(om/build c/btn ["icon-flow-tree rsc-btn"
-                         #(async/put! % [:add-resource-cluster])])
+                         #(async/put! % [:add-resource "block"])])
         (om/build c/btn ["icon-flow-line rsc-btn"
                          #(async/put! % [:add-resource])])]])))
 
-(defn rsc-types-drawer-view
+(defn rscs-drawer-view
   [[view-data resources] owner]
   (om/component
     (html [:div.info
@@ -30,7 +30,7 @@
                                (async/put! evt-bus [:delete-resource (:id x)]))}
              resources)])))
 
-(defn rsc-type-nav-view
+(defn rsc-nav-view
   [[drawer state] owner]
   (om/component
     (om/build c/drawer-nav-panel
@@ -38,7 +38,7 @@
        (c/title-return-banner "resources" #(om/transact! state
                                              (fn [m] (dissoc m :selected))))])))
 
-(defn rsc-type-drawer-view
+(defn rsc-drawer-view
   [resource owner]
   (om/component
     (html [:div.info
@@ -53,12 +53,40 @@
              (:title resource)]]
            [:div.info-content]])))
 
-(defn resource-types-views [{:keys [drawer]} data {:keys [selected] :as state}]
+(defn rsc-block-drawer-view
+  [[rsc-block rscs] owner]
+  (om/component
+    (html [:div.info
+           [:div#name-editable.editable
+            {:on-click #(c/display-input
+                          "Resource block name"
+                          "Untitled resource block"
+                          (:title rsc-block)
+                          (partial update-rsc rsc-block :title))}
+            [:span.editable-title
+             {:data-ph "Untitled Resource Block"}
+             (:title rsc-block)]]
+           [:div.info-content
+            (c/select-list
+              {:id "unit-edit-rscs"
+               :class "border-select-"
+               :action #(.log js/console "hey")}
+              rscs)]])))
+
+(defn resources-views [{:keys [drawer]} data {:keys [selected] :as state}]
   (if selected
-    [(om/build rsc-type-nav-view [drawer state])
-     (om/build rsc-type-drawer-view (u/get-resource-type data selected))]
-    [(om/build rsc-types-nav-view drawer)
-     (om/build rsc-types-drawer-view [state (->> data
-                                                 u/get-resource-types
-                                                 vals
-                                                 (sort-by :timestamp))])]))
+    (let [rsc (u/get-resource data selected)]
+      (if (= (:type rsc) "block")
+        [(om/build rsc-nav-view [drawer state])
+         (om/build rsc-block-drawer-view [(u/get-resource data selected)
+                                          (->> data
+                                               u/get-resources
+                                               vals
+                                               (sort-by :timestamp))])]
+        [(om/build rsc-nav-view [drawer state])
+         (om/build rsc-drawer-view (u/get-resource data selected))]))
+    [(om/build rscs-nav-view drawer)
+     (om/build rscs-drawer-view [state (->> data
+                                            u/get-resources
+                                            vals
+                                            (sort-by :timestamp))])]))

@@ -40,8 +40,9 @@
                 {:action (fn [x evt-bus]
                            (u/route! evt-bus :unit (:cid x) (:id x)))
                  :remove-action (fn [x evt-bus]
-                                  (om/transact! collection :units
-                                    #(dissoc % (:id x)) :unit))
+                                  (om/transact! collection []
+                                    #(update-in % [:units]
+                                       dissoc (:id x)) :collection))
                  :name-default "Untitled_Unit"}
                 (->> collection
                      :units

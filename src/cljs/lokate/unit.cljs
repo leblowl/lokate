@@ -154,7 +154,7 @@
 (defn unit-views
   [{:keys [drawer location]} data {:keys [page]}]
   (let [unit (apply u/get-unit data (second location))
-        rsc-types (u/get-resource-types data)
+        rsc-types (u/get-resources data)
         history (u/get-unit-history data (:id unit))]
     (case page
       :info      [(om/build unit-nav-view

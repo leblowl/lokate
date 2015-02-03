@@ -18,7 +18,7 @@
 
 (def app-state
   (atom {:model {:collections    {}
-                 :resource-types {}
+                 :resources      {}
                  :history        {}}
          :view  {:window {:orientation ""
                           :location    []
@@ -71,24 +71,33 @@
     (om/update! data [:model :collections cid :units (:id unit)] unit :unit)
     unit))
 
-(defn add-resource-type [data title]
-  (let [resource-type {:id (keyword (u/uuid))
-                       :title title
-                       :timestamp (u/now)}]
-    (om/update! data [:model :resource-types (:id resource-type)] resource-type :resource)))
+(defn add-resource [data title]
+  (let [resource {:id (keyword (u/uuid))
+                  :title title
+                  :timestamp (u/now)}]
+    (om/update! data [:model :resources (:id resource)] resource :resource)))
 
-(defn prep-commit-data [unit rsc-types]
+(defn add-resource-block [data title]
+  (let [rsc-block {:id (keyword (u/uuid))
+                   :type "block"
+                   :title title
+                   :timestamp (u/now)
+                   :resources {}}]
+    (om/update! data [:model :resources (:id rsc-block)] rsc-block :resource)
+    rsc-block))
+
+(defn prep-commit-data [unit rscs]
   ;; only commit tracked data
   (-> (select-keys unit [:id :status :resources])
       (update-in [:resources]
-        (fn [rscs]
-          (u/mmap #(merge % (get rsc-types (:id %))) rscs)))))
+        (fn [unit-rscs]
+          (u/mmap #(merge % (get rscs (:id %))) unit-rscs)))))
 
-(defn new-commit [unit rsc-types]
+(defn new-commit [unit rscs]
   {:id (keyword (u/uuid))
    :timestamp (u/now)
    :message ""
-   :data (prep-commit-data unit rsc-types)})
+   :data (prep-commit-data unit rscs)})
 
 (defn set-location [route]
   (swap! app-state
@@ -104,8 +113,8 @@
                   {:page :resources
                    :commit (new-commit
                              (apply u/get-unit @app-state args)
-                             (u/get-resource-types @app-state))}]
-    :resources   [resources/resource-types-views {:selected nil}]))
+                             (u/get-resources @app-state))}]
+    :resources   [resources/resources-views {:selected nil}]))
 
 (defn set-views
   ([fn]
@@ -155,15 +164,21 @@
                (set-route :unit selected-cid (:id unit))))))
 
       (u/sub-go-loop event-bus-pub :add-resource
-        (fn [e]
-          (c/display-input
-            "Resource name"
-            "Untitled resource"
-            #(add-resource-type data %))))
+        (fn [[topic type]]
+          (if (= type "block")
+            (c/display-input
+              "Resource block name"
+              "Untitled resource block"
+              #(let [rsc-block (add-resource-block data %)]
+                 (om/update! data [:view :window :views-state :selected] (:id rsc-block))))
+            (c/display-input
+              "Resource name"
+              "Untitled resource"
+              #(add-resource data %)))))
 
       (u/sub-go-loop event-bus-pub :delete-resource
         (fn [[topic id]]
-          (om/transact! data [:model :resource-types] #(dissoc % id) :resource)
+          (om/transact! data [:model :resources] #(dissoc % id) :resource)
           ; remove all instances of deleted resource in units
           (let [units (u/get-units (-> data :model :collections))]
             (u/mmap (fn [unit]
@@ -198,7 +213,7 @@
 (defn init-app-state [cb]
  (db/new
    (->> cb
-     (partial db/get-all "resource-type" #(populate-model :resource-types %))
+     (partial db/get-all "resources" #(populate-model :resources %))
      (partial db/get-all "collection" #(populate-model :collections %))
      (partial db/get-all "history" #(populate-model :history %)))))
 
@@ -219,9 +234,9 @@
     :collection (update-db "collection"
                   (-> m :old-state u/get-collections)
                   (-> m :new-state u/get-collections))
-    :resource (update-db "resource-type"
-                (-> m :old-state u/get-resource-types)
-                (-> m :new-state u/get-resource-types))
+    :resource (update-db "resources"
+                (-> m :old-state u/get-resources)
+                (-> m :new-state u/get-resources))
     :history (db/add "history" (:new-value m) (-> m :new-value first :data :id name))
     nil))
 

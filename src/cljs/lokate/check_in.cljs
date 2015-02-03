@@ -120,7 +120,7 @@
 (defn check-in-views
   [{:keys [location]} data {:keys [page commit]}]
   (let [unit (apply u/get-unit data (second location))
-        rsc-types (u/get-resource-types data)]
+        rsc-types (u/get-resources data)]
     (case page
       :resources [(check-in-rscs-nav unit)
                   (om/build check-in-rscs-view (-> commit :data :resources))]
