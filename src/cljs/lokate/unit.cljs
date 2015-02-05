@@ -151,8 +151,10 @@
 
     om/IRender
     (render [_]
-      (let [resources (map #(assoc % :active (contains? (:resources unit) (:id %)))
-                        (vals rsc-types))]
+      (let [resources (->> rsc-types
+                           vals
+                           (sort-by :timestamp)
+                           (map #(assoc % :active (contains? (:resources unit) (:id %)))))]
         (html [:div.flex-col.frame
                (c/select-list
                  {:id "unit-edit-rscs"
