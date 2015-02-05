@@ -63,7 +63,7 @@
 
 ;; generic item, has some action on click and optional right click
 (defn item
-  [[{:keys [class icon-class action alt-action name-default]} item] owner]
+  [[{:keys [class action alt-action placeholder]} item] owner]
   (let [evt-bus (:event-bus (om/get-shared owner))]
     (om/component
       (html [:div
@@ -75,8 +75,8 @@
                                  (.preventDefault e))}
              [:div.txt-wrap.clickable
               [:span.item-title
-               (or (u/blankf (:title item)) name-default)]]
-             [:div {:class icon-class}]]))))
+               (or (u/blankf (:title item)) placeholder)]]
+             [:div {:class (str "item-icon " (:icon item))}]]))))
 
 (defn set-status [owner status]
   (om/set-state! owner :status status))
@@ -94,7 +94,7 @@
 
 ;; removable item that calls a remove-action on 2nd right click
 (defn removable-item
-  [[{:keys [icon-class action remove-action name-default]} r-item] owner]
+  [[{:keys [icon-class action remove-action placeholder]} r-item] owner]
   (reify
     om/IInitState
     (init-state [_]
@@ -106,16 +106,16 @@
                        :icon-class icon-class
                        :action action
                        :alt-action (partial warn-or-remove owner remove-action)
-                       :name-default name-default}
+                       :placeholder placeholder}
                       r-item]))))
 
 ;; selectable item that has active/inactive state
 (defn selectable-item
-  [[{:keys [class action name-default]} s-item] owner]
+  [[{:keys [class action placeholder]} s-item] owner]
   (om/component
     (om/build item [{:class (str (when (:active s-item) "active ") class)
                      :action action
-                     :name-default name-default}
+                     :placeholder placeholder}
                     s-item])))
 
 (defn item-list

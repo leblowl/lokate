@@ -20,16 +20,24 @@
         (om/build c/btn ["icon-flow-line rsc-btn"
                          #(async/put! % [:add-resource])])]])))
 
+(defn get-rsc-view-data [rsc]
+  (if (= (:type rsc) "block")
+    {:icon "icon-flow-tree"
+     :title (or (u/blankf (:title rsc)) "Untitled_Resource_Block")}
+    {:icon "icon-flow-line"
+     :title (or (u/blankf (:title rsc)) "Untitled_Resource")}))
+
 (defn rscs-drawer-view
-  [[view-data resources] owner]
-  (om/component
-    (html [:div#resources.flex-col.frame
-           (c/r-item-list
-             {:action #(om/update! view-data :selected (:id %))
-              :icon-class "icon-flow-line item-icon"
-              :remove-action (fn [x evt-bus]
-                               (async/put! evt-bus [:delete-resource (:id x)]))}
-             resources)])))
+  [[view-data rscs] owner]
+  (let [rscs* (map #(->> % get-rsc-view-data (merge %)) rscs)]
+    (om/component
+      (html [:div#resources.flex-col.frame
+             (c/r-item-list
+               {:action #(om/update! view-data :selected (:id %))
+                :icon-class "icon-flow-line item-icon"
+                :remove-action (fn [x evt-bus]
+                                 (async/put! evt-bus [:delete-resource (:id x)]))}
+               rscs*)]))))
 
 (defn rsc-nav-view
   [[drawer state] owner]
@@ -62,7 +70,8 @@
                            (om/transact! rsc-block [:resources]
                              (if (:active x)
                                #(dissoc % (:id x))
-                               #(assoc % (:id x) x)) :resource))}
+                               #(assoc % (:id x) x)) :resource))
+                 :placeholder "Untitled_Resource"}
                 rscs*)]]))))
 
 (defn resources-views [{:keys [drawer]} data {:keys [selected] :as state}]

@@ -360,7 +360,11 @@ textarea {
 }
 
 .item-icon {
-    font-size: 1.3em;
+    font-size: 1.2em;
+}
+
+.item-icon:hover {
+    cursor: pointer;
 }
 
 .title-select-item.active {

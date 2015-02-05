@@ -61,6 +61,13 @@
                                   #(u/route! % :collection (:cid unit))])
        controls])))
 
+(defn edit-unit-name [unit]
+  (c/display-input
+    "Unit name"
+    "Untitled unit"
+    (:title unit)
+    #(set-unit unit :title %)))
+
 (defn origin [timestamp]
   [:div.origin
    [:span.info-title "Created: "]
@@ -94,7 +101,7 @@
     (html [:div.flex-col.frame
            (c/title1 (:title unit)
                      "Unit Name"
-                     #(set-unit unit :title %))
+                     #(edit-unit-name unit))
            [:div.top-div
             (origin (:timestamp unit))
             (location (:latlng unit) (:status unit))
@@ -104,7 +111,7 @@
   [[props resource] owner]
   (om/component
     (html [:div.unit-resource
-           [:span.unit-resource-title (:title resource)]
+           [:span.unit-resource-title (or (-> resource :title u/blankf) (:placeholder props))]
            [:div.unit-resource-count-box
             [:span.unit-resource-count (:count resource)]]])))
 
@@ -116,7 +123,8 @@
       (html [:div.flex-col.frame
              (om/build c/simple-list
                [{:id "unit-rscs"
-                 :item-comp unit-resource}
+                 :item-comp unit-resource
+                 :placeholder "Untitled_Resource"}
                 resources])]))))
 
 (defn update-unit-rscs [unit x evt-bus]
@@ -149,7 +157,8 @@
                (c/select-list
                  {:id "unit-edit-rscs"
                   :class "border-select-"
-                  :action (partial update-unit-rscs unit)}
+                  :action (partial update-unit-rscs unit)
+                  :placeholder "Untitled_Resource"}
                  resources)])))))
 
 (defn unit-views

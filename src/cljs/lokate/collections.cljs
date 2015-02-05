@@ -42,7 +42,7 @@
                                   (om/transact! collection []
                                     #(update-in % [:units]
                                        dissoc (:id x)) :collection))
-                 :name-default "Untitled_Unit"}
+                 :placeholder "Untitled_Unit"}
                 (->> collection
                      :units
                      vals
@@ -68,7 +68,7 @@
              {:action (fn [x evt-bus] (u/route! evt-bus :collection (:id x)))
               :remove-action (fn [x evt-bus]
                                (async/put! evt-bus [:delete-collection (:id x)]))
-              :name-default "Untitled_Collection"}
+              :placeholder "Untitled_Collection"}
              collections)])))
 
 (defn collections-views [{:keys [drawer]} data state]
