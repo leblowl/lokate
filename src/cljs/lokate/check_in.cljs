@@ -14,7 +14,7 @@
     (render-state [_ {:keys [active]}]
       (html [:div {:class (str "status-select-wrapper"
                             (when (= active color) " active"))}
-             [:div {:class "status-select icon-pin"
+             [:div {:class "status-select clickable icon-pin"
                     :style #js {:color (get u/status-colors color)}
                     :on-click #(async/put! (:event-bus (om/get-shared owner))
                                  [:window :update :commit (fn [m]
@@ -73,9 +73,10 @@
 
     om/IRender
     (render [_]
-      (om/build c/input-list [{:id "check-in-rscs"
-                               :item-comp unit-resource-editable}
-                              (vals resources)]))))
+      (html [:div.flex-col.frame
+             (om/build c/input-list [{:id "check-in-rscs"
+                                      :item-comp unit-resource-editable}
+                                     (vals resources)])]))))
 
 (defn check-in-commit-view
   [commit owner]
@@ -92,7 +93,7 @@
 
     om/IRender
     (render [_]
-      (html [:div#commit-wrapper
+      (html [:div.flex-col.frame
              [:div#commit
               [:div#commit-status-wrapper
                (om/build-all status-select [{:color "red"}

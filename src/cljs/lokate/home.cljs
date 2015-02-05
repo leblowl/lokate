@@ -7,7 +7,7 @@
 
 (defn home-drawer-view [menu-items owner]
   (om/component
-    (html [:div.info
+    (html [:div.flex-col.frame
            (c/item-list {:action (fn [x evt-bus] (u/route! evt-bus (:path x)))}
              menu-items)])))
 

@@ -41,7 +41,7 @@
   [[icon-class action] owner opts]
   (om/component
     (om/build cdiv [(merge {:class "btn"} opts)
-                    [:div {:class (str "btn-icon " icon-class)
+                    [:div {:class (str "btn-icon clickable " icon-class)
                            :on-click #(-> (om/get-shared owner)
                                           :event-bus
                                           action)}]])))
@@ -63,18 +63,20 @@
 
 ;; generic item, has some action on click and optional right click
 (defn item
-  [[{:keys [class action alt-action name-default]} item] owner]
+  [[{:keys [class icon-class action alt-action name-default]} item] owner]
   (let [evt-bus (:event-bus (om/get-shared owner))]
     (om/component
       (html [:div
-             {:class (str class "item")
+             {:class (str class "item clickable")
               :on-click #(action item evt-bus)
               :on-context-menu (fn [e]
                                  (when alt-action
                                    (alt-action item evt-bus))
                                  (.preventDefault e))}
-             [:span.item-title
-              (or (u/blankf (:title item)) name-default)]]))))
+             [:div.txt-wrap.clickable
+              [:span.item-title
+               (or (u/blankf (:title item)) name-default)]]
+             [:div {:class icon-class}]]))))
 
 (defn set-status [owner status]
   (om/set-state! owner :status status))
@@ -92,7 +94,7 @@
 
 ;; removable item that calls a remove-action on 2nd right click
 (defn removable-item
-  [[{:keys [action remove-action name-default]} r-item] owner]
+  [[{:keys [icon-class action remove-action name-default]} r-item] owner]
   (reify
     om/IInitState
     (init-state [_]
@@ -101,6 +103,7 @@
     om/IRenderState
     (render-state [_ {:keys [status]}]
       (om/build item [{:class (str (name status) " removable ")
+                       :icon-class icon-class
                        :action action
                        :alt-action (partial warn-or-remove owner remove-action)
                        :name-default name-default}
@@ -138,7 +141,7 @@
     (render-state [_ {:keys [open]}]
       (html [:div {:id id}
              [:div.current-select-wrap
-              [:a.current-select
+              [:a.current-select.clickable
                {:on-click #(om/update-state! owner :open not)}
                [:span.current-select-title
                 (:title (first (filter :active items)))]]
@@ -301,6 +304,17 @@
               (navicon drawer)]]))))
 
 ;; etc
+
+(defn title1
+  ([title placeholder]
+   (title1 title placeholder nil))
+  ([title placeholder action]
+   [:div.title1-container
+    [:div
+     {:class (str "txt-wrap" (when action " clickable"))
+      :on-click action}
+     [:span.title1-txt
+      {:data-ph placeholder} title]]]))
 
 (defn tip [tip-msg]
   [:div.tip-wrapper [:div.tip tip-msg]])

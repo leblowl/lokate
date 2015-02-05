@@ -61,44 +61,44 @@
                                   #(u/route! % :collection (:cid unit))])
        controls])))
 
+(defn origin [timestamp]
+  [:div.origin
+   [:span.info-title "Created: "]
+   (format-date timestamp)])
+
+(defn location [latlng status]
+  [:div.location
+   [:span.location-lat-lng
+    [:span.info-title "Location: "]
+    (format-latlng latlng)]
+   [:span
+    {:class "img icon-pin status"
+     :style #js {:color (get u/status-colors status)}}]])
+
+(defn last-check-in [last-commit]
+  [:div.last-check-in
+   [:span.info-title "Last check-in: "]
+   [:div.last-check-in-data
+    [:div.last-commit-time
+     [:span.info-title " Authored on "]
+     (format-date (:timestamp last-commit))
+     [:span.info-title " @ "]
+     (format-time (:timestamp last-commit))]
+    [:div.last-commit-msg
+     [:span.hilight "> "]
+     (:message last-commit)]]])
+
 (defn unit-info-view
   [[unit last-commit] owner]
   (om/component
-    (html [:div#unit-info.info
-           [:div#name-editable.editable
-            {:on-click (fn []
-                         (c/display-input
-                           "Collection name"
-                           "Untitled collection"
-                           (:title unit)
-                           #(set-unit unit :title %)))}
-            [:span.editable-title
-             {:data-ph "Unit Name"}
-             (:title unit)]]
-
-           [:div.info-content
-            [:div.origin
-             [:span.info-title "Created: "]
-             (format-date (:timestamp unit))]
-            [:div.location
-             [:span.location-lat-lng
-              [:span.info-title "Location: "]
-              (format-latlng (:latlng unit))]
-             [:span
-              {:class "img icon-pin status"
-               :style #js {:color (get u/status-colors (:status unit))}}]]
-            (when last-commit
-              [:div.last-check-in
-               [:span.info-title "Last check-in: "]
-               [:div.last-check-in-data
-                [:div.last-commit-time
-                 [:span.info-title " Authored on "]
-                 (format-date (:timestamp last-commit))
-                 [:span.info-title " @ "]
-                 (format-time (:timestamp last-commit))]
-                [:div.last-commit-msg
-                 [:span.hilight "> "]
-                 (:message last-commit)]]])]])))
+    (html [:div.flex-col.frame
+           (c/title1 (:title unit)
+                     "Unit Name"
+                     #(set-unit unit :title %))
+           [:div.top-div
+            (origin (:timestamp unit))
+            (location (:latlng unit) (:status unit))
+            (when last-commit (last-check-in last-commit))]])))
 
 (defn unit-resource
   [[props resource] owner]
@@ -113,16 +113,16 @@
   (om/component
     (let [resources (map #(merge % (get rsc-types (:id %)))
                       (vals (:resources unit)))]
-      (om/build c/simple-list
-        [{:id "unit-rscs"
-          :item-comp unit-resource}
-         resources]))))
+      (html [:div.flex-col.frame
+             (om/build c/simple-list
+               [{:id "unit-rscs"
+                 :item-comp unit-resource}
+                resources])]))))
 
 (defn update-unit-rscs [unit x evt-bus]
-  (if (:active x)
-    (update-unit unit :resources
-      #(dissoc % (:id x)))
-    (update-unit unit :resources
+  (update-unit unit :resources
+    (if (:active x)
+      #(dissoc % (:id x))
       #(assoc % (:id x)
          (merge
            (select-keys x [:id])
@@ -145,11 +145,12 @@
     (render [_]
       (let [resources (map #(assoc % :active (contains? (:resources unit) (:id %)))
                         (vals rsc-types))]
-        (c/select-list
-          {:id "unit-edit-rscs"
-           :class "border-select-"
-           :action (partial update-unit-rscs unit)}
-          resources)))))
+        (html [:div.flex-col.frame
+               (c/select-list
+                 {:id "unit-edit-rscs"
+                  :class "border-select-"
+                  :action (partial update-unit-rscs unit)}
+                 resources)])))))
 
 (defn unit-views
   [{:keys [drawer location]} data {:keys [page]}]

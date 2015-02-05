@@ -28,12 +28,11 @@
 (defn collection-drawer-view
   [collection owner]
   (om/component
-    (html [:div.info
-           [:div#name-editable.editable
-            {:on-click #(edit-collection-name collection)}
-            [:span.editable-title
-             {:data-ph "Collection Name"} (:title collection)]]
-           [:div.info-content
+    (html [:div.flex-col.frame
+           (c/title1 (:title collection)
+                     "Collection Name"
+                     #(edit-collection-name collection))
+           [:div.top-div
             (if (empty? (:units collection))
               (c/tip collection-tip)
               (c/r-item-list
@@ -64,7 +63,7 @@
 (defn collections-drawer-view
   [collections owner]
   (om/component
-    (html [:div.info
+    (html [:div.flex-col.frame
            (c/r-item-list
              {:action (fn [x evt-bus] (u/route! evt-bus :collection (:id x)))
               :remove-action (fn [x evt-bus]
