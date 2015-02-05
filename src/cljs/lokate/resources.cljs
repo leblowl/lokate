@@ -82,6 +82,7 @@
          (om/build rsc-block-drawer-view [rsc
                                           (->> (dissoc rscs (:id rsc))
                                                vals
+                                               (filter (comp not :type))
                                                (sort-by :timestamp))])]
         [(om/build rsc-nav-view [drawer state])
          (om/build rsc-drawer-view rsc)])
