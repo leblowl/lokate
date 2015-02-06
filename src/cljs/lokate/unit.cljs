@@ -115,26 +115,35 @@
            [:div.unit-resource-count-box
             [:span.unit-resource-count (:count resource)]]])))
 
-(defn unit-resources-view
-  [[unit rsc-types] owner]
-  (om/component
-    (let [resources (map #(merge % (get rsc-types (:id %)))
-                      (vals (:resources unit)))]
-      (html [:div.flex-col.frame
-             (om/build c/simple-list
-               [{:id "unit-rscs"
-                 :item-comp unit-resource
-                 :placeholder "Untitled_Resource"}
-                resources])]))))
+(defn block? [rsc]
+  (-> rsc
+      :type
+      (= "block")))
 
-(defn update-unit-rscs [unit x evt-bus]
+(defn get-resources [unit-rscs]
+  (flatten (map #(if (block? %) (-> % :resources vals) %) unit-rscs)))
+
+(defn unit-resources-view
+  [[unit rscs] owner]
+  (om/component
+    (let [resources (->> unit :resources vals get-resources (sort-by :timestamp))]
+      (html [:div.flex-col.frame
+             (om/build c/simple-list [{:id "unit-rscs"
+                                       :item-comp unit-resource
+                                       :placeholder "Untitled_Resource"}
+                                      resources])]))))
+
+(defn unit-rsc [rsc]
+  (-> rsc (dissoc :active) (merge {:count 0})))
+
+(defn update-unit-rsc [unit rsc evt-bus]
   (update-unit unit :resources
-    (if (:active x)
-      #(dissoc % (:id x))
-      #(assoc % (:id x)
-         (merge
-           (select-keys x [:id])
-           {:count 0})))))
+    (if (:active rsc)
+      #(dissoc % (:id rsc))
+      (if (= (:type rsc) "block")
+        #(assoc % (:id rsc) (update-in rsc [:resources]
+                              (partial u/mmap unit-rsc)))
+        #(assoc % (:id rsc) (unit-rsc rsc))))))
 
 (defn unit-edit-view
   [[unit rsc-types] owner]
@@ -159,7 +168,7 @@
                (c/select-list
                  {:id "unit-edit-rscs"
                   :class "border-select-"
-                  :action (partial update-unit-rscs unit)
+                  :action (partial update-unit-rsc unit)
                   :placeholder "Untitled_Resource"}
                  resources)])))))
 
