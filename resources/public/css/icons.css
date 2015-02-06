@@ -200,19 +200,19 @@
 }
 
 .t {
-    width: 4px;
-    height: 4px;
     border-radius: 50%;
 }
 
-.t2 {
+.t3 {
     background-color: rgb(150, 33, 255);;
+    width: 4px;
+    height: 4px;
     position: absolute;
     top: 24px;
     right: 22px;
 }
 
-.t1 {
+.t2 {
     background-color: rgb(33, 150, 255);;
     height: 8px;
     width: 8px;
@@ -221,10 +221,11 @@
     right: 19px;
 }
 
-
-.t3 {
+.t1 {
     background-color: rgba(33, 255, 150, 0.9);;
     height: 16px;
     width: 16px;
     margin-left: 2px;
+    position: relative;
+    top: -0.2px;
 }

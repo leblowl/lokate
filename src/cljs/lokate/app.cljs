@@ -185,13 +185,13 @@
                                   (assoc rscs (:id rsc) (dissoc rsc :active))))
                 update-unit (fn [unit]
                               (when (-> unit :resources (contains? block-id))
-                                (om/transact! unit []
-                                  #(update-in % [:resources block-id :resources]
+                                (swap! app-state
+                                  #(update-in % [:model :collections (:cid unit)
+                                                 :units (:id unit)
+                                                 :resources block-id :resources]
                                      toggle-rsc (merge rsc {:count 0})) :unit)))
-                units       (-> data :model :collections u/get-units vals)]
+                units       (-> @app-state :model :collections u/get-units vals)]
 
-            (.log js/console (pr-str rsc))
-            (.log js/console (pr-str (u/get-resource data block-id)))
             (om/transact! data [:model :resources block-id :resources]
               #(toggle-rsc % rsc) :resource)
             ;; update all instances of block in units

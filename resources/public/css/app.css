@@ -111,7 +111,7 @@ textarea {
     font-size: 1.3em;
     color: white;
     position: relative;
-    //top: -0.3px;
+    top: -0.2px;
 }
 
 .icon-wrapper {
@@ -431,7 +431,7 @@ textarea {
     position: relative;
     padding-right: 1em;
     position: relative;
-    top: -0.5px;
+    top: -0.2px;
 }
 
 .current-select-title {

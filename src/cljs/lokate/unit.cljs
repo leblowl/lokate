@@ -132,9 +132,7 @@
 (defn unit-resources-view
   [[unit rscs] owner]
   (om/component
-    (.log js/console (-> unit :resources vals pr-str))
     (let [resources (->> unit :resources vals get-resources (sort-by :timestamp))]
-      (.log js/console (pr-str resources))
       (html [:div.flex-col.frame
              (om/build c/simple-list [{:id "unit-rscs"
                                        :item-comp unit-resource
