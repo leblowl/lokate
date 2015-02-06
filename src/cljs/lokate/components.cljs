@@ -232,11 +232,13 @@
 (defn icon
   [icon-class]
   [:div.icon-wrapper
-   [:div {:class (str "icon " icon-class)}
-    [:div {:class (str "icon " icon-class)}]]])
+   [:div {:class (str "icon " icon-class)}]])
 
 (def home-icon
-  (icon "icon-home"))
+  [:div.icon-wrapper
+   [:div {:class "t t1"}]
+   [:div {:class "t t2"}]
+   [:div {:class "t t3"}]])
 
 (defn back-btn [back-action]
   (om/build btn ["icon-navigate-before back-btn"

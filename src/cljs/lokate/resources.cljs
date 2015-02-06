@@ -54,23 +54,26 @@
            (c/title1 (:title resource) "Untitled Resource")
            [:div.top-div]])))
 
+(defn toggle-rsc [rsc-block rsc evt-bus]
+  (om/transact! rsc-block [:resources]
+    (if (:active rsc)
+      #(dissoc % (:id rsc))
+      #(assoc % (:id rsc) rsc)) :resource))
+
 (defn rsc-block-drawer-view
   [[rsc-block rscs] owner]
   (let [active? #(contains? (:resources rsc-block) (:id %))
         rscs* (map #(assoc % :active (active? %)) rscs)]
     (om/component
       (html [:div.flex-col.frame
-             (c/title1 (:title rsc-block)
-                       "Untitled Resource Block")
+             (c/title1 (:title rsc-block) "Untitled Resource Block")
              [:div.top-div
               (c/select-list
                 {:id "unit-edit-rscs"
                  :class "border-select-"
                  :action (fn [x evt-bus]
-                           (om/transact! rsc-block [:resources]
-                             (if (:active x)
-                               #(dissoc % (:id x))
-                               #(assoc % (:id x) x)) :resource))
+                           (async/put! evt-bus
+                             [:update-resource-block (:id rsc-block) x]))
                  :placeholder "Untitled_Resource"}
                 rscs*)]]))))
 

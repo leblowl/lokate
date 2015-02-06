@@ -170,17 +170,38 @@
               "Resource block name"
               "Untitled resource block"
               #(let [rsc-block (add-resource-block data %)]
-                 (om/update! data [:view :window :views-state :selected] (:id rsc-block))))
+                 (om/update! data [:view :window :views-state :selected]
+                   (:id rsc-block))))
             (c/display-input
               "Resource name"
               "Untitled resource"
               #(add-resource data %)))))
 
+      (u/sub-go-loop event-bus-pub :update-resource-block
+        (fn [[topic block-id rsc]]
+          (let [toggle-rsc  (fn [rscs rsc]
+                              (if (:active rsc)
+                                  (dissoc rscs (:id rsc))
+                                  (assoc rscs (:id rsc) (dissoc rsc :active))))
+                update-unit (fn [unit]
+                              (when (-> unit :resources (contains? block-id))
+                                (om/transact! unit []
+                                  #(update-in % [:resources block-id :resources]
+                                     toggle-rsc (merge rsc {:count 0})) :unit)))
+                units       (-> data :model :collections u/get-units vals)]
+
+            (.log js/console (pr-str rsc))
+            (.log js/console (pr-str (u/get-resource data block-id)))
+            (om/transact! data [:model :resources block-id :resources]
+              #(toggle-rsc % rsc) :resource)
+            ;; update all instances of block in units
+            (dorun (map update-unit units)))))
+
       (u/sub-go-loop event-bus-pub :delete-resource
         (fn [[topic id]]
           (om/transact! data [:model :resources] #(dissoc % id) :resource)
-          ; remove all instances of deleted resource in units
-          (let [units (u/get-units (-> data :model :collections))]
+          ;; remove all instances of deleted resource in units
+          (let [units (-> data :model :collections u/get-units)]
             (u/mmap (fn [unit]
                       (om/transact! unit []
                         #(update-in % [:resources] dissoc id) :unit))

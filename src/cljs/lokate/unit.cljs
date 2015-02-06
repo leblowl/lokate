@@ -111,7 +111,10 @@
   [[props resource] owner]
   (om/component
     (html [:div.unit-resource
-           [:span.unit-resource-title (or (-> resource :title u/blankf) (:placeholder props))]
+           [:span.unit-resource-title (-> resource
+                                          :title
+                                          u/blankf
+                                          (or (:placeholder props)))]
            [:div.unit-resource-count-box
             [:span.unit-resource-count (:count resource)]]])))
 
@@ -121,12 +124,17 @@
       (= "block")))
 
 (defn get-resources [unit-rscs]
-  (flatten (map #(if (block? %) (-> % :resources vals) %) unit-rscs)))
+  (->> unit-rscs
+       (map #(if (block? %) (-> % :resources vals) %))
+       flatten
+       (remove nil?)))
 
 (defn unit-resources-view
   [[unit rscs] owner]
   (om/component
+    (.log js/console (-> unit :resources vals pr-str))
     (let [resources (->> unit :resources vals get-resources (sort-by :timestamp))]
+      (.log js/console (pr-str resources))
       (html [:div.flex-col.frame
              (om/build c/simple-list [{:id "unit-rscs"
                                        :item-comp unit-resource

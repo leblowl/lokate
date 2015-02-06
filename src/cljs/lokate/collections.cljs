@@ -32,7 +32,7 @@
            (c/title1 (:title collection)
                      "Collection Name"
                      #(edit-collection-name collection))
-           [:div.top-div
+           [:div.flex-col.top-div
             (if (empty? (:units collection))
               (c/tip collection-tip)
               (c/r-item-list

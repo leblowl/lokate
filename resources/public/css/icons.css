@@ -18,7 +18,7 @@
 }
 
 [class^="icon-"], [class*=" icon-"] {
-    font-family: 'icomoon', 'goog-material', 'DejaVuSans';
+    font-family: 'icomoon', 'goog-material';
     speak: none;
     font-style: normal;
     font-weight: normal;
@@ -197,4 +197,34 @@
 
 .icon-home:before {
     content: "\2B21";
+}
+
+.t {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+}
+
+.t2 {
+    background-color: rgb(150, 33, 255);;
+    position: absolute;
+    top: 24px;
+    right: 22px;
+}
+
+.t1 {
+    background-color: rgb(33, 150, 255);;
+    height: 8px;
+    width: 8px;
+    position: absolute;
+    top: 21px;
+    right: 19px;
+}
+
+
+.t3 {
+    background-color: rgba(33, 255, 150, 0.9);;
+    height: 16px;
+    width: 16px;
+    margin-left: 2px;
 }
