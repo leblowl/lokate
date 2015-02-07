@@ -135,7 +135,8 @@
   (update-unit unit :resources
     (if active?
       #(dissoc % (:id rsc))
-      #(assoc % (:id rsc) (unit-rsc rsc)))))
+      #(when (not (contains? % (:id rsc)))
+         (assoc % (:id rsc) (unit-rsc rsc))))))
 
 (defn rsc-block
   [[{:keys [action]} block] owner]
@@ -159,7 +160,7 @@
     (if (= (:type rsc) "block")
       (om/build rsc-block [{:action action} rsc])
       (om/build c/item [{:class (str (when (:active rsc) "active ") class)
-                         :action action
+                         :action (fn [x evt-bus] (action x (:active x)))
                          :placeholder "Untitled_Resource"}
                         rsc]))))
 

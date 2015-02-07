@@ -86,17 +86,15 @@
     (om/update! data [:model :resources (:id rsc-block)] rsc-block :resource)
     rsc-block))
 
-(defn prep-commit-data [unit rscs]
+(defn prep-commit-data [unit]
   ;; only commit tracked data
-  (-> (select-keys unit [:id :status :resources])
-      (update-in [:resources]
-        #(->> % vals (sort-by :timestamp)))))
+  (select-keys unit [:id :status :resources]))
 
-(defn new-commit [unit rscs]
+(defn new-commit [unit]
   {:id (keyword (u/uuid))
    :timestamp (u/now)
    :message ""
-   :data (prep-commit-data unit rscs)})
+   :data (prep-commit-data unit)})
 
 (defn set-location [route]
   (swap! app-state
@@ -111,8 +109,7 @@
     :check-in    [check-in/check-in-views
                   {:page :resources
                    :commit (new-commit
-                             (apply u/get-unit @app-state args)
-                             (u/get-resources @app-state))}]
+                             (apply u/get-unit @app-state args))}]
     :resources   [resources/resources-views {:selected nil}]))
 
 (defn set-views
