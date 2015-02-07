@@ -173,35 +173,28 @@
               "Untitled resource"
               #(add-resource data %)))))
 
-      (u/sub-go-loop event-bus-pub :update-resource-block
-        (fn [[topic block-id rsc]]
-          (let [toggle-rsc  (fn [rscs rsc]
-                              (if (:active rsc)
-                                  (dissoc rscs (:id rsc))
-                                  (assoc rscs (:id rsc) (dissoc rsc :active))))
-                update-unit (fn [unit]
-                              (when (-> unit :resources (contains? block-id))
-                                (swap! app-state
-                                  #(update-in % [:model :collections (:cid unit)
-                                                 :units (:id unit)
-                                                 :resources block-id :resources]
-                                     toggle-rsc (merge rsc {:count 0})) :unit)))
-                units       (-> @app-state :model :collections u/get-units vals)]
-
-            (om/transact! data [:model :resources block-id :resources]
-              #(toggle-rsc % rsc) :resource)
-            ;; update all instances of block in units
-            (dorun (map update-unit units)))))
-
       (u/sub-go-loop event-bus-pub :delete-resource
         (fn [[topic id]]
           (om/transact! data [:model :resources] #(dissoc % id) :resource)
+
+          ;; remove all instances from blocks
+          (om/transact! data [:model :resources]
+            #(u/mmap (fn [rsc]
+                       (if (u/block? rsc)
+                         (update-in rsc [:resources] dissoc id)
+                         rsc))
+               %) :resource)
+
           ;; remove all instances of deleted resource in units
-          (let [units (-> data :model :collections u/get-units)]
-            (u/mmap (fn [unit]
-                      (om/transact! unit []
-                        #(update-in % [:resources] dissoc id) :unit))
-              units))))
+          (om/transact! data [:model :collections]
+            (fn [colls]
+              (u/mmap (fn [coll]
+                        (update-in coll [:units]
+                          #(u/mmap (fn [unit]
+                                     (update-in unit [:resources] dissoc id))
+                             %)))
+                colls))
+            :collection)))
 
       (u/sub-go-loop event-bus-pub :commit!
         (fn [[topic cid uid commit]]

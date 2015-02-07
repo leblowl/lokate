@@ -60,6 +60,11 @@
       #(dissoc % (:id rsc))
       #(assoc % (:id rsc) rsc)) :resource))
 
+(defn toggle-rsc [rscs rsc]
+  (if (:active rsc)
+    (dissoc rscs (:id rsc))
+    (assoc rscs (:id rsc) (dissoc rsc :active))))
+
 (defn rsc-block-drawer-view
   [[rsc-block rscs] owner]
   (let [active? #(contains? (:resources rsc-block) (:id %))
@@ -72,8 +77,8 @@
                 {:id "unit-edit-rscs"
                  :class "border-select-"
                  :action (fn [x evt-bus]
-                           (async/put! evt-bus
-                             [:update-resource-block (:id rsc-block) x]))
+                           (om/transact! rsc-block [:resources]
+                             #(toggle-rsc % x) :resource))
                  :placeholder "Untitled_Resource"}
                 rscs*)]]))))
 

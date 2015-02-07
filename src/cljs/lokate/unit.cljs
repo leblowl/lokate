@@ -173,6 +173,15 @@
        (remove nil?)
        (apply dissoc resources)))
 
+(defn block? [rsc]
+  (= (:type rsc) "block"))
+
+(defn filter-empty-blocks [resources]
+  (filter #(or
+             (not (block? %))
+             (and (block? %) (not (empty? (:resources %)))))
+    resources))
+
 (defn contains-all? [coll keys]
   (not-any? false? (map #(contains? coll %) keys)))
 
@@ -209,6 +218,7 @@
       (let [resources (->> rscs
                            filter-dups
                            vals
+                           filter-empty-blocks
                            (sort-by :timestamp)
                            (activate-rscs (:resources unit)))]
         (html [:div.flex-col.frame
@@ -222,7 +232,7 @@
 (defn unit-views
   [{:keys [drawer location]} data {:keys [page]}]
   (let [unit (apply u/get-unit data (second location))
-        rsc-types (u/get-resources data)
+        rscs (u/get-resources data)
         history (u/get-unit-history data (:id unit))]
     (case page
       :info      [(om/build unit-nav-view
@@ -232,9 +242,9 @@
       :resources [(om/build unit-nav-view
                     [drawer page unit [(check-in-btn unit)
                                        (edit-resources-btn unit)]])
-                  (om/build unit-resources-view [unit rsc-types])]
+                  (om/build unit-resources-view [unit rscs])]
 
       :edit      [(om/build c/simple-nav-panel
                     [(c/done!-btn
                        #(async/put! % [:window :set :page :resources]))])
-                  (om/build unit-edit-view [unit rsc-types])])))
+                  (om/build unit-edit-view [unit rscs])])))
