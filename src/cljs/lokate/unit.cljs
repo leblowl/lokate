@@ -118,21 +118,10 @@
            [:div.unit-resource-count-box
             [:span.unit-resource-count (:count resource)]]])))
 
-(defn block? [rsc]
-  (-> rsc
-      :type
-      (= "block")))
-
-(defn get-resources [unit-rscs]
-  (->> unit-rscs
-       (map #(if (block? %) (-> % :resources vals) %))
-       flatten
-       (remove nil?)))
-
 (defn unit-resources-view
   [[unit rscs] owner]
   (om/component
-    (let [resources (->> unit :resources vals get-resources (sort-by :timestamp))]
+    (let [resources (->> unit :resources vals (sort-by :timestamp))]
       (html [:div.flex-col.frame
              (om/build c/simple-list [{:id "unit-rscs"
                                        :item-comp unit-resource
@@ -142,17 +131,66 @@
 (defn unit-rsc [rsc]
   (-> rsc (dissoc :active) (merge {:count 0})))
 
-(defn update-unit-rsc [unit rsc evt-bus]
+(defn update-unit-rsc [unit rsc active?]
   (update-unit unit :resources
-    (if (:active rsc)
+    (if active?
       #(dissoc % (:id rsc))
-      (if (= (:type rsc) "block")
-        #(assoc % (:id rsc) (update-in rsc [:resources]
-                              (partial u/mmap unit-rsc)))
-        #(assoc % (:id rsc) (unit-rsc rsc))))))
+      #(assoc % (:id rsc) (unit-rsc rsc)))))
+
+(defn rsc-block
+  [[{:keys [action]} block] owner]
+  (om/component
+    (html [:div {:class (str (when (:active block) "active ")
+                             "border-select-block clickable")
+                 :on-click (fn [] (dorun (map #(action % (:active block))
+                                           (vals (:resources block)))))}
+           [:div.block-title.txt-wrap.clickable
+            [:span.item-title (-> block :title u/blankf (or "Untitled_Resource_Block"))]]
+           [:div.full.frame
+            (c/select-list {:class (str (when (:active block) "active ")
+                                     "border-select-")
+                            :action (fn [x evt-bus] (action x (:active x)))
+                            :placeholder "Untitled_Resource"}
+              (->> block :resources vals (sort-by :timestamp)))]])))
+
+(defn selectable-rsc
+  [[{:keys [class action]} rsc] owner]
+  (om/component
+    (if (= (:type rsc) "block")
+      (om/build rsc-block [{:action action} rsc])
+      (om/build c/item [{:class (str (when (:active rsc) "active ") class)
+                         :action action
+                         :placeholder "Untitled_Resource"}
+                        rsc]))))
+
+(defn filter-dups [resources]
+  (->> resources
+       vals
+       (map (comp keys :resources))
+       flatten
+       (remove nil?)
+       (apply dissoc resources)))
+
+(defn contains-all? [coll keys]
+  (not-any? false? (map #(contains? coll %) keys)))
+
+(defn active? [unit-rscs rsc]
+  (if (= (:type rsc) "block")
+    (->> rsc :resources keys (contains-all? unit-rscs))
+    (contains? unit-rscs (:id rsc))))
+
+(defn activate-rsc [unit-rscs rsc]
+  (let [activate #(assoc % :active (active? unit-rscs %))
+        rsc (activate rsc)]
+    (if (= (:type rsc) "block")
+      (update-in rsc [:resources] #(u/mmap activate %))
+      rsc)))
+
+(defn activate-rscs [unit-rscs resources]
+  (map (partial activate-rsc unit-rscs) resources))
 
 (defn unit-edit-view
-  [[unit rsc-types] owner]
+  [[unit rscs] owner]
   (reify
     om/IWillMount
     (will-mount [_]
@@ -166,17 +204,18 @@
 
     om/IRender
     (render [_]
-      (let [resources (->> rsc-types
+      (let [resources (->> rscs
+                           filter-dups
                            vals
                            (sort-by :timestamp)
-                           (map #(assoc % :active (contains? (:resources unit) (:id %)))))]
+                           (activate-rscs (:resources unit)))]
         (html [:div.flex-col.frame
-               (c/select-list
-                 {:id "unit-edit-rscs"
-                  :class "border-select-"
-                  :action (partial update-unit-rsc unit)
-                  :placeholder "Untitled_Resource"}
-                 resources)])))))
+               (om/build c/simple-list
+                 [{:id "unit-edit-rscs"
+                   :class "border-select-"
+                   :item-comp selectable-rsc
+                   :action #(update-unit-rsc unit %1 %2)}
+                  resources])])))))
 
 (defn unit-views
   [{:keys [drawer location]} data {:keys [page]}]

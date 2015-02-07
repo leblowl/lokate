@@ -90,3 +90,8 @@
 
 (defn route! [evt-bus & route]
   (async/put! evt-bus (conj [:set-route] route)))
+
+(defn block? [rsc]
+  (-> rsc
+    :type
+    (= "block")))

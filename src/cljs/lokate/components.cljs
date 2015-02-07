@@ -68,7 +68,9 @@
     (om/component
       (html [:div
              {:class (str class "item clickable")
-              :on-click #(action item evt-bus)
+              :on-click (fn [e]
+                          (action item evt-bus)
+                          (.stopPropagation e))
               :on-context-menu (fn [e]
                                  (when alt-action
                                    (alt-action item evt-bus))

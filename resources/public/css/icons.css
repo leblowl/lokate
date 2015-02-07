@@ -205,26 +205,26 @@
 
 .t3 {
     background-color: rgb(150, 33, 255);;
-    width: 4px;
-    height: 4px;
+    width: 5px;
+    height: 5px;
     position: absolute;
-    top: 24px;
-    right: 22px;
+    top: 25px;
+    right: 23px;
 }
 
 .t2 {
     background-color: rgb(33, 150, 255);;
-    height: 8px;
-    width: 8px;
+    height: 11px;
+    width: 11px;
     position: absolute;
-    top: 21px;
-    right: 19px;
+    top: 20px;
+    right: 18px;
 }
 
 .t1 {
     background-color: rgba(33, 255, 150, 0.9);;
-    height: 16px;
-    width: 16px;
+    height: 20px;
+    width: 20px;
     margin-left: 2px;
     position: relative;
     top: -0.2px;

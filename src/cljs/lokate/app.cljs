@@ -90,8 +90,7 @@
   ;; only commit tracked data
   (-> (select-keys unit [:id :status :resources])
       (update-in [:resources]
-        (fn [unit-rscs]
-          (u/mmap #(merge % (get rscs (:id %))) unit-rscs)))))
+        #(->> % vals (sort-by :timestamp)))))
 
 (defn new-commit [unit rscs]
   {:id (keyword (u/uuid))

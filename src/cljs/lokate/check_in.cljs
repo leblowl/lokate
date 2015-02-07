@@ -73,10 +73,11 @@
 
     om/IRender
     (render [_]
-      (html [:div.flex-col.frame
-             (om/build c/input-list [{:id "check-in-rscs"
-                                      :item-comp unit-resource-editable}
-                                     (vals resources)])]))))
+      (let [resources (->> resources vals (sort-by :timestamp))]
+        (html [:div.flex-col.frame
+               (om/build c/input-list [{:id "check-in-rscs"
+                                        :item-comp unit-resource-editable}
+                                       resources])])))))
 
 (defn check-in-commit-view
   [commit owner]
