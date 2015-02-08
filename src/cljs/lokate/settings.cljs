@@ -14,8 +14,7 @@
 
 (defn settings-drawer-view [settings owner]
   (om/component
-    (html [:div.flex-col.frame
-           ])))
+    (html [:div.flex-col.frame])))
 
 (defn settings-views [{:keys [drawer]} data state]
   [(om/build c/drawer-nav-panel [drawer
