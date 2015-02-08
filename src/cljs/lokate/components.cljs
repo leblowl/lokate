@@ -78,7 +78,8 @@
              [:div.txt-wrap.clickable
               [:span.item-title
                (or (u/blankf (:title item)) placeholder)]]
-             [:div {:class (str "item-icon " (:icon item))}]]))))
+             (when (:icon item)
+               [:div {:class (str "item-icon " (:icon item))}])]))))
 
 (defn set-status [owner status]
   (om/set-state! owner :status status))

@@ -340,8 +340,9 @@ textarea {
     width: 100%;
     height: 33px;
     display: flex;
+    flex-direction: row;
     align-items: center;
-    justify-content: center;
+    //justify-content: center;
     margin-bottom: .5em;
     padding-left: .3em;
     padding-right: .3em;
@@ -382,7 +383,7 @@ textarea {
     border-radius: 3px;
     display: flex;
     align-items: center;
-    justify-content: center;
+    //justify-content: center;
     padding-left: .3em;
     padding-right: .3em;
     border: 1px solid #888;
