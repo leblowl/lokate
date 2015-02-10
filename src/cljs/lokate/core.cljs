@@ -12,7 +12,7 @@
             {:class (str orientation
                       (if (:open? drawer) " show" " hide")
                       (when (:maximized? drawer) " maximized"))}
-            [:div#drawer-content drawer-view]]])))
+            [:div#drawer-content.frame drawer-view]]])))
 
 (defn window
   [[{:keys [orientation location drawer views-fn views-state] :as window} data] owner]
@@ -22,5 +22,7 @@
              nav-view
              [:div {:class (str "flex-container " orientation)}
               [:div.flex-content
-               (om/build map/l-map [location (-> data u/get-collections u/get-units)])
+               (om/build map/l-map [location
+                                    (-> data u/get-collections u/get-units)
+                                    (u/get-settings data)])
                (om/build drawer-panel [orientation drawer drawer-view])]]]))))

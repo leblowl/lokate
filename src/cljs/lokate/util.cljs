@@ -85,6 +85,9 @@
 (defn get-resource [data rid]
   (get-in data [:model :resources rid]))
 
+(defn get-settings [data]
+  (get-in data [:model :settings]))
+
 (defn get-unit-history [data uid]
   (get-in data [:model :history uid]))
 

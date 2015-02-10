@@ -22,7 +22,7 @@
 
 (defn scroll-to-active []
   (let [active (.-activeElement js/document)]
-    (when (= (.-tagName active) "input")
+    (when (= (str/lower-case (.-tagName active)) "input")
       (set! (.-scrollTop (.-offsetParent active)) (- (.-offsetTop active) 14)))))
 
 (defn unit-resource-editable
@@ -41,7 +41,8 @@
 
     om/IDidMount
     (did-mount [_]
-      ((:on-mount props)))
+      ((:on-mount props))
+      (.addEventListener (om/get-node owner "input") "focus" scroll-to-active))
 
     om/IWillUnmount
     (will-unmount [_]
@@ -74,10 +75,9 @@
     om/IRender
     (render [_]
       (let [resources (->> resources vals (sort-by :timestamp))]
-        (html [:div.flex-col.frame
-               (om/build c/input-list [{:id "check-in-rscs"
-                                        :item-comp unit-resource-editable}
-                                       resources])])))))
+        (om/build c/input-list [{:id "check-in-rscs-list"
+                                 :item-comp unit-resource-editable}
+                                resources])))))
 
 (defn check-in-commit-view
   [commit owner]
@@ -94,7 +94,7 @@
 
     om/IRender
     (render [_]
-      (html [:div.flex-col.frame
+      (html [:div.flex-col.full.frame
              [:div#commit
               [:div#commit-status-wrapper
                (om/build-all status-select [{:color "red"}

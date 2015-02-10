@@ -321,5 +321,13 @@
      [:span.title1-txt
       {:data-ph placeholder} title]]]))
 
+(defn title2
+  [key value placeholder action]
+  [:div.title2-container
+   [:div {:class (str "txt-wrap" (when action " clickable"))
+          :on-click action}
+    [:span.title2-key key]
+    [:span.title2-value {:data-ph placeholder} value]]])
+
 (defn tip [tip-msg]
   [:div.tip-wrapper [:div.tip tip-msg]])

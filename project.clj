@@ -1,4 +1,4 @@
-(defproject lokate "0.1.0-SNAPSHOT"
+(defproject lokate "0.2.0-SNAPSHOT"
   :description "track resources on a map!"
   :url "http://lokate-demo.herokuapp.com"
   :license {:name "Eclipse Public License"

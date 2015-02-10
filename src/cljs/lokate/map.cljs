@@ -81,7 +81,7 @@
     [:add-unit [(.-lat (.-latlng evt))
                 (.-lng (.-latlng evt))]]))
 
-(defn l-map [[path units] owner]
+(defn l-map [[path units {:keys [tile-url tile-attr]}] owner]
   (reify
     om/IInitState
     (init-state [_]
@@ -114,9 +114,7 @@
 
     om/IDidMount
     (did-mount [_]
-      (let [tile-url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-            tile-attr "&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors"
-            l-map (-> js/L
+      (let [l-map (-> js/L
                     (.map "map"
                       (clj->js {:zoomControl false
                                 :contextmenu true

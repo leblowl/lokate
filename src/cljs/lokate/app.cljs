@@ -11,7 +11,8 @@
             [lokate.collections :as collections]
             [lokate.unit :as unit]
             [lokate.check-in :as check-in]
-            [lokate.resources :as resources])
+            [lokate.resources :as resources]
+            [lokate.settings :as settings])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
 (enable-console-print!)
@@ -19,6 +20,8 @@
 (def app-state
   (atom {:model {:collections    {}
                  :resources      {}
+                 :settings       {:tile-url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
+                                  :tile-attr "&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors"}
                  :history        {}}
          :view  {:window {:orientation ""
                           :location    []
@@ -110,7 +113,8 @@
                   {:page :resources
                    :commit (new-commit
                              (apply u/get-unit @app-state args))}]
-    :resources   [resources/resources-views {:selected nil}]))
+    :resources   [resources/resources-views {:selected nil}]
+    :settings    [settings/settings-views]))
 
 (defn set-views
   ([fn]
