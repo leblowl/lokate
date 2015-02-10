@@ -343,7 +343,8 @@ textarea {
     list-style-type: none;
     margin: 0;
     /* added due to weird rendering issue on chrome mobile where it cuts off right edge */
-    padding: 1px;
+    padding: 0;
+    padding-right: 1px;
     height: 100%;
     overflow-y: auto;
 }
