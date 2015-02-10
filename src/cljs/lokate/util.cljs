@@ -53,6 +53,9 @@
 (defn mfilter [f m]
   (select-keys m (for [[k v] m :when (f v)] k)))
 
+(defn keyset [m]
+  (set (keys m)))
+
 (defn sub-go-loop [ch topic fun]
   (let [events (async/sub ch topic (async/chan))]
     (go-loop [e (<! events)]
@@ -87,6 +90,9 @@
 
 (defn get-settings [data]
   (get-in data [:model :settings]))
+
+(defn get-default-settings [data]
+  (get-in data [:model :default-settings]))
 
 (defn get-unit-history [data uid]
   (get-in data [:model :history uid]))

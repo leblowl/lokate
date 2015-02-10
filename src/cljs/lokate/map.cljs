@@ -81,6 +81,40 @@
     [:add-unit [(.-lat (.-latlng evt))
                 (.-lng (.-latlng evt))]]))
 
+(defn init-map [tile-url tile-attr owner]
+  (when-let [l-map (om/get-state owner :map)]
+    (.remove l-map))
+  (let [l-map (-> js/L
+                (.map "map"
+                  (clj->js {:zoomControl false
+                            :contextmenu true
+                            :contextmenuWidth 140
+                            :contextmenuAnchor [-70 -35]
+                            :contextmenuItems [
+                              {:text "Add unit"
+                               :iconCls "icon-pin"
+                               :callback #(add-unit (om/get-shared owner :event-bus) %)}
+                            ]}))
+                (.setView (om/get-state owner :center) 9))]
+
+    (-> l-map .-contextmenu .removeHooks)
+
+    (-> js/L
+      (.tileLayer (:value tile-url) #js {:attribution (:value tile-attr)})
+      (.addTo l-map))
+
+    (.on l-map "contextmenu" #())
+
+    (if navigator.geolocation
+      (.getCurrentPosition navigator.geolocation
+        (fn [pos]
+          (let [initialLoc #js [(.-coords.latitude pos)
+                                (.-coords.longitude pos)]]
+            (.setView l-map initialLoc 9))))
+      (println "Hey, where'd you go!? Geolocation Disabled."))
+
+    (om/set-state! owner :map l-map)))
+
 (defn l-map [[path units {:keys [tile-url tile-attr]}] owner]
   (reify
     om/IInitState
@@ -91,11 +125,16 @@
        :map nil})
 
     om/IWillReceiveProps
-    (will-receive-props [this [path units]]
-      (let [next-units    (set units)
+    (will-receive-props [this [path units {:keys [tile-url tile-attr]}]]
+      (let [current-url   (get-in (om/get-props owner) [2 :tile-url])
+            current-attr  (get-in (om/get-props owner) [2 :tile-attr])
+            next-units    (set units)
             current-units (set (second (om/get-props owner)))
             to-add (set/difference next-units current-units)
             to-delete (set/difference current-units next-units)]
+
+        (when-not (and (= current-url tile-url) (= current-attr tile-attr))
+          (init-map tile-url tile-attr owner))
 
         (delete-markers owner (keys to-delete))
         (add-markers to-add owner)
@@ -114,38 +153,8 @@
 
     om/IDidMount
     (did-mount [_]
-      (let [l-map (-> js/L
-                    (.map "map"
-                      (clj->js {:zoomControl false
-                                :contextmenu true
-                                :contextmenuWidth 140
-                                :contextmenuAnchor [-70 -35]
-                                :contextmenuItems [
-                                  {:text "Add unit"
-                                   :iconCls "icon-pin"
-                                   :callback #(add-unit (om/get-shared owner :event-bus) %)}
-                                ]}))
-                    (.setView (om/get-state owner :center) 9))]
-
-        (-> l-map .-contextmenu .removeHooks)
-
-        (-> js/L
-          (.tileLayer tile-url #js {:attribution tile-attr})
-          (.addTo l-map))
-
-        (.on l-map "contextmenu" #())
-
-        (if navigator.geolocation
-          (.getCurrentPosition navigator.geolocation
-            (fn [pos]
-             (let [initialLoc #js [(.-coords.latitude pos)
-                                   (.-coords.longitude pos)]]
-               (.setView l-map initialLoc 9))))
-          (println "Hey, where'd you go!? Geolocation Disabled"))
-
-
-        (om/set-state! owner :map l-map)
-        (add-markers units owner)))
+      (init-map tile-url tile-attr owner)
+      (add-markers units owner))
 
     om/IRenderState
     (render-state [_ {:keys [markers]}]

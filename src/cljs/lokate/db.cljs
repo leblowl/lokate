@@ -12,7 +12,8 @@
                                         (reset! db (.. e -target -result))
                                         (set! (.. e -target -transaction -onerror) error)
                                         (.createObjectStore @db "collection" #js {:keyPath "id"})
-                                        (.createObjectStore @db "resources" #js {:keyPath "id"})
+                                        (.createObjectStore @db "resource" #js {:keyPath "id"})
+                                        (.createObjectStore @db "setting" #js {:keyPath "id"})
                                         (.createObjectStore @db "history")))
     (set! (.-onsuccess request) (fn [e]
                                   (reset! db (.. e -target -result))

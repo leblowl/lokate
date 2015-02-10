@@ -5,12 +5,13 @@
             [lokate.util :as u]
             [lokate.components :as c]))
 
-(defn edit-setting [title k v]
+(defn edit-setting [title setting owner]
   (c/display-input
     title
     ""
-    v
-    #(.log js/console %)))
+    (:value setting)
+    #(async/put! (om/get-shared owner :event-bus)
+       [:add-setting (:id setting) %])))
 
 (defn map-settings [settings owner]
   (om/component
@@ -20,14 +21,14 @@
            [:div.flex-col
             (c/title2
               "Tile url: "
-              (:tile-url settings)
+              (:value (:tile-url settings))
               ""
-              #(edit-setting "Tile url" :tile-url (:tile-url settings)))
+              #(edit-setting "Tile url" (:tile-url settings) owner))
             (c/title2
               "Tile attr: "
-              (:tile-attr settings)
+              (:value (:tile-attr settings))
               ""
-              #(edit-setting "Tile attr" :tile-attr (:tile-attr settings)))]])))
+              #(edit-setting "Tile attr" (:tile-attr settings) owner))]])))
 
 (defn settings-drawer-view [settings owner]
   (om/component

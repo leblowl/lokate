@@ -18,11 +18,11 @@
 (enable-console-print!)
 
 (def app-state
-  (atom {:model {:collections    {}
-                 :resources      {}
-                 :settings       {:tile-url "http://{s}.tile.osm.org/{z}/{x}/{y}.png"
-                                  :tile-attr "&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors"}
-                 :history        {}}
+  (atom {:model {:collections      {}
+                 :resources        {}
+                 :settings         {}
+                 :default-settings {}
+                 :history          {}}
          :view  {:window {:orientation ""
                           :location    []
                           :views-fn    home/home-views
@@ -98,6 +98,14 @@
    :timestamp (u/now)
    :message ""
    :data (prep-commit-data unit)})
+
+(defn init-default-settings []
+  (swap! app-state
+    #(assoc-in % [:model :settings]
+       {:tile-url {:id :tile-url
+                   :value "http://{s}.tile.osm.org/{z}/{x}/{y}.png"}
+        :tile-attr {:id :tile-attr
+                    :value "&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors"}})))
 
 (defn set-location [route]
   (swap! app-state
@@ -200,6 +208,10 @@
                 colls))
             :collection)))
 
+      (u/sub-go-loop event-bus-pub :add-setting
+        (fn [[topic k v]]
+          (om/update! data [:model :settings k] {:id k :value v} :setting)))
+
       (u/sub-go-loop event-bus-pub :commit!
         (fn [[topic cid uid commit]]
           (om/transact! data [:model :history uid]
@@ -225,18 +237,17 @@
         (keywordize-ids (js->clj (.-value result) :keywordize-keys true))))))
 
 (defn init-app-state [cb]
- (db/new
-   (->> cb
-     (partial db/get-all "resources" #(populate-model :resources %))
-     (partial db/get-all "collection" #(populate-model :collections %))
-     (partial db/get-all "history" #(populate-model :history %)))))
-
-(defn keyset [m]
-  (set (keys m)))
+  (init-default-settings)
+  (db/new
+    (->> cb
+      (partial db/get-all "resource" #(populate-model :resources %))
+      (partial db/get-all "collection" #(populate-model :collections %))
+      (partial db/get-all "setting" #(populate-model :settings %))
+      (partial db/get-all "history" #(populate-model :history %)))))
 
 (defn update-db [db-name old new]
   (let [to-add (set/difference (set new) (set old))
-        to-delete (set/difference (keyset old) (keyset new))]
+        to-delete (set/difference (u/keyset old) (u/keyset new))]
     (dorun (map #(db/delete db-name %) to-delete))
     (dorun (map #(db/add db-name (second %)) to-add))))
 
@@ -248,9 +259,12 @@
     :collection (update-db "collection"
                   (-> m :old-state u/get-collections)
                   (-> m :new-state u/get-collections))
-    :resource (update-db "resources"
+    :resource (update-db "resource"
                 (-> m :old-state u/get-resources)
                 (-> m :new-state u/get-resources))
+    :setting (update-db "setting"
+               (-> m :old-state u/get-settings)
+               (-> m :new-state u/get-settings))
     :history (db/add "history" (:new-value m) (-> m :new-value first :data :id name))
     nil))
 
