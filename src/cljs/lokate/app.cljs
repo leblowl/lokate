@@ -61,6 +61,11 @@
                     :timestamp (u/now)
                     :units {}}]
     (om/transact! data [:model :collections] #(assoc % (:id collection) collection) :collection)
+    (-> js/remoteStorage
+        .-collections
+        (.addCollection collection)
+        (.then #(.log js/console "success!") #(.log js/console (str "error: "%)))
+        )
     collection))
 
 (defn add-unit [data cid latlng title]
@@ -238,6 +243,7 @@
 
 (defn init-app-state [cb]
   (init-default-settings)
+  (db/init-remoteStorage)
   (db/new
     (->> cb
       (partial db/get-all "resource" #(populate-model :resources %))

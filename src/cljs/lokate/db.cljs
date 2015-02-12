@@ -49,3 +49,31 @@
             (for-each result)
             (.continue result))
           (cb))))))
+
+(defn init-remoteStorage []
+  (.defineModule js/RemoteStorage "collections"
+    (fn [privClient pubClient]
+
+      (.declareType privClient "collection"
+        (clj->js
+          {:description "a collection of units"
+           :type "object"
+           :properties {:id {:type "string"
+                             :format "id"}
+                        :title {:type "string"}}}))
+      (clj->js
+        {:exports
+         {:addCollection (fn [collection]
+                            (.storeObject privClient "collection"
+                              (name (:id collection)) collection))
+          :getCollections (fn []
+                            (.getAll privClient "collection"
+                              #(.log js/console (str "yea! " %))
+                              #(.log js/console (str "error " %))))}})))
+
+  (-> js/remoteStorage .-access (.claim "collections" "rw"))
+  (.on js/remoteStorage "connecting" #(.log js/console "connecting"))
+  (.on js/remoteStorage "authing" #(.log js/console "authing"))
+  (.on js/remoteStorage "error" #(.log js/console "error"))
+  (.on js/remoteStorage "connected" #(.log js/console "connected"))
+  (.connect js/remoteStorage "leblowl@5apps.com"))
