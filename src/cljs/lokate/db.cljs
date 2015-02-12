@@ -1,4 +1,5 @@
-(ns lokate.db)
+(ns lokate.db
+  (:require [goog.object :as gobject]))
 
 (def db (atom nil))
 
@@ -65,15 +66,17 @@
         {:exports
          {:addCollection (fn [collection]
                             (.storeObject privClient "collection"
-                              (name (:id collection)) collection))
+                              (name (:id collection)) (clj->js collection)))
           :getCollections (fn []
-                            (.getAll privClient "collection"
-                              #(.log js/console (str "yea! " %))
-                              #(.log js/console (str "error " %))))}})))
+                            (-> privClient
+                              (.getAll "")
+                              (.then
+                                #(.log js/console (pr-str (js->clj %)))
+                                #(.log js/console (str "error " %)))))}})))
 
   (-> js/remoteStorage .-access (.claim "collections" "rw"))
   (.on js/remoteStorage "connecting" #(.log js/console "connecting"))
   (.on js/remoteStorage "authing" #(.log js/console "authing"))
-  (.on js/remoteStorage "error" #(.log js/console "error"))
+  (.on js/remoteStorage "error" #(.log js/console (str "error " %)))
   (.on js/remoteStorage "connected" #(.log js/console "connected"))
   (.connect js/remoteStorage "leblowl@5apps.com"))
