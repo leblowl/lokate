@@ -65,6 +65,13 @@
 (defn ends-with? [str suffix]
   (not= (.indexOf str suffix (- (count str) (count suffix))) -1))
 
+(defn keywordize-ids
+  "Recursively transforms all keys ending with 'id' from strings to keywords."
+  [m]
+  (let [f (fn [[k v]] (if (ends-with? (name k) "id") [k (keyword v)] [k v]))]
+    ;; only apply to maps
+    (clojure.walk.postwalk (fn [x] (if (map? x) (into {} (map f x)) x)) m)))
+
 (defn share [owner msg]
   (async/put! (:event-bus (om/get-shared owner))
     msg))

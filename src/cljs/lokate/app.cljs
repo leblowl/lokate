@@ -62,10 +62,9 @@
                     :units {}}]
     (om/transact! data [:model :collections] #(assoc % (:id collection) collection) :collection)
     (-> js/remoteStorage
-        .-collections
-        (.addCollection collection)
-        (.then #(.log js/console "success!") #(.log js/console (str "error: "%)))
-        )
+        .-lokate
+        (.put "collection" (:id collection) collection)
+        (.then #(.log js/console "success!") #(.log js/console (str "error: "%))))
     collection))
 
 (defn add-unit [data cid latlng title]
@@ -228,40 +227,31 @@
     (render [_]
       (om/build core/window [(-> data :view :window) data]))))
 
-(defn keywordize-ids
-  "Recursively transforms all ids from strings to keywords."
-  [m]
-  (let [f (fn [[k v]] (if (u/ends-with? (name k) "id") [k (keyword v)] [k v]))]
-    ;; only apply to maps
-    (clojure.walk.postwalk (fn [x] (if (map? x) (into {} (map f x)) x)) m)))
-
 (defn populate-model [key result]
   (swap! app-state
     (fn [m]
       (assoc-in m [:model key (keyword (.-key result))]
-        (keywordize-ids (js->clj (.-value result) :keywordize-keys true))))))
+        (u/keywordize-ids (js->clj (.-value result) :keywordize-keys true))))))
 
 (defn init-app-state [cb]
   (init-default-settings)
   (db/init-remoteStorage)
-  (db/new
-    (->> cb
-      (partial db/get-all "resource" #(populate-model :resources %))
-      (partial db/get-all "collection" #(populate-model :collections %))
-      (partial db/get-all "setting" #(populate-model :settings %))
-      (partial db/get-all "history" #(populate-model :history %)))))
+  (cb))
 
 (defn update-db [db-name old new]
   (let [to-add (set/difference (set new) (set old))
         to-delete (set/difference (u/keyset old) (u/keyset new))]
-    (dorun (map #(db/delete db-name %) to-delete))
-    (dorun (map #(db/add db-name (second %)) to-add))))
+    ;(dorun (map #(db/delete db-name %) to-delete))
+                                        ;(dorun (map #(db/add db-name (second %)) to-add))
+    )
+  )
 
 (defn tx-listen [m root-cursor]
   (case (:tag m)
     :unit (let [collection (get-in @app-state
                              [:model :collections (-> m :new-value :cid)])]
-            (db/add "collection" collection))
+            ;(db/add "collection" collection)
+            )
     :collection (update-db "collection"
                   (-> m :old-state u/get-collections)
                   (-> m :new-state u/get-collections))
@@ -271,7 +261,7 @@
     :setting (update-db "setting"
                (-> m :old-state u/get-settings)
                (-> m :new-state u/get-settings))
-    :history (db/add "history" (:new-value m) (-> m :new-value first :data :id name))
+    :history "yo";(db/add "history" (:new-value m) (-> m :new-value first :data :id name))
     nil))
 
 (defn render []

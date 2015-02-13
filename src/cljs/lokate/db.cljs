@@ -1,82 +1,48 @@
 (ns lokate.db
-  (:require [goog.object :as gobject]))
+  (:require [goog.object :as gobject]
+            [lokate.util :as u]))
 
-(def db (atom nil))
+(defn log-error [err]
+  (.log js/console (str "[error] " err)))
 
-(defn error [e]
-  (.error js/console "An IndexedDB error has occured!" e))
-
-(defn new [cb]
-  (let [version 1
-        request (.open js/indexedDB "lokate" version)]
-    (set! (.-onupgradeneeded request) (fn [e]
-                                        (reset! db (.. e -target -result))
-                                        (set! (.. e -target -transaction -onerror) error)
-                                        (.createObjectStore @db "collection" #js {:keyPath "id"})
-                                        (.createObjectStore @db "resource" #js {:keyPath "id"})
-                                        (.createObjectStore @db "setting" #js {:keyPath "id"})
-                                        (.createObjectStore @db "history")))
-    (set! (.-onsuccess request) (fn [e]
-                                  (reset! db (.. e -target -result))
-                                  (cb)))
-    (set! (.-onerror request) error)))
-
-(defn add
-  ([db-name data]
-   (add db-name data nil))
-  ([db-name data key]
-   (let [transaction (.transaction @db #js [db-name] "readwrite")
-         store (.objectStore transaction db-name)
-         request (if key
-                   (.put store (clj->js data) key)
-                   (.put store (clj->js data)))]
-     (set! (.-onerror request) error))))
-
-(defn delete [db-name key]
-  (let [transaction (.transaction @db #js [db-name] "readwrite")
-        store (.objectStore transaction db-name)
-        request (.delete store (if (keyword? key) (name key) key))]
-    (set! (.-onerror request) error)))
-
-(defn get-all [db-name for-each cb]
-  (let [transaction (.transaction @db #js [db-name] "readonly")
-        store (.objectStore transaction db-name)
-        keyRange (.lowerBound js/IDBKeyRange 0)
-        cursorRequest (.openCursor store keyRange)]
-    (set! (.-onsuccess cursorRequest)
-      (fn [e]
-        (if-let [result (.. e -target -result)]
-          (do
-            (for-each result)
-            (.continue result))
-          (cb))))))
-
-(defn init-remoteStorage []
-  (.defineModule js/RemoteStorage "collections"
+(defn init-lokate []
+  (.defineModule js/RemoteStorage "lokate"
     (fn [privClient pubClient]
-
       (.declareType privClient "collection"
         (clj->js
           {:description "a collection of units"
-           :type "object"
-           :properties {:id {:type "string"
-                             :format "id"}
-                        :title {:type "string"}}}))
+           :type "object"}))
+
+      (.declareType privClient "resource"
+        (clj->js
+          {:description "something that can be tracked by total count. ex: '# of beers in the fridge'"
+           :type "object"}))
+
+      (.declareType privClient "setting"
+        (clj->js
+          {:description "an app setting"
+           :type "object"}))
+
+      (.declareType privClient "history"
+        (clj->js
+          {:description "the commit stack for a particular unit"
+           :type "object"}))
+
       (clj->js
         {:exports
-         {:addCollection (fn [collection]
-                            (.storeObject privClient "collection"
-                              (name (:id collection)) (clj->js collection)))
-          :getCollections (fn []
-                            (-> privClient
-                              (.getAll "")
-                              (.then
-                                #(.log js/console (pr-str (js->clj %)))
-                                #(.log js/console (str "error " %)))))}})))
+         {:put (fn [type k v]
+                 (let [path (str type "/" (if (keyword? k) (name k) k))]
+                   (.storeObject privClient type path (clj->js v))))
 
-  (-> js/remoteStorage .-access (.claim "collections" "rw"))
-  (.on js/remoteStorage "connecting" #(.log js/console "connecting"))
-  (.on js/remoteStorage "authing" #(.log js/console "authing"))
-  (.on js/remoteStorage "error" #(.log js/console (str "error " %)))
-  (.on js/remoteStorage "connected" #(.log js/console "connected"))
-  (.connect js/remoteStorage "leblowl@5apps.com"))
+          :get (fn [path then]
+                 (if (u/ends-with? path "/")
+                   (-> privClient (.getAll path) (.then then  log-error))
+                   (-> privClient (.getObject path) (.then then log-error))))
+
+          :delete (fn [path] (.remove privClient path))}}))))
+
+(defn init-remoteStorage []
+  (init-lokate)
+  (-> js/remoteStorage .-access (.claim "lokate" "rw"))
+  (.on js/remoteStorage "error" log-error)
+  (.connect js/remoteStorage "lucas@192.168.1.146:10555"))
