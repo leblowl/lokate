@@ -116,7 +116,7 @@
 (defn check-in-commit-nav [unit commit]
   (om/build c/simple-nav-panel
     [(om/build c/btn ["icon-done-all" (fn [evt-bus]
-                                        (async/put! evt-bus [:commit! (:cid unit) (:id unit) @commit])
+                                        (async/put! evt-bus [:app :commit! (:cid unit) (:id unit) @commit])
                                         (u/route! evt-bus :unit (:cid unit) (:id unit)))])]))
 
 (defn check-in-views

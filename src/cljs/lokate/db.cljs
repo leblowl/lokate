@@ -5,7 +5,7 @@
 (defn log-error [err]
   (.log js/console (str "[error] " err)))
 
-(defn init-lokate []
+(defn def-lokate []
   (.defineModule js/RemoteStorage "lokate"
     (fn [privClient pubClient]
       (.declareType privClient "collection"
@@ -34,15 +34,23 @@
                  (let [path (str type "/" (if (keyword? k) (name k) k))]
                    (.storeObject privClient type path (clj->js v))))
 
-          :get (fn [path then]
+          :get (fn [path pass fail]
                  (if (u/ends-with? path "/")
-                   (-> privClient (.getAll path) (.then then  log-error))
-                   (-> privClient (.getObject path) (.then then log-error))))
+                   (-> privClient (.getAll path) (.then pass fail))
+                   (-> privClient (.getObject path) (.then pass fail))))
 
           :delete (fn [path] (.remove privClient path))}}))))
 
-(defn init-remoteStorage []
-  (init-lokate)
+(defn init []
+  (def-lokate)
   (-> js/remoteStorage .-access (.claim "lokate" "rw"))
   (.on js/remoteStorage "error" log-error)
   (.connect js/remoteStorage "lucas@192.168.1.146:10555"))
+
+(defn fetch
+  ([path pass]
+   (fetch path pass #()))
+  ([path pass fail]
+   (-> js/remoteStorage
+       .-lokate
+       (.get path pass fail))))

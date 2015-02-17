@@ -78,8 +78,8 @@
 
 (defn add-unit [evt-bus evt]
   (async/put! evt-bus
-    [:add-unit [(.-lat (.-latlng evt))
-                (.-lng (.-latlng evt))]]))
+    [:app :add-unit [(.-lat (.-latlng evt))
+                     (.-lng (.-latlng evt))]]))
 
 (defn init-map [tile-url tile-attr owner]
   (when-let [l-map (om/get-state owner :map)]
