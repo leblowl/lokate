@@ -23,10 +23,12 @@
 (def app-state
   (atom {:model {:collections      {}
                  :resources        {}
-                 :settings         {:tile-url  {:id :tile-url
-                                                :value tile-url}
-                                    :tile-attr {:id :tile-attr
-                                                :value tile-attr}}
+                 :settings         {:tile-url     {:id :tile-url
+                                                   :value tile-url}
+                                    :tile-attr    {:id :tile-attr
+                                                   :value tile-attr}
+                                    :user-address {:id :user-address
+                                                   :value (-> js/remoteStorage .-remote .-userAddress)}}
                  :default-settings {}
                  :history          {}}
          :view  {:window {:orientation ""
@@ -213,6 +215,7 @@
     :add-resource (apply new-resource data args)
     :delete-resource (apply delete-resource data args)
     :add-setting (apply add-setting data args)
+    :connect (apply db/connect args)
     :commit! (apply commit! data args)))
 
 (defn init-model [data k v]

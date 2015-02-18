@@ -1,5 +1,6 @@
 (ns lokate.db
   (:require [goog.object :as gobject]
+            [clojure.string :as str]
             [lokate.util :as u]))
 
 (defn log-error [err]
@@ -43,13 +44,16 @@
                     (let [path (str type "/" (if (keyword? k) (name k) k))]
                       (-> privClient (.remove path) (.then pass fail))))}}))))
 
-(def local "lucas@192.168.1.146:10555")
+(defn connect [user-address]
+  (if (str/blank? user-address)
+    (.disconnect js/remoteStorage)
+    (do
+      (.disconnect js/remoteStorage)
+      (.connect js/remoteStorage user-address))))
 
 (defn init []
   (def-lokate)
-  (-> js/remoteStorage .-access (.claim "lokate" "rw"))
-  (.on js/remoteStorage "error" log-error)
-  (.connect js/remoteStorage "leblowl@5apps.com"))
+  (-> js/remoteStorage .-access (.claim "lokate" "rw")))
 
 (defn put [type k v]
   (-> js/remoteStorage
