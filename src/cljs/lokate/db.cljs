@@ -1,51 +1,74 @@
-(ns lokate.db)
+(ns lokate.db
+  (:require [goog.object :as gobject]
+            [clojure.string :as str]
+            [lokate.util :as u]))
 
-(def db (atom nil))
+(defn log-error [err]
+  (.log js/console (str "[error] " err)))
 
-(defn error [e]
-  (.error js/console "An IndexedDB error has occured!" e))
+(defn def-lokate []
+  (.defineModule js/RemoteStorage "lokate"
+    (fn [privClient pubClient]
+      (.declareType privClient "collection"
+        (clj->js
+          {:description "a collection of units"
+           :type "object"}))
 
-(defn new [cb]
-  (let [version 1
-        request (.open js/indexedDB "lokate" version)]
-    (set! (.-onupgradeneeded request) (fn [e]
-                                        (reset! db (.. e -target -result))
-                                        (set! (.. e -target -transaction -onerror) error)
-                                        (.createObjectStore @db "collection" #js {:keyPath "id"})
-                                        (.createObjectStore @db "resource" #js {:keyPath "id"})
-                                        (.createObjectStore @db "setting" #js {:keyPath "id"})
-                                        (.createObjectStore @db "history")))
-    (set! (.-onsuccess request) (fn [e]
-                                  (reset! db (.. e -target -result))
-                                  (cb)))
-    (set! (.-onerror request) error)))
+      (.declareType privClient "resource"
+        (clj->js
+          {:description "something that can be tracked by total count. ex: '# of beers in the fridge'"
+           :type "object"}))
 
-(defn add
-  ([db-name data]
-   (add db-name data nil))
-  ([db-name data key]
-   (let [transaction (.transaction @db #js [db-name] "readwrite")
-         store (.objectStore transaction db-name)
-         request (if key
-                   (.put store (clj->js data) key)
-                   (.put store (clj->js data)))]
-     (set! (.-onerror request) error))))
+      (.declareType privClient "setting"
+        (clj->js
+          {:description "an app setting"
+           :type "object"}))
 
-(defn delete [db-name key]
-  (let [transaction (.transaction @db #js [db-name] "readwrite")
-        store (.objectStore transaction db-name)
-        request (.delete store (if (keyword? key) (name key) key))]
-    (set! (.-onerror request) error)))
+      (.declareType privClient "history"
+        (clj->js
+          {:description "the commit stack for a particular unit"
+           :type "array"}))
 
-(defn get-all [db-name for-each cb]
-  (let [transaction (.transaction @db #js [db-name] "readonly")
-        store (.objectStore transaction db-name)
-        keyRange (.lowerBound js/IDBKeyRange 0)
-        cursorRequest (.openCursor store keyRange)]
-    (set! (.-onsuccess cursorRequest)
-      (fn [e]
-        (if-let [result (.. e -target -result)]
-          (do
-            (for-each result)
-            (.continue result))
-          (cb))))))
+      (clj->js
+        {:exports
+         {:put (fn [type k v pass fail]
+                 (let [path (str type "/" (if (keyword? k) (name k) k))]
+                   (.storeObject privClient type path (clj->js v))))
+
+          :get (fn [path pass fail]
+                 (if (u/ends-with? path "/")
+                   (-> privClient (.getAll path) (.then pass fail))
+                   (-> privClient (.getObject path) (.then pass fail))))
+
+          :delete (fn [type k pass fail]
+                    (let [path (str type "/" (if (keyword? k) (name k) k))]
+                      (-> privClient (.remove path) (.then pass fail))))}}))))
+
+(defn connect [user-address]
+  (if (str/blank? user-address)
+    (.disconnect js/remoteStorage)
+    (do
+      (.disconnect js/remoteStorage)
+      (.connect js/remoteStorage user-address))))
+
+(defn init []
+  (def-lokate)
+  (-> js/remoteStorage .-access (.claim "lokate" "rw")))
+
+(defn put [type k v]
+  (-> js/remoteStorage
+      .-lokate
+      (.put type k v #() log-error)))
+
+(defn fetch
+  ([path pass]
+   (fetch path pass #()))
+  ([path pass fail]
+   (-> js/remoteStorage
+       .-lokate
+       (.get path pass fail))))
+
+(defn delete [type k]
+  (-> js/remoteStorage
+      .-lokate
+      (.delete type k #() log-error)))

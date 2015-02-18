@@ -23,10 +23,10 @@
   (apply u/format "%1.2f %2.2f" latlng))
 
 (defn set-unit [unit k v]
-  (om/transact! unit [] (fn [m] (assoc m k v)) :unit))
+  (om/transact! unit [] (fn [m] (assoc m k v)) :collection))
 
 (defn update-unit [unit k fun]
-  (om/transact! unit [] (fn [m] (update-in m [k] fun)) :unit))
+  (om/transact! unit [] (fn [m] (update-in m [k] fun)) :collection))
 
 (defn check-in-btn [unit]
   (om/build c/btn ["icon-system-update-tv"

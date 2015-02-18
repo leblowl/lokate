@@ -11,9 +11,9 @@
     [drawer
      (c/title-return-banner "resources" #(u/route! % :home))
      [(om/build c/btn ["icon-flow-tree rsc-btn"
-                       #(async/put! % [:add-resource "block"])])
+                       #(async/put! % [:app :add-resource "block"])])
       (om/build c/btn ["icon-flow-line rsc-btn"
-                       #(async/put! % [:add-resource])])]]))
+                       #(async/put! % [:app :add-resource])])]]))
 
 (defn get-rsc-view-data [rsc]
   (if (= (:type rsc) "block")
@@ -28,7 +28,7 @@
       {:action #(om/update! view-data :selected (:id %))
        :icon-class "icon-flow-line item-icon"
        :remove-action (fn [x evt-bus]
-                        (async/put! evt-bus [:delete-resource (:id x)]))}
+                        (async/put! evt-bus [:app :delete-resource (:id x)]))}
       rscs)))
 
 (defn rsc-nav-view [drawer view-data]
