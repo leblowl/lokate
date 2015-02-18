@@ -43,7 +43,7 @@
   (c/title-return-banner "collections" #(u/route! % :home)))
 
 (defn add-collection-btn []
-  (om/build c/btn ["icon-add" #(async/put! % [:add-collection])]))
+  (om/build c/btn ["icon-add" #(async/put! % [:app :add-collection])]))
 
 (defn collections-nav-view [drawer]
   (om/build c/drawer-nav-panel
@@ -53,7 +53,7 @@
   (c/r-item-list
     {:action (fn [x evt-bus] (u/route! evt-bus :collection (:id x)))
      :remove-action (fn [x evt-bus]
-                      (async/put! evt-bus [:delete-collection (:id x)]))
+                      (async/put! evt-bus [:app :delete-collection (:id x)]))
      :placeholder "Untitled_Collection"}
     collections))
 

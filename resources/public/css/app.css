@@ -682,3 +682,12 @@ input:focus {
 .leaflet-contextmenu .icon-pin:hover {
     cursor: pointer;
 }
+
+/* remoteStorage */
+
+#remotestorage-widget {
+    bottom: 33px;
+    left: 230px;
+    top: auto !important;
+    right: auto !important;
+}

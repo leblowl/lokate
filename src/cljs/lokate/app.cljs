@@ -17,10 +17,18 @@
 
 (enable-console-print!)
 
+(def tile-url "http://{s}.tile.osm.org/{z}/{x}/{y}.png")
+(def tile-attr "&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors")
+
 (def app-state
   (atom {:model {:collections      {}
                  :resources        {}
-                 :settings         {}
+                 :settings         {:tile-url     {:id :tile-url
+                                                   :value tile-url}
+                                    :tile-attr    {:id :tile-attr
+                                                   :value tile-attr}
+                                    :user-address {:id :user-address
+                                                   :value (-> js/remoteStorage .-remote .-userAddress)}}
                  :default-settings {}
                  :history          {}}
          :view  {:window {:orientation ""
@@ -71,7 +79,7 @@
               :status "green"
               :resources {}
               :cid cid}]
-    (om/update! data [:model :collections cid :units (:id unit)] unit :unit)
+    (om/update! data [:model :collections cid :units (:id unit)] unit :collection)
     unit))
 
 (defn add-resource [data title]
@@ -98,14 +106,6 @@
    :timestamp (u/now)
    :message ""
    :data (prep-commit-data unit)})
-
-(defn init-default-settings []
-  (swap! app-state
-    #(assoc-in % [:model :settings]
-       {:tile-url {:id :tile-url
-                   :value "http://{s}.tile.osm.org/{z}/{x}/{y}.png"}
-        :tile-attr {:id :tile-attr
-                    :value "&copy; <a href='http://osm.org/copyright'>OpenStreetMap</a> contributors"}})))
 
 (defn set-location [route]
   (swap! app-state
@@ -145,127 +145,121 @@
       :set (swap! app-state #(assoc-in % [:view :window :views-state k] vorfn))
       :update (swap! app-state #(update-in % [:view :window :views-state k] vorfn)))))
 
+(defn new-collection [data]
+  (c/display-input
+    "Collection name"
+    "Untitled collection"
+    #(let [collection (add-collection data %)]
+       (set-route :collection (:id collection)))))
+
+(defn delete-collection [data id]
+  (om/transact! data [:model :collections] #(dissoc % id) :collection))
+
+(defn new-unit [data latlng]
+  (c/display-input
+    "Unit name"
+    "Untitled unit"
+    #(let [selected-cid (-> @app-state :view :window :location second first)
+           unit (add-unit data selected-cid latlng %)]
+       (set-route :unit selected-cid (:id unit)))))
+
+(defn new-resource [data type]
+  (if (= type "block")
+    (c/display-input
+      "Resource block name"
+      "Untitled resource block"
+      #(let [rsc-block (add-resource-block data %)]
+         (om/update! data [:view :window :views-state :selected]
+           (:id rsc-block))))
+    (c/display-input
+      "Resource name"
+      "Untitled resource"
+      #(add-resource data %))))
+
+(defn delete-resource [data id]
+  (om/transact! data [:model :resources] #(dissoc % id) :resource)
+
+  ;; remove all instances from blocks
+  (om/transact! data [:model :resources]
+    #(u/mmap (fn [rsc]
+               (if (u/block? rsc)
+                 (update-in rsc [:resources] dissoc id)
+                 rsc))
+       %) :resource)
+
+  ;; remove all instances of deleted resource in units
+  (om/transact! data [:model :collections]
+    (fn [colls]
+      (u/mmap (fn [coll]
+                (update-in coll [:units]
+                  #(u/mmap (fn [unit]
+                             (update-in unit [:resources] dissoc id))
+                     %)))
+        colls))
+    :collection))
+
+(defn add-setting [data k v]
+  (om/update! data [:model :settings k] {:id k :value v} :setting))
+
+(defn commit! [data cid uid commit]
+  (om/transact! data [:model :history uid]
+    #(conj % commit) :history)
+  (om/transact! data [:model :collections cid :units uid]
+    #(merge % (:data commit)) :collection))
+
+(defn handle-event [data [cmd & args]]
+  (case cmd
+    :add-collection (new-collection data)
+    :delete-collection (apply delete-collection data args)
+    :add-unit (apply new-unit data args)
+    :add-resource (apply new-resource data args)
+    :delete-resource (apply delete-resource data args)
+    :add-setting (apply add-setting data args)
+    :connect (apply db/connect args)
+    :commit! (apply commit! data args)))
+
+(defn init-model [data k v]
+  (om/transact! data [:model k]
+    #(merge % (-> v (js->clj :keywordize-keys true) u/keywordize-ids))))
+
+(defn init-app-model [data]
+  (db/fetch "collection/" (partial init-model data :collections))
+  (db/fetch "resource/"   (partial init-model data :resources))
+  (db/fetch "setting/"    (partial init-model data :settings))
+  (db/fetch "history/"    (partial init-model data :history)))
+
 (defn app [data owner]
   (reify
     om/IWillMount
     (will-mount [_]
-      (u/sub-go-loop event-bus-pub :add-collection
-        (fn [e]
-          (c/display-input
-            "Collection name"
-            "Untitled collection"
-            #(let [collection (add-collection data %)]
-               (set-route :collection (:id collection))))))
-
-      (u/sub-go-loop event-bus-pub :delete-collection
-        (fn [[topic id]]
-          (om/transact! data [:model :collections] #(dissoc % id) :collection)))
-
-      ; adds unit to the currently selected collection
-      (u/sub-go-loop event-bus-pub :add-unit
-        (fn [e]
-          (c/display-input
-            "Unit name"
-            "Untitled unit"
-            #(let [selected-cid (-> @app-state :view :window :location second first)
-                   unit (add-unit data selected-cid (second e) %)]
-               (set-route :unit selected-cid (:id unit))))))
-
-      (u/sub-go-loop event-bus-pub :add-resource
-        (fn [[topic type]]
-          (if (= type "block")
-            (c/display-input
-              "Resource block name"
-              "Untitled resource block"
-              #(let [rsc-block (add-resource-block data %)]
-                 (om/update! data [:view :window :views-state :selected]
-                   (:id rsc-block))))
-            (c/display-input
-              "Resource name"
-              "Untitled resource"
-              #(add-resource data %)))))
-
-      (u/sub-go-loop event-bus-pub :delete-resource
-        (fn [[topic id]]
-          (om/transact! data [:model :resources] #(dissoc % id) :resource)
-
-          ;; remove all instances from blocks
-          (om/transact! data [:model :resources]
-            #(u/mmap (fn [rsc]
-                       (if (u/block? rsc)
-                         (update-in rsc [:resources] dissoc id)
-                         rsc))
-               %) :resource)
-
-          ;; remove all instances of deleted resource in units
-          (om/transact! data [:model :collections]
-            (fn [colls]
-              (u/mmap (fn [coll]
-                        (update-in coll [:units]
-                          #(u/mmap (fn [unit]
-                                     (update-in unit [:resources] dissoc id))
-                             %)))
-                colls))
-            :collection)))
-
-      (u/sub-go-loop event-bus-pub :add-setting
-        (fn [[topic k v]]
-          (om/update! data [:model :settings k] {:id k :value v} :setting)))
-
-      (u/sub-go-loop event-bus-pub :commit!
-        (fn [[topic cid uid commit]]
-          (om/transact! data [:model :history uid]
-            #(conj % commit) :history)
-          (om/transact! data [:model :collections cid :units uid]
-            #(merge % (-> commit :data)) :unit))))
+      (init-app-model data)
+      (u/sub-go-loop event-bus-pub :app
+        #(handle-event data (rest %))))
 
     om/IRender
     (render [_]
       (om/build core/window [(-> data :view :window) data]))))
 
-(defn keywordize-ids
-  "Recursively transforms all ids from strings to keywords."
-  [m]
-  (let [f (fn [[k v]] (if (u/ends-with? (name k) "id") [k (keyword v)] [k v]))]
-    ;; only apply to maps
-    (clojure.walk.postwalk (fn [x] (if (map? x) (into {} (map f x)) x)) m)))
-
-(defn populate-model [key result]
-  (swap! app-state
-    (fn [m]
-      (assoc-in m [:model key (keyword (.-key result))]
-        (keywordize-ids (js->clj (.-value result) :keywordize-keys true))))))
-
-(defn init-app-state [cb]
-  (init-default-settings)
-  (db/new
-    (->> cb
-      (partial db/get-all "resource" #(populate-model :resources %))
-      (partial db/get-all "collection" #(populate-model :collections %))
-      (partial db/get-all "setting" #(populate-model :settings %))
-      (partial db/get-all "history" #(populate-model :history %)))))
-
-(defn update-db [db-name old new]
+(defn update-db [type old new]
   (let [to-add (set/difference (set new) (set old))
         to-delete (set/difference (u/keyset old) (u/keyset new))]
-    (dorun (map #(db/delete db-name %) to-delete))
-    (dorun (map #(db/add db-name (second %)) to-add))))
+    (dorun (map #(db/delete type %) to-delete))
+    (dorun (map #(db/put type (first %) (second %)) to-add))))
 
 (defn tx-listen [m root-cursor]
   (case (:tag m)
-    :unit (let [collection (get-in @app-state
-                             [:model :collections (-> m :new-value :cid)])]
-            (db/add "collection" collection))
     :collection (update-db "collection"
                   (-> m :old-state u/get-collections)
                   (-> m :new-state u/get-collections))
-    :resource (update-db "resource"
-                (-> m :old-state u/get-resources)
-                (-> m :new-state u/get-resources))
-    :setting (update-db "setting"
-               (-> m :old-state u/get-settings)
-               (-> m :new-state u/get-settings))
-    :history (db/add "history" (:new-value m) (-> m :new-value first :data :id name))
+    :resource   (update-db "resource"
+                  (-> m :old-state u/get-resources)
+                  (-> m :new-state u/get-resources))
+    :setting    (update-db "setting"
+                  (-> m :old-state u/get-settings)
+                  (-> m :new-state u/get-settings))
+    :history    (update-db "history"
+                  (-> m :old-state u/get-history)
+                  (-> m :new-state u/get-history))
     nil))
 
 (defn render []
@@ -277,6 +271,7 @@
 (defn go! []
   (set-orientation)
   (.addEventListener js/window "resize" set-orientation)
-  (init-app-state render))
+  (db/init)
+  (render))
 
 (go!)
