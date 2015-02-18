@@ -67,10 +67,6 @@
                     :timestamp (u/now)
                     :units {}}]
     (om/transact! data [:model :collections] #(assoc % (:id collection) collection) :collection)
-    (-> js/remoteStorage
-        .-lokate
-        (.put "collection" (:id collection) collection)
-        (.then #(.log js/console "success!") #(.log js/console (str "error: "%))))
     collection))
 
 (defn add-unit [data cid latlng title]
@@ -81,7 +77,7 @@
               :status "green"
               :resources {}
               :cid cid}]
-    (om/update! data [:model :collections cid :units (:id unit)] unit :unit)
+    (om/update! data [:model :collections cid :units (:id unit)] unit :collection)
     unit))
 
 (defn add-resource [data title]
@@ -207,7 +203,7 @@
   (om/transact! data [:model :history uid]
     #(conj % commit) :history)
   (om/transact! data [:model :collections cid :units uid]
-    #(merge % (:data commit)) :unit))
+    #(merge % (:data commit)) :collection))
 
 (defn handle-event [data [cmd & args]]
   (case cmd
@@ -216,13 +212,24 @@
     :add-unit (apply new-unit data args)
     :add-resource (apply new-resource data args)
     :delete-resource (apply delete-resource data args)
-    :add-setting (apply delete-resource data args)
+    :add-setting (apply add-setting data args)
     :commit! (apply commit! data args)))
+
+(defn init-model [data k v]
+  (om/transact! data [:model k]
+    #(merge % (-> v (js->clj :keywordize-keys true) u/keywordize-ids))))
+
+(defn init-app-model [data]
+  (db/fetch "collection/" (partial init-model data :collections))
+  (db/fetch "resource/"   (partial init-model data :resources))
+  (db/fetch "setting/"    (partial init-model data :settings))
+  (db/fetch "history/"    (partial init-model data :history)))
 
 (defn app [data owner]
   (reify
     om/IWillMount
     (will-mount [_]
+      (init-app-model data)
       (u/sub-go-loop event-bus-pub :app
         #(handle-event data (rest %))))
 
@@ -230,51 +237,26 @@
     (render [_]
       (om/build core/window [(-> data :view :window) data]))))
 
-(defn init-model [k v]
-  (swap! app-state
-    (fn [m]
-      (update-in m [:model k]
-        merge (-> v (js->clj :keywordize-keys true) u/keywordize-ids)))))
-
-(defn init-app-model []
-  (db/fetch "collection/" (partial init-model :collections))
-  (db/fetch "resource/"   (partial init-model :resources))
-  (db/fetch "setting/"    (partial init-model :settings))
-  (db/fetch "history/"    (partial init-model :history)))
-
-(defn init-settings [cb]
-  (db/fetch "setting/"
-    (fn [m] (init-model :settings m) (cb))))
-
-(defn init-app-state [cb]
-  (db/init)
-  (init-app-model)
-  (cb))
-
-(defn update-db [db-name old new]
+(defn update-db [type old new]
   (let [to-add (set/difference (set new) (set old))
         to-delete (set/difference (u/keyset old) (u/keyset new))]
-    ;(dorun (map #(db/delete db-name %) to-delete))
-                                        ;(dorun (map #(db/add db-name (second %)) to-add))
-    )
-  )
+    (dorun (map #(db/delete type %) to-delete))
+    (dorun (map #(db/put type (first %) (second %)) to-add))))
 
 (defn tx-listen [m root-cursor]
   (case (:tag m)
-    :unit (let [collection (get-in @app-state
-                             [:model :collections (-> m :new-value :cid)])]
-            ;(db/add "collection" collection)
-            )
     :collection (update-db "collection"
                   (-> m :old-state u/get-collections)
                   (-> m :new-state u/get-collections))
-    :resource (update-db "resource"
-                (-> m :old-state u/get-resources)
-                (-> m :new-state u/get-resources))
-    :setting (update-db "setting"
-               (-> m :old-state u/get-settings)
-               (-> m :new-state u/get-settings))
-    :history "yo";(db/add "history" (:new-value m) (-> m :new-value first :data :id name))
+    :resource   (update-db "resource"
+                  (-> m :old-state u/get-resources)
+                  (-> m :new-state u/get-resources))
+    :setting    (update-db "setting"
+                  (-> m :old-state u/get-settings)
+                  (-> m :new-state u/get-settings))
+    :history    (update-db "history"
+                  (-> m :old-state u/get-history)
+                  (-> m :new-state u/get-history))
     nil))
 
 (defn render []
@@ -286,6 +268,7 @@
 (defn go! []
   (set-orientation)
   (.addEventListener js/window "resize" set-orientation)
-  (init-app-state render))
+  (db/init)
+  (render))
 
 (go!)

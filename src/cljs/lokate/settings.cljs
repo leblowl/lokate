@@ -11,7 +11,7 @@
     ""
     (:value setting)
     #(async/put! (om/get-shared owner :event-bus)
-       [:add-setting (:id setting) %])))
+       [:app :add-setting (:id setting) %])))
 
 (defn map-settings [settings owner]
   (om/component

@@ -26,7 +26,7 @@
       (.declareType privClient "history"
         (clj->js
           {:description "the commit stack for a particular unit"
-           :type "object"}))
+           :type "array"}))
 
       (clj->js
         {:exports
@@ -39,13 +39,22 @@
                    (-> privClient (.getAll path) (.then pass fail))
                    (-> privClient (.getObject path) (.then pass fail))))
 
-          :delete (fn [path] (.remove privClient path))}}))))
+          :delete (fn [type k pass fail]
+                    (let [path (str type "/" (if (keyword? k) (name k) k))]
+                      (-> privClient (.remove path) (.then pass fail))))}}))))
+
+(def local "lucas@192.168.1.146:10555")
 
 (defn init []
   (def-lokate)
   (-> js/remoteStorage .-access (.claim "lokate" "rw"))
   (.on js/remoteStorage "error" log-error)
-  (.connect js/remoteStorage "lucas@192.168.1.146:10555"))
+  (.connect js/remoteStorage "leblowl@5apps.com"))
+
+(defn put [type k v]
+  (-> js/remoteStorage
+      .-lokate
+      (.put type k v)))
 
 (defn fetch
   ([path pass]
@@ -54,3 +63,8 @@
    (-> js/remoteStorage
        .-lokate
        (.get path pass fail))))
+
+(defn delete [type k]
+  (-> js/remoteStorage
+      .-lokate
+      (.delete type k #(.log js/console "Success!") #(.log js/console "FaILURE!"))))

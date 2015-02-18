@@ -101,6 +101,9 @@
 (defn get-default-settings [data]
   (get-in data [:model :default-settings]))
 
+(defn get-history [data]
+  (get-in data [:model :history]))
+
 (defn get-unit-history [data uid]
   (get-in data [:model :history uid]))
 

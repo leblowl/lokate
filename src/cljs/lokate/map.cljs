@@ -134,7 +134,8 @@
             to-delete (set/difference current-units next-units)]
 
         (when-not (and (= current-url tile-url) (= current-attr tile-attr))
-          (init-map tile-url tile-attr owner))
+          (init-map tile-url tile-attr owner)
+          (add-markers units owner))
 
         (delete-markers owner (keys to-delete))
         (add-markers to-add owner)
