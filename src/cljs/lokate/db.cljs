@@ -30,7 +30,7 @@
 
       (clj->js
         {:exports
-         {:put (fn [type k v]
+         {:put (fn [type k v pass fail]
                  (let [path (str type "/" (if (keyword? k) (name k) k))]
                    (.storeObject privClient type path (clj->js v))))
 
@@ -54,7 +54,7 @@
 (defn put [type k v]
   (-> js/remoteStorage
       .-lokate
-      (.put type k v)))
+      (.put type k v #() log-error)))
 
 (defn fetch
   ([path pass]
@@ -67,4 +67,4 @@
 (defn delete [type k]
   (-> js/remoteStorage
       .-lokate
-      (.delete type k #(.log js/console "Success!") #(.log js/console "FaILURE!"))))
+      (.delete type k #() log-error)))

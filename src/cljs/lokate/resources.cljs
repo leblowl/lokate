@@ -23,7 +23,6 @@
      :title (or (u/blankf (:title rsc)) "Untitled_Resource")}))
 
 (defn rscs-drawer-view [view-data rscs]
-  (.log js/console (pr-str rscs))
   (let [rscs (map #(->> % get-rsc-view-data (merge %)) rscs)]
     (c/r-item-list
       {:action #(om/update! view-data :selected (:id %))
