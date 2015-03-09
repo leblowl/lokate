@@ -28,6 +28,18 @@ Check out the demo on Heroku @ http://lokate-demo.herokuapp.com/. Expect updates
 
 Lokate uses the boot build tool (https://github.com/boot-clj/boot). With this installed, in the project directory, you can run ```boot dev``` to get a localhost dev server setup or run ```boot prod``` to package the app as a standalone jar. Always a work in progress, enjoy :)
 
+# Awesome Future Features
+
+1) Scan physical units in with bar code and pull up their history
+
+2) Drag n Drop markers on map
+
+3) Browse history for a unit
+
+4) Full offline ability w/ map tile caching
+
+5) Export data to Excel
+
 ## License
 
 Copyright © 2014 Lucas Leblow
