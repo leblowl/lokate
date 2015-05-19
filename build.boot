@@ -2,19 +2,19 @@
         :target-path "target"
         :resource-paths #{"resources"}
         :source-paths #{"src/clj" "src/cljs"}
-        :dependencies '[[adzerk/boot-cljs "0.0-2629-9"]
-                        [adzerk/boot-cljs-repl "0.1.8"]
-                        [adzerk/boot-reload "0.2.4"]
+        :dependencies '[[adzerk/boot-cljs "0.0-3269-0"]
+                        [adzerk/boot-cljs-repl "0.1.9"]
+                        [adzerk/boot-reload "0.2.6"]
                         [boot-syu "0.1.0"]
                         [org.clojure/clojure "1.6.0"]
-                        [org.clojure/clojurescript "0.0-2727"]
+                        [org.clojure/clojurescript "0.0-3291"]
                         [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-                        [org.omcljs/om "0.8.6"]
-                        [sablono "0.3.1"]
+                        [org.omcljs/om "0.8.8"]
+                        [sablono "0.3.4"]
                         [org.clojars.leanpixel/cljs-uuid-utils "1.0.0-SNAPSHOT"]
-                        [com.andrewmcveigh/cljs-time "0.3.0"]
-                        [ring "1.3.1"]
-                        [compojure "1.2.1"]
+                        [com.andrewmcveigh/cljs-time "0.3.5"]
+                        [ring "1.3.2"]
+                        [compojure "1.3.4"]
                         [http-kit "2.1.19"]])
 
 (require
