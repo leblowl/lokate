@@ -40,16 +40,11 @@
 (defn rsc-drawer-view [resource]
   (c/title1 (:title resource) "Untitled Resource"))
 
-(defn toggle-rsc [rsc-block rsc evt-bus]
+(defn toggle-rsc [rsc-block rsc]
   (om/transact! rsc-block [:resources]
     (if (:active rsc)
       #(dissoc % (:id rsc))
       #(assoc % (:id rsc) rsc)) :resource))
-
-(defn toggle-rsc [rscs rsc]
-  (if (:active rsc)
-    (dissoc rscs (:id rsc))
-    (assoc rscs (:id rsc) (dissoc rsc :active))))
 
 (defn rsc-block-drawer-view [rsc-block rscs]
   (let [active? #(contains? (:resources rsc-block) (:id %))
@@ -59,9 +54,7 @@
      (c/select-list
        {:id "unit-edit-rscs"
         :class "border-select-"
-        :action (fn [x evt-bus]
-                  (om/transact! rsc-block [:resources]
-                    #(toggle-rsc % x) :resource))
+        :action (fn [x evt-bus] (toggle-rsc rsc-block x))
         :placeholder "Untitled_Resource"}
        rscs)]))
 

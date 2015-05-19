@@ -1,10 +1,11 @@
 (set-env!
         :target-path "target"
         :resource-paths #{"resources"}
-        :source-paths #{"src/clj" "src/cljs" "../boot-cljs/src"}
-        :dependencies '[;[adzerk/boot-cljs "0.0-2629-9"]
+        :source-paths #{"src/clj" "src/cljs"}
+        :dependencies '[[adzerk/boot-cljs "0.0-2629-9"]
                         [adzerk/boot-cljs-repl "0.1.8"]
                         [adzerk/boot-reload "0.2.4"]
+                        [boot-syu "0.1.0"]
                         [org.clojure/clojure "1.6.0"]
                         [org.clojure/clojurescript "0.0-2727"]
                         [org.clojure/core.async "0.1.346.0-17112a-alpha"]
@@ -20,6 +21,7 @@
   '[adzerk.boot-cljs       :refer :all]
   '[adzerk.boot-reload     :refer :all]
   '[adzerk.boot-cljs-repl  :refer :all]
+  '[boot-syu.task          :refer :all]
   '[lokate.server             :as server]
   '[ring.middleware.reload    :as reload]
   '[ring.middleware.file      :as file]
