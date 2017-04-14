@@ -6,18 +6,18 @@
 
   :min-lein-version "2.5.0"
 
-  :dependencies [[org.clojure/clojure "1.6.0"]
-                 [org.clojure/clojurescript "0.0-2727"]
-                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]
+  :dependencies [[org.clojure/clojure "1.8.0"]
+                 [org.clojure/clojurescript "1.9.518"]
+                 [org.clojure/core.async "0.3.442"]
                  [org.omcljs/om "0.8.6"]
                  [sablono "0.3.1"]
                  [org.clojars.leanpixel/cljs-uuid-utils "1.0.0-SNAPSHOT"]
-                 [com.andrewmcveigh/cljs-time "0.3.0"]
-                 [ring "1.3.1"]
-                 [compojure "1.2.1"]
-                 [http-kit "2.1.19"]]
+                 [com.andrewmcveigh/cljs-time "0.4.0"]
+                 [ring "1.6.0-RC2"]
+                 [compojure "1.5.2"]
+                 [http-kit "2.2.0"]]
 
-  :plugins [[lein-cljsbuild "1.0.4"]]
+  :plugins [[lein-cljsbuild "1.1.5"]]
 
   :source-paths ["src/clj" "src/cljs"]
   :uberjar-name "lokate.jar"

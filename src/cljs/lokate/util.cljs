@@ -19,7 +19,7 @@
   (str (uuid/make-random-uuid)))
 
 (defn now []
-  (to-long (time/time-now)))
+  (to-long (time/now)))
 
 (defn format [& args]
   (apply gstring/format args))
